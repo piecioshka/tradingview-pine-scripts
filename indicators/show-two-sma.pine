@@ -1,0 +1,23 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+//@version=6
+indicator("MA", overlay = true)
+
+a = 50
+b = 200
+
+// plot.style_line
+// plot.style_linebr
+// plot.style_histogram
+// plot.style_cross
+// plot.style_area
+// plot.style_areabr
+// plot.style_columns
+// plot.style_circles
+// plot.style_stepline
+// plot.style_stepline_diamond
+// plot.style_steplinebr
+
+plot(ta.sma(close, a), 'Krótki', color=color.rgb(29, 153, 235), force_overlay=true)
+plot(ta.sma(close, b), 'Długi', color.rgb(0, 76, 198), force_overlay=true)
