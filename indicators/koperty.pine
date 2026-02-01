@@ -2,7 +2,7 @@
 // © piecioshka
 
 // @version=6
-indicator('😎 Envelope (by PK)', overlay = true)
+indicator('😎 Koperty (by PK)', overlay = true)
 
 opt1 = "3% wokół prostej średniej 21-dniowej"
 opt2 = "5% wokół prostej średniej 10-tygodniowy"
