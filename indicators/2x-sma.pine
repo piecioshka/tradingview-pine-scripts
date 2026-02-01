@@ -1,0 +1,14 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+//@version=6
+indicator("😎 2x MA (by PK)", overlay = true)
+
+a = input(50, 'Krótki okres SMA')
+b = input(200, 'Długi okres SMA')
+
+aSMA = ta.sma(close, a)
+bSMA = ta.sma(close, b)
+
+plot(aSMA, 'Krótki', color=color.new(color.green, 30), linewidth=2, force_overlay=true)
+plot(bSMA, 'Długi', color=color.new(color.red, 30), linewidth=2, force_overlay=true)
