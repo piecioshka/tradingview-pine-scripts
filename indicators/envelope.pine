@@ -1,0 +1,39 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+// @version=6
+indicator('😎 Envelope (by PK)', overlay = true)
+
+opt1 = "3% wokół prostej średniej 21-dniowej"
+opt2 = "5% wokół prostej średniej 10-tygodniowy"
+opt3 = "10% wokół prostej średniej 40-tygodniowej"
+
+colorA = color.rgb(56, 104, 174)
+colorB = color.rgb(215, 107, 52)
+
+// „Równoległe” tablice – długości i procenty
+var int[] lengths = array.from(21, 10, 40)
+var float[] percents = array.from(3.0, 5.0, 10.0)
+
+mode = input.string(
+    title = "Tryb",
+    defval = opt1,
+    options = [opt1, opt2, opt3]
+)
+
+int idx = switch mode
+    opt1 => 0
+    opt2 => 1
+    opt3 => 2
+
+len = array.get(lengths, idx)
+percent = array.get(percents, idx)
+
+aSMA = ta.sma(close, len)
+
+center = plot(aSMA, 'SMA', color=color.new(color.white, 30), force_overlay=true)
+plotUpper = plot(aSMA * (1 + percent / 100), color=colorA, force_overlay=true)
+plotLower = plot(aSMA * (1 - percent / 100), color=colorB, force_overlay=true)
+
+fill(plotUpper, center, color = color.new(colorA, 90))
+fill(center, plotLower, color = color.new(colorB, 90))
