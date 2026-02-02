@@ -7,7 +7,7 @@ indicator('😎 Wstęgi Bollingera (by PK)', overlay = true)
 colorA = color.rgb(114, 48, 131)
 colorB = color.rgb(240, 199, 58)
 
-len = input.int(20, 'Długość')
+len = input.int(20, 'SMA')
 
 std = ta.stdev(close, len)
 
