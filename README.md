@@ -61,3 +61,10 @@ linestyle (input plot_line_style)
 - plot.linestyle_solid - ciągła
 - plot.linestyle_dashed - przerywana
 - plot.linestyle_dotted - kropkowana
+
+## Misc
+
+VSCode plugin to support syntax hightlighting:
+
+- https://marketplace.visualstudio.com/items?itemName=ex-codes.pine-script-syntax-highlighter
+  - Code: https://github.com/yankikucuk/pine-script-syntax-highlighter
