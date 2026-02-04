@@ -1,0 +1,39 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+//@version=6
+indicator("😎 2x MA (by PK)", overlay = true)
+
+aColor = color.green
+bColor = color.fuchsia
+
+aLen = input(50, 'Długość', group="Krótki")
+aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Krótki", defval='SMA')
+aSeries = switch aType
+    'SMA' => ta.sma(close, aLen)
+    'EMA' => ta.ema(close, aLen)
+    'WMA' => ta.wma(close, aLen)
+    'VWMA' => ta.vwma(close, aLen)
+    'RMA' => ta.rma(close, aLen)
+    => na
+
+bLen = input(50, 'Długość', group="Długi")
+bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Długi", defval='SMA')
+bSeries = switch bType
+    'SMA' => ta.sma(close, bLen)
+    'EMA' => ta.ema(close, bLen)
+    'WMA' => ta.wma(close, bLen)
+    'VWMA' => ta.vwma(close, bLen)
+    'RMA' => ta.rma(close, bLen)
+    => na
+
+plot(aSeries, 'Krótki', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
+plot(bSeries, 'Długi', color=color.new(bColor, 30), linewidth=2, force_overlay=true)
+
+if (ta.crossover(aSeries, bSeries))
+    label.new(bar_index, high, "BUY OPEN", color=color.new(aColor, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
+    alert("Sygnał OTWARCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
+
+if (ta.crossunder(aSeries, bSeries))
+    label.new(bar_index, low, "BUY CLOSE", color=color.new(bColor, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
+    alert("Sygnał ZAMKNIĘCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)

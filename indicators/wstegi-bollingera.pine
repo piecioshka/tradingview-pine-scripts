@@ -4,8 +4,8 @@
 // @version=6
 indicator('😎 Wstęgi Bollingera (by PK)', overlay = true)
 
-colorA = color.rgb(114, 48, 131)
-colorB = color.rgb(240, 199, 58)
+aColor = color.rgb(114, 48, 131)
+bColor = color.rgb(240, 199, 58)
 
 len = input.int(20, 'SMA')
 
@@ -14,8 +14,8 @@ std = ta.stdev(close, len)
 sma = ta.sma(close, len)
 
 center = plot(sma, color=color.new(color.white, 30), force_overlay=true)
-plotUpper = plot(sma + 2 * std, color=colorA, force_overlay=true)
-plotLower = plot(sma - 2 * std, color=colorB, force_overlay=true)
+plotUpper = plot(sma + 2 * std, color=aColor, force_overlay=true)
+plotLower = plot(sma - 2 * std, color=bColor, force_overlay=true)
 
-fill(plotUpper, center, color = color.new(colorA, 90))
-fill(center, plotLower, color = color.new(colorB, 90))
+fill(plotUpper, center, color = color.new(aColor, 90))
+fill(center, plotLower, color = color.new(bColor, 90))

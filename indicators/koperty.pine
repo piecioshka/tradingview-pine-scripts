@@ -8,8 +8,8 @@ opt1 = "3% wokół prostej średniej 21-dniowej"
 opt2 = "5% wokół prostej średniej 10-tygodniowy"
 opt3 = "10% wokół prostej średniej 40-tygodniowej"
 
-colorA = color.rgb(56, 104, 174)
-colorB = color.rgb(215, 107, 52)
+aColor = color.rgb(56, 104, 174)
+bColor = color.rgb(215, 107, 52)
 
 // „Równoległe” tablice – długości i procenty
 var int[] lengths = array.from(21, 10, 40)
@@ -29,11 +29,11 @@ int idx = switch mode
 len = array.get(lengths, idx)
 percent = array.get(percents, idx)
 
-aSMA = ta.sma(close, len)
+aSeries = ta.sma(close, len)
 
-center = plot(aSMA, 'SMA', color=color.new(color.white, 30), force_overlay=true)
-plotUpper = plot(aSMA * (1 + percent / 100), color=colorA, force_overlay=true)
-plotLower = plot(aSMA * (1 - percent / 100), color=colorB, force_overlay=true)
+center = plot(aSeries, 'SMA', color=color.new(color.white, 30), force_overlay=true)
+plotUpper = plot(aSeries * (1 + percent / 100), color=aColor, force_overlay=true)
+plotLower = plot(aSeries * (1 - percent / 100), color=bColor, force_overlay=true)
 
-fill(plotUpper, center, color = color.new(colorA, 90))
-fill(center, plotLower, color = color.new(colorB, 90))
+fill(plotUpper, center, color = color.new(aColor, 90))
+fill(center, plotLower, color = color.new(bColor, 90))

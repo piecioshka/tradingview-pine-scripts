@@ -55,3 +55,9 @@ option: `style` values:
 - plot.style_linebr
 - plot.style_areabr
 - plot.style_steplinebr
+
+linestyle (input plot_line_style)
+
+- plot.linestyle_solid - ciągła
+- plot.linestyle_dashed - przerywana
+- plot.linestyle_dotted - kropkowana
