@@ -1,0 +1,13 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+//@version=6
+indicator("😎 1x SMA (by PK)", overlay = true)
+
+colorA = color.white
+
+a = input(20, 'SMA')
+
+aSMA = ta.sma(close, a)
+
+plot(aSMA, 'Single SMA', color=color.new(colorA, 30), linewidth=2, force_overlay=true)

@@ -5,7 +5,7 @@
 indicator("😎 2x SMA (by PK)", overlay = true)
 
 colorA = color.green
-colorB = color.red
+colorB = color.fuchsia
 
 a = input(50, 'Krótki okres SMA')
 b = input(200, 'Długi okres SMA')
