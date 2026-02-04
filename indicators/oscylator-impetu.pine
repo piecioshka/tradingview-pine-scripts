@@ -2,7 +2,7 @@
 // © piecioshka
 
 //@version=6
-indicator("😎 Oscylator (by PK)")
+indicator("😎 Oscylator Impetu (by PK)")
 
 defaultColor = color.gray
 
