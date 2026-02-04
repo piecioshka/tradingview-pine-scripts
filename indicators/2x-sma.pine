@@ -18,6 +18,8 @@ plot(bSMA, 'Długi', color=color.new(colorB, 30), linewidth=2, force_overlay=tru
 
 if (ta.crossover(aSMA, bSMA))
     label.new(bar_index, high, "BUY OPEN", color=color.new(colorA, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
+    alert("Sygnał OTWARCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
 
 if (ta.crossunder(aSMA, bSMA))
     label.new(bar_index, low, "BUY CLOSE", color=color.new(colorB, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
+    alert("Sygnał ZAMKNIĘCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
