@@ -4,8 +4,8 @@
 //@version=6
 indicator("😎 2x MA (by PK)", overlay = true)
 
-aColor = color.green
-bColor = color.fuchsia
+aColor = color.rgb(56, 104, 174)
+bColor = color.rgb(215, 107, 52)
 
 aLen = input(50, 'Długość', group="Krótki")
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Krótki", defval='SMA')
@@ -28,12 +28,12 @@ bSeries = switch bType
     => na
 
 plot(aSeries, 'Krótki', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
-plot(bSeries, 'Długi', color=color.new(bColor, 30), linewidth=2, force_overlay=true)
+plot(bSeries, 'Długi', color=color.new(bColor, 30), linewidth=2, force_overlay=true, linestyle=plot.linestyle_dotted)
 
 if (ta.crossover(aSeries, bSeries))
-    label.new(bar_index, high, "BUY OPEN", color=color.new(aColor, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
+    label.new(bar_index, high, "BUY OPEN", color=color.new(color.green, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
     alert("Sygnał OTWARCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
 
 if (ta.crossunder(aSeries, bSeries))
-    label.new(bar_index, low, "BUY CLOSE", color=color.new(bColor, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
+    label.new(bar_index, low, "BUY CLOSE", color=color.new(color.red, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
     alert("Sygnał ZAMKNIĘCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)

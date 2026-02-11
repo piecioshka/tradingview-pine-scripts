@@ -4,8 +4,6 @@
 //@version=6
 indicator("😎 Oscylator Impetu (by PK)")
 
-defaultColor = color.gray
-
 aLen = input(50, 'Długość', group="Krótki")
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Krótki", defval='SMA')
 aSeries = switch aType
@@ -26,5 +24,8 @@ bSeries = switch bType
     'RMA' => ta.rma(close, bLen)
     => na
 
-plot(aSeries - bSeries, 'Oscylator', color=defaultColor, linewidth=2, style=plot.style_columns)
-hline(0, 'Zero', color=defaultColor, linestyle=hline.style_dashed)
+histogram = aSeries - bSeries
+histColor = histogram >= 0 ? color.new(color.green, 50) : color.new(color.red, 50)
+
+plot(histogram, 'Oscylator', color=histColor, linewidth=2, style=plot.style_columns)
+hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
