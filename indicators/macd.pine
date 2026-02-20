@@ -2,13 +2,13 @@
 // © piecioshka
 
 //@version=6
-indicator("😎 MACD (by PK)")
+indicator('📈 MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false)
 
 macdColor = color.rgb(56, 104, 174)
 signalColor = color.rgb(215, 107, 52)
 
-aLen = input(12, 'Szybsza (krótsza)', group="Szybsza (krótsza)")
-aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Szybsza (krótsza)", defval='EMA')
+aLen = input(12, 'Szybsza (krótsza)', group='Szybsza (krótsza)')
+aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Szybsza (krótsza)', defval='EMA')
 aSeries = switch aType
     'SMA' => ta.sma(close, aLen)
     'EMA' => ta.ema(close, aLen)
@@ -17,8 +17,8 @@ aSeries = switch aType
     'RMA' => ta.rma(close, aLen)
     => na
 
-bLen = input(26, 'Szybsza (dłuższa)', group="Szybsza (dłuższa)")
-bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Szybsza (dłuższa)", defval='EMA')
+bLen = input(26, 'Szybsza (dłuższa)', group='Szybsza (dłuższa)')
+bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Szybsza (dłuższa)', defval='EMA')
 bSeries = switch bType
     'SMA' => ta.sma(close, bLen)
     'EMA' => ta.ema(close, bLen)
@@ -29,8 +29,8 @@ bSeries = switch bType
 
 macd = aSeries - bSeries
 
-cLen = input(9, 'Wolniejsza', group="Wolniejsza")
-cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Wolniejsza", defval='EMA')
+cLen = input(9, 'Wolniejsza', group='Wolniejsza')
+cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Wolniejsza', defval='EMA')
 cSeries = switch cType
     'SMA' => ta.sma(macd, cLen)
     'EMA' => ta.ema(macd, cLen)
@@ -39,24 +39,20 @@ cSeries = switch cType
     'RMA' => ta.rma(macd, cLen)
     => na
 
+histogram = macd - cSeries
+histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 50) : color.new(color.green, 80) : histogram < histogram[1] ? color.new(color.red, 50) : color.new(color.red, 80)
+
 plot(macd, 'MACD', color=macdColor, linewidth=2)
 plot(cSeries, 'Signal', color=signalColor, linewidth=2, linestyle=plot.linestyle_dotted)
-
-histogram = macd - cSeries
-
-histColor = histogram >= 0 ? color.new(color.green, 50) : color.new(color.red, 50)
 plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
-
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 
 if (ta.crossover(macd, cSeries))
-    line.new(bar_index, macd, bar_index, macd, color=color.new(color.green, 70), width=1, style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), width=1, style=line.style_dashed, extend=extend.both, force_overlay=true)
-    label.new(bar_index, macd * 1.2, "BUY OPEN", color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
-    alert("Sygnał OTWARCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
+    line.new(bar_index, macd, bar_index, macd, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
+    label.new(bar_index, macd * 1.2, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
 if (ta.crossunder(macd, cSeries))
-    line.new(bar_index, macd, bar_index, macd, color=color.new(color.red, 70), width=1, style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), width=1, style=line.style_dashed, extend=extend.both, force_overlay=true)
-    label.new(bar_index, macd * 1.2, "BUY CLOSE", color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
-    alert("Sygnał ZAMKNIĘCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
+    line.new(bar_index, macd, bar_index, macd, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
+    label.new(bar_index, macd * 1.2, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)

@@ -2,16 +2,16 @@
 // https://www.patreon.com/donaldit/shop/spx-15-options-trading-strategy-321411
 
 //@version=6
-strategy("PK - EMA trailing (11/21/200)", overlay=true, fill_orders_on_standard_ohlc=true, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.01)
+strategy('PK - EMA trailing (11/21/200)', overlay=true, fill_orders_on_standard_ohlc=true, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.01)
 
 // Inputs
-lenFast   = input.int(11,  "EMA fast (11)")
-lenSlow   = input.int(21,  "EMA slow (21)")
-lenTrend  = input.int(200, "EMA trend (200)")
-useAtrBuf = input.bool(true, "Use ATR buffer")
-atrLen    = input.int(14, "ATR length", minval=1)
-atrMult   = input.float(1.0, "ATR multiplier", minval=0.0)
-trailMode = input.string("EMA21", "Trailing source", options=["EMA11", "EMA21", "EMA200"])
+lenFast   = input.int(11,  'EMA fast (11)')
+lenSlow   = input.int(21,  'EMA slow (21)')
+lenTrend  = input.int(200, 'EMA trend (200)')
+useAtrBuf = input.bool(true, 'Use ATR buffer')
+atrLen    = input.int(14, 'ATR length', minval=1)
+atrMult   = input.float(1.0, 'ATR multiplier', minval=0.0)
+trailMode = input.string('EMA21', 'Trailing source', options=['EMA11', 'EMA21', 'EMA200'])
 
 // EMAs
 ema11  = ta.ema(close, lenFast)
@@ -28,7 +28,7 @@ exitOnCrossDown  = ta.crossunder(ema11, ema21)
 loseTrendFilter  = ema21 < ema200
 
 // Trailing source selection
-trailSrc = trailMode == "EMA11" ? ema11 : trailMode == "EMA21" ? ema21 : ema200
+trailSrc = trailMode == 'EMA11' ? ema11 : trailMode == 'EMA21' ? ema21 : ema200
 
 // ATR buffer (to avoid too tight trailing)
 atr = ta.atr(atrLen)
@@ -39,7 +39,7 @@ trailStopLong = trailSrc - buffer
 
 // Entry
 if (longCondition and strategy.position_size <= 0)
-    strategy.entry("Long EMA11/21 over 200", strategy.long)
+    strategy.entry('Long EMA11/21 over 200', strategy.long)
 
 // Manage trailing: move stop up only when price advances; never lower it (classic trailing)
 var float highestTrailStop = na
@@ -57,15 +57,15 @@ exitNow = exitOnCrossDown or loseTrendFilter
 // Place exits. We use both: a stop at highestTrailStop and a market exit on exitNow.
 if (strategy.position_size > 0)
     // Update stop
-    strategy.exit("Trail", from_entry="Long EMA11/21 over 200", stop=highestTrailStop)
+    strategy.exit('Trail', from_entry='Long EMA11/21 over 200', stop=highestTrailStop)
     // Optional hard exit on signals
     if (exitNow)
-        strategy.close("Long EMA11/21 over 200")
+        strategy.close('Long EMA11/21 over 200')
 
 // Debug/plots
-plot(ema11,  title="EMA(11)",  color=color.new(color.green, 0))
-plot(ema21,  title="EMA(21)",  color=color.new(color.blue,  0))
-plot(ema200, title="EMA(200)", color=color.new(color.orange,0))
+plot(ema11,  title='EMA(11)',  color=color.new(color.green, 0))
+plot(ema21,  title='EMA(21)',  color=color.new(color.blue,  0))
+plot(ema200, title='EMA(200)', color=color.new(color.orange,0))
 
-plot(trailSrc,       title="Trailing Source", color=color.new(color.purple, 0))
-plot(highestTrailStop, title="Trailing Stop", color=color.new(color.red, 0), style=plot.style_linebr)
+plot(trailSrc,       title='Trailing Source', color=color.new(color.purple, 0))
+plot(highestTrailStop, title='Trailing Stop', color=color.new(color.red, 0), style=plot.style_linebr)

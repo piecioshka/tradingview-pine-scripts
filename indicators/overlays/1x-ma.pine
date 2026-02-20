@@ -2,7 +2,7 @@
 // © piecioshka
 
 //@version=6
-indicator("😎 1x MA (by PK)", overlay = true)
+indicator('📈 1x MA = Moving Average (by PK)', shorttitle='1x MA', overlay = true)
 
 aColor = color.white
 

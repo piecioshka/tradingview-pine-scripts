@@ -2,14 +2,14 @@
 // © piecioshka
 
 //@version=6
-indicator("😎 3x MA (by PK)", overlay = true)
+indicator('📈 3x MA = Moving Average (by PK)', shorttitle='3x MA', overlay = true)
 
 aColor = color.rgb(237, 197, 57)
 bColor = color.rgb(141, 68, 57)
 cColor = color.rgb(194, 59, 47)
 
-aLen = input(4, 'Długość', group="Krótki")
-aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Krótki", defval='SMA')
+aLen = input(4, 'Długość', group='Krótki')
+aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Krótki', defval='SMA')
 aSeries = switch aType
     'SMA' => ta.sma(close, aLen)
     'EMA' => ta.ema(close, aLen)
@@ -18,8 +18,8 @@ aSeries = switch aType
     'RMA' => ta.rma(close, aLen)
     => na
 
-bLen = input(9, 'Długość', group="Średni")
-bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Średni", defval='SMA')
+bLen = input(9, 'Długość', group='Średni')
+bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Średni', defval='SMA')
 bSeries = switch bType
     'SMA' => ta.sma(close, bLen)
     'EMA' => ta.ema(close, bLen)
@@ -28,8 +28,8 @@ bSeries = switch bType
     'RMA' => ta.rma(close, bLen)
     => na
 
-cLen = input(18, 'Długość', group="Długi")
-cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group="Długi", defval='SMA')
+cLen = input(18, 'Długość', group='Długi')
+cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Długi', defval='SMA')
 cSeries = switch cType
     'SMA' => ta.sma(close, cLen)
     'EMA' => ta.ema(close, cLen)

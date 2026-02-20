@@ -2,7 +2,7 @@
 // © piecioshka
 
 // @version=6
-indicator('😎 Wstęgi Bollingera (by PK)', overlay = true)
+indicator('📈 Wstęgi Bollingera (by PK)', shorttitle='Bollinger Bands', overlay = true)
 
 aColor = color.rgb(114, 48, 131)
 bColor = color.rgb(240, 199, 58)
@@ -10,9 +10,7 @@ bColor = color.rgb(240, 199, 58)
 len = input.int(20, 'SMA')
 
 std = ta.stdev(close, len)
-
 sma = ta.sma(close, len)
-
 center = plot(sma, color=color.new(color.white, 30), force_overlay=true)
 plotUpper = plot(sma + 2 * std, color=aColor, force_overlay=true)
 plotLower = plot(sma - 2 * std, color=bColor, force_overlay=true)

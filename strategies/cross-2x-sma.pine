@@ -2,7 +2,7 @@
 // © piecioshka
 
 //@version=6
-strategy("😎 Strategy (by PK)", overlay=true, fill_orders_on_standard_ohlc = true)
+strategy('📈 Strategy (by PK)', overlay=true, fill_orders_on_standard_ohlc = true)
 
 a = input(50, 'Krótki okres SMA')
 b = input(200, 'Długi okres SMA')
@@ -12,8 +12,8 @@ bSeries = ta.sma(close, b)
 
 longCondition = ta.crossover(aSeries, bSeries)
 if (longCondition)
-    strategy.entry("My Long Entry Id", strategy.long)
+    strategy.entry('My Long Entry Id', strategy.long)
 
 shortCondition = ta.crossunder(aSeries, bSeries)
 if (shortCondition)
-    strategy.entry("My Short Entry Id", strategy.short)
+    strategy.entry('My Short Entry Id', strategy.short)

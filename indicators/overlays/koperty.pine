@@ -2,11 +2,11 @@
 // © piecioshka
 
 // @version=6
-indicator('😎 Koperty (by PK)', overlay = true)
+indicator('📈 Koperty (by PK)', shorttitle='Envelopes', overlay = true)
 
-opt1 = "3% wokół prostej średniej 21-dniowej"
-opt2 = "5% wokół prostej średniej 10-tygodniowy"
-opt3 = "10% wokół prostej średniej 40-tygodniowej"
+opt1 = '3% wokół prostej średniej 21-dniowej'
+opt2 = '5% wokół prostej średniej 10-tygodniowy'
+opt3 = '10% wokół prostej średniej 40-tygodniowej'
 
 aColor = color.rgb(56, 104, 174)
 bColor = color.rgb(215, 107, 52)
@@ -16,7 +16,7 @@ var int[] lengths = array.from(21, 10, 40)
 var float[] percents = array.from(3.0, 5.0, 10.0)
 
 mode = input.string(
-    title = "Tryb",
+    title = 'Tryb',
     defval = opt1,
     options = [opt1, opt2, opt3]
 )
