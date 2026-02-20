@@ -31,9 +31,11 @@ plot(aSeries, 'Krótki', color=color.new(aColor, 30), linewidth=2, force_overlay
 plot(bSeries, 'Długi', color=color.new(bColor, 30), linewidth=2, force_overlay=true, linestyle=plot.linestyle_dotted)
 
 if (ta.crossover(aSeries, bSeries))
-    label.new(bar_index, high, "BUY OPEN", color=color.new(color.green, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), width=1, style=line.style_dashed, extend=extend.both)
+    label.new(bar_index, aSeries, "BUY OPEN", color=color.new(color.green, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
     alert("Sygnał OTWARCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)
 
 if (ta.crossunder(aSeries, bSeries))
-    label.new(bar_index, low, "BUY CLOSE", color=color.new(color.red, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), width=1, style=line.style_dashed, extend=extend.both)
+    label.new(bar_index, aSeries, "BUY CLOSE", color=color.new(color.red, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
     alert("Sygnał ZAMKNIĘCIA pozycji DŁUGIEJ (LONG)!", alert.freq_once_per_bar_close)

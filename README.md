@@ -13,18 +13,18 @@ Built-in colors:
 - color.aqua
 - color.black
 - color.blue
-- color.fuchsia
+- color.fuchsia - dark pink
 - color.gray
 - color.green
 - color.lime
-- color.maroon
-- color.navy
-- color.olive
+- color.maroon - dark red
+- color.navy - dark blue
+- color.olive - dark yellow
 - color.orange
 - color.purple
 - color.red
 - color.silver
-- color.teal
+- color.teal - dark green
 - color.white
 - color.yellow
 
@@ -61,6 +61,12 @@ linestyle (input plot_line_style)
 - plot.linestyle_solid - ciągła
 - plot.linestyle_dashed - przerywana
 - plot.linestyle_dotted - kropkowana
+
+hline
+
+- hline.style_solid (default)
+- hline.style_dashed
+- hline.style_dotted
 
 ## Misc
 

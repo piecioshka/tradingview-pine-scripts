@@ -29,3 +29,13 @@ histColor = histogram >= 0 ? color.new(color.green, 50) : color.new(color.red, 5
 
 plot(histogram, 'Oscylator', color=histColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
+
+if (ta.crossunder(aSeries, bSeries))
+    line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.green, 70), width=1, style=line.style_dashed, extend=extend.both)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), width=1, style=line.style_dashed, extend=extend.both, force_overlay=true)
+    label.new(bar_index, 0, "BUY OPEN", color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
+
+if (ta.crossover(aSeries, bSeries))
+    line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.red, 70), width=1, style=line.style_dashed, extend=extend.both)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), width=1, style=line.style_dashed, extend=extend.both, force_overlay=true)
+    label.new(bar_index, 0, "BUY CLOSE", color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
