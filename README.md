@@ -1,6 +1,6 @@
 # tradingview-pine-scripts
 
-📊 List of useful Pine scripts for TradingView.
+📊 List of useful scripts (indicators & strategies) for TradingView.
 
 ## Related
 
@@ -33,16 +33,16 @@ Built-in colors:
 Pairings:
 
 - A:
-  - color.rgb(0, 153, 136)
-  - color.rgb(255, 121, 63)
+  - `color.rgb(0, 153, 136)`
+  - `color.rgb(255, 121, 63)`
 - B:
-  - color.rgb(114, 48, 131)
-  - color.rgb(240, 199, 58)
+  - `color.rgb(114, 48, 131)`
+  - `color.rgb(240, 199, 58)`
 - C:
-  - color.rgb(56, 104, 174)
-  - color.rgb(215, 107, 52)
+  - `color.rgb(56, 104, 174)`
+  - `color.rgb(215, 107, 52)`
 
-## Pine Script / plot()
+## Pine Script / `plot()`
 
 `style` possible values:
 
@@ -64,7 +64,7 @@ Pairings:
 - `plot.linestyle_dashed` - przerywana
 - `plot.linestyle_dotted` - kropkowana
 
-## Pine Script / hline
+## Pine Script / `hline()`
 
 `linestyle` possible values:
 
