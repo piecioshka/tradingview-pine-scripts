@@ -1,0 +1,15 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © piecioshka
+
+//@version=6
+indicator("📈 ROC - Rate of Change (by PK)", shorttitle="ROC")
+
+length = input.int(9, 'Okres', minval=1)
+src = input.source(close, 'Źródło')
+
+roc = (src - src[length]) / src[length] * 100
+
+rocColor = roc >= 0 ? color.new(color.green, 50) : color.new(color.red, 50)
+
+plot(roc, 'ROC', color=rocColor, linewidth=2, style=plot.style_columns)
+hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
