@@ -1,6 +1,6 @@
 # tradingview-pine-scripts
 
-📊 List of useful scripts (indicators & strategies) for TradingView.
+📊 List of useful scripts (indicators & strategies) in Pine Script® for TradingView.
 
 ## Related
 

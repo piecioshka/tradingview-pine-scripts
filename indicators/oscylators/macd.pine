@@ -1,5 +1,5 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// © piecioshka
+// © Piotr Kowalski "piecioshka"
 
 //@version=6
 indicator('📈 MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false)
@@ -42,7 +42,7 @@ cSeries = switch cType
 histogram = macd - cSeries
 histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 50) : color.new(color.green, 80) : histogram < histogram[1] ? color.new(color.red, 50) : color.new(color.red, 80)
 
-plot(macd, 'MACD', color=macdColor, linewidth=2)
+plot(macd, 'Oscylator', color=macdColor, linewidth=2)
 plot(cSeries, 'Signal', color=signalColor, linewidth=2, linestyle=plot.linestyle_dotted)
 plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
@@ -50,9 +50,9 @@ hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 if (ta.crossover(macd, cSeries))
     line.new(bar_index, macd, bar_index, macd, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, macd * 1.2, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
+    label.new(bar_index, macd - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
 if (ta.crossunder(macd, cSeries))
     line.new(bar_index, macd, bar_index, macd, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, macd * 1.2, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
+    label.new(bar_index, cSeries + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
