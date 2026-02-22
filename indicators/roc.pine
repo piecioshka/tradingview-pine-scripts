@@ -4,10 +4,10 @@
 //@version=6
 indicator('📈 ROC = Rate of Change (by PK)', shorttitle='ROC', overlay=false)
 
-length = input.int(9, 'Okres', minval=1)
+aLen = input.int(9, 'Długość')
 src = input.source(close, 'Źródło')
 
-roc = (src - src[length]) / src[length] * 100
+roc = (src - src[aLen]) / src[aLen] * 100
 
 rocColor = roc >= 0 ? color.new(color.green, 50) : color.new(color.red, 50)
 

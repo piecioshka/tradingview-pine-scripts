@@ -9,7 +9,7 @@ lenFast   = input.int(11,  'EMA fast (11)')
 lenSlow   = input.int(21,  'EMA slow (21)')
 lenTrend  = input.int(200, 'EMA trend (200)')
 useAtrBuf = input.bool(true, 'Use ATR buffer')
-atrLen    = input.int(14, 'ATR length', minval=1)
+atrLen    = input.int(14, 'ATR length')
 atrMult   = input.float(1.0, 'ATR multiplier', minval=0.0)
 trailMode = input.string('EMA21', 'Trailing source', options=['EMA11', 'EMA21', 'EMA200'])
 

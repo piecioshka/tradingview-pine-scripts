@@ -14,8 +14,8 @@ D = ta.sma(K, smaLen)
 plot(K, 'Oscylator', color=color.blue, linewidth=2)
 plot(D, 'Sygnał', color=color.orange, linewidth=2, linestyle=plot.linestyle_dotted)
 
-top = hline(80, '', color=color.gray, linestyle=hline.style_dashed)
-bottom = hline(20, '', color=color.gray, linestyle=hline.style_dashed)
+top = hline(80, 'Overbought', color=color.gray, linestyle=hline.style_dashed)
+bottom = hline(20, 'Oversold', color=color.gray, linestyle=hline.style_dashed)
 fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
 
 if (ta.crossunder(K, D) and K < 30)

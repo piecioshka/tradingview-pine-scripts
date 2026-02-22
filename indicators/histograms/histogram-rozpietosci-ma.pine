@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 Oscylator Rozpiętości MA (by PK)', shorttitle='ORMA', overlay=false)
+indicator('📈 Histogram Rozpiętości MA (by PK)', shorttitle='HRMA', overlay=false)
 
 aLen = input(50, 'Długość', group='Krótki')
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Krótki', defval='SMA')
@@ -27,7 +27,7 @@ bSeries = switch bType
 histogram = aSeries - bSeries
 histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 50) : color.new(color.green, 80) : histogram < histogram[1] ? color.new(color.red, 50) : color.new(color.red, 80)
 
-plot(histogram, 'Oscylator', color=histColor, linewidth=2, style=plot.style_columns)
+plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 
 if (ta.crossunder(aSeries, bSeries))

@@ -60,9 +60,9 @@ Pairings:
 
 `linestyle` possible values:
 
-- `plot.linestyle_solid` - ciągła
-- `plot.linestyle_dashed` - przerywana
-- `plot.linestyle_dotted` - kropkowana
+- `plot.linestyle_solid` (default)
+- `plot.linestyle_dashed`
+- `plot.linestyle_dotted`
 
 ## Pine Script / `hline()`
 
@@ -77,4 +77,4 @@ Pairings:
 VSCode plugin to support syntax highlighting:
 
 - https://marketplace.visualstudio.com/items?itemName=ex-codes.pine-script-syntax-highlighter
-  - Code :octocat:: https://github.com/yankikucuk/pine-script-syntax-highlighter
+  - Source Code: https://github.com/yankikucuk/pine-script-syntax-highlighter
