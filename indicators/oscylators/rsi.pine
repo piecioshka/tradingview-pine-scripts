@@ -15,10 +15,10 @@ fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
 
 if (ta.crossover(rsi, 70))
     line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right)
     label.new(bar_index, rsi - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
 if (ta.crossunder(rsi, 30))
     line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right)
     label.new(bar_index, rsi + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
