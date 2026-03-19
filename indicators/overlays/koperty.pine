@@ -4,30 +4,16 @@
 // @version=6
 indicator('📈 Koperty (by PK)', shorttitle='Envelopes', overlay = true)
 
-opt1 = '3% wokół prostej średniej 21-dniowej'
-opt2 = '5% wokół prostej średniej 10-tygodniowy'
-opt3 = '10% wokół prostej średniej 40-tygodniowej'
+// Dobre ustawienia dla kopert to:
+// - 3% wokół prostej średniej 21-dniowej
+// - 5% wokół prostej średniej 10-tygodniowy
+// - 10% wokół prostej średniej 40-tygodniowej
 
 aColor = color.rgb(56, 104, 174)
 bColor = color.rgb(215, 107, 52)
 
-// „Równoległe” tablice – długości i procenty
-var int[] lengths = array.from(21, 10, 40)
-var float[] percents = array.from(3.0, 5.0, 10.0)
-
-mode = input.string(
-    title = 'Tryb',
-    defval = opt1,
-    options = [opt1, opt2, opt3]
-)
-
-int idx = switch mode
-    opt1 => 0
-    opt2 => 1
-    opt3 => 2
-
-len = array.get(lengths, idx)
-percent = array.get(percents, idx)
+len = input.int(title = 'Długość', defval = 21, minval = 1)
+percent = input.float(title = 'Procent', defval = 3.0, minval = 0.1, step = 0.1)
 
 aSeries = ta.sma(close, len)
 
