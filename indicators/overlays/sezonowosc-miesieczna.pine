@@ -1,0 +1,65 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('🗓️ Sezonowość miesięczna (by PK)', shorttitle='Sezonowość', overlay = true)
+
+// Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od miesiąca.
+// Zaprojektowany dla interwału miesięcznego (1M) - każda świeca = jeden miesiąc.
+// Kolory układają się w gradient przez koło barw HSV (zima → wiosna → lato → jesień → zima),
+// dzięki czemu łatwo zauważyć powtarzające się układy sezonowe (np. Lean Hogs).
+
+transp = input.int(title='Przezroczystość (0-100)', defval=80, minval=0, maxval=100, step=5)
+showLegend = input.bool(title='Pokaż legendę', defval=true)
+legendPosition = input.string(title='Pozycja legendy', defval='Prawy górny', options=['Lewy górny', 'Prawy górny', 'Lewy dolny', 'Prawy dolny'])
+
+// 12 kolorów - gradient przez koło barw HSV
+colJan = color.rgb(30, 60, 200)     // styczeń - granat (głęboka zima)
+colFeb = color.rgb(0, 140, 220)     // luty - błękit
+colMar = color.rgb(0, 180, 170)     // marzec - turkus (przedwiośnie)
+colApr = color.rgb(60, 180, 60)     // kwiecień - zieleń (wiosna)
+colMay = color.rgb(160, 200, 50)    // maj - limonka
+colJun = color.rgb(230, 220, 0)     // czerwiec - żółć (początek lata)
+colJul = color.rgb(240, 160, 0)     // lipiec - pomarańcz (pełnia lata)
+colAug = color.rgb(230, 100, 30)    // sierpień - czerwono-pomarańczowy
+colSep = color.rgb(220, 50, 50)     // wrzesień - czerwień (jesień)
+colOct = color.rgb(200, 50, 140)    // październik - magenta
+colNov = color.rgb(160, 60, 190)    // listopad - fiolet
+colDec = color.rgb(90, 60, 200)     // grudzień - ciemny fiolet (powrót do zimy)
+
+m = month(time)
+
+bgCol = switch m
+    1  => color.new(colJan, transp)
+    2  => color.new(colFeb, transp)
+    3  => color.new(colMar, transp)
+    4  => color.new(colApr, transp)
+    5  => color.new(colMay, transp)
+    6  => color.new(colJun, transp)
+    7  => color.new(colJul, transp)
+    8  => color.new(colAug, transp)
+    9  => color.new(colSep, transp)
+    10 => color.new(colOct, transp)
+    11 => color.new(colNov, transp)
+    12 => color.new(colDec, transp)
+    => na
+
+bgcolor(bgCol)
+
+// Legenda - tabelka pokazująca które miesiące mają jaki kolor
+if showLegend and barstate.islast
+    pos = switch legendPosition
+        'Lewy górny'  => position.top_left
+        'Prawy górny' => position.top_right
+        'Lewy dolny'  => position.bottom_left
+        'Prawy dolny' => position.bottom_right
+        =>               position.top_right
+
+    legend = table.new(position = pos, columns = 2, rows = 12, border_width = 1)
+
+    months = array.from('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień')
+    colors = array.from(colJan, colFeb, colMar, colApr, colMay, colJun, colJul, colAug, colSep, colOct, colNov, colDec)
+
+    for i = 0 to 11
+        table.cell(legend, 0, i, '    ', bgcolor = array.get(colors, i))
+        table.cell(legend, 1, i, array.get(months, i), text_color = color.white, bgcolor = color.new(color.black, 30))
