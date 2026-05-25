@@ -13,6 +13,23 @@ transp = input.int(title='Przezroczystość (0-100)', defval=80, minval=0, maxva
 showLegend = input.bool(title='Pokaż legendę', defval=true)
 legendPosition = input.string(title='Pozycja legendy', defval='Prawy górny', options=['Lewy górny', 'Prawy górny', 'Lewy dolny', 'Prawy dolny'])
 
+// Włączanie/wyłączanie poszczególnych miesięcy.
+// Przydatne dla kontraktów, które nie są dostępne we wszystkich miesiącach
+// (np. Lean Hogs / HE - tylko 8 miesięcy: G, J, K, M, N, Q, V, Z).
+gMonths = 'Miesiące'
+useJan = input.bool(title='Styczeń (F)',     defval=true, group=gMonths)
+useFeb = input.bool(title='Luty (G)',        defval=true, group=gMonths)
+useMar = input.bool(title='Marzec (H)',      defval=true, group=gMonths)
+useApr = input.bool(title='Kwiecień (J)',    defval=true, group=gMonths)
+useMay = input.bool(title='Maj (K)',         defval=true, group=gMonths)
+useJun = input.bool(title='Czerwiec (M)',    defval=true, group=gMonths)
+useJul = input.bool(title='Lipiec (N)',      defval=true, group=gMonths)
+useAug = input.bool(title='Sierpień (Q)',    defval=true, group=gMonths)
+useSep = input.bool(title='Wrzesień (U)',    defval=true, group=gMonths)
+useOct = input.bool(title='Październik (V)', defval=true, group=gMonths)
+useNov = input.bool(title='Listopad (X)',    defval=true, group=gMonths)
+useDec = input.bool(title='Grudzień (Z)',    defval=true, group=gMonths)
+
 // 12 kolorów - gradient przez koło barw HSV
 colJan = color.rgb(30, 60, 200)     // styczeń - granat (głęboka zima)
 colFeb = color.rgb(0, 140, 220)     // luty - błękit
@@ -30,18 +47,18 @@ colDec = color.rgb(90, 60, 200)     // grudzień - ciemny fiolet (powrót do zim
 m = month(time)
 
 bgCol = switch m
-    1  => color.new(colJan, transp)
-    2  => color.new(colFeb, transp)
-    3  => color.new(colMar, transp)
-    4  => color.new(colApr, transp)
-    5  => color.new(colMay, transp)
-    6  => color.new(colJun, transp)
-    7  => color.new(colJul, transp)
-    8  => color.new(colAug, transp)
-    9  => color.new(colSep, transp)
-    10 => color.new(colOct, transp)
-    11 => color.new(colNov, transp)
-    12 => color.new(colDec, transp)
+    1  => useJan ? color.new(colJan, transp) : na
+    2  => useFeb ? color.new(colFeb, transp) : na
+    3  => useMar ? color.new(colMar, transp) : na
+    4  => useApr ? color.new(colApr, transp) : na
+    5  => useMay ? color.new(colMay, transp) : na
+    6  => useJun ? color.new(colJun, transp) : na
+    7  => useJul ? color.new(colJul, transp) : na
+    8  => useAug ? color.new(colAug, transp) : na
+    9  => useSep ? color.new(colSep, transp) : na
+    10 => useOct ? color.new(colOct, transp) : na
+    11 => useNov ? color.new(colNov, transp) : na
+    12 => useDec ? color.new(colDec, transp) : na
     => na
 
 bgcolor(bgCol)
@@ -55,11 +72,20 @@ if showLegend and barstate.islast
         'Prawy dolny' => position.bottom_right
         =>               position.top_right
 
-    legend = table.new(position = pos, columns = 2, rows = 12, border_width = 1)
-
     months = array.from('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień')
     colors = array.from(colJan, colFeb, colMar, colApr, colMay, colJun, colJul, colAug, colSep, colOct, colNov, colDec)
+    enabled = array.from(useJan, useFeb, useMar, useApr, useMay, useJun, useJul, useAug, useSep, useOct, useNov, useDec)
 
+    activeCount = 0
     for i = 0 to 11
-        table.cell(legend, 0, i, '    ', bgcolor = array.get(colors, i))
-        table.cell(legend, 1, i, array.get(months, i), text_color = color.white, bgcolor = color.new(color.black, 30))
+        if array.get(enabled, i)
+            activeCount += 1
+
+    if activeCount > 0
+        legend = table.new(position = pos, columns = 2, rows = activeCount, border_width = 1)
+        row = 0
+        for i = 0 to 11
+            if array.get(enabled, i)
+                table.cell(legend, 0, row, '    ', bgcolor = array.get(colors, i))
+                table.cell(legend, 1, row, array.get(months, i), text_color = color.white, bgcolor = color.new(color.black, 30))
+                row += 1
