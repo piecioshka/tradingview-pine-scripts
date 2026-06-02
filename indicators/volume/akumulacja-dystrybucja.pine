@@ -1,0 +1,22 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📈 Akumulacja / Dystrybucja (by PK)', shorttitle='Accum/Dist', overlay=false)
+
+// Linia Akumulacji / Dystrybucji (A/D) — Marc Chaikin.
+// Łączy cenę z wolumenem, mierząc presję kupna (akumulacja) i sprzedaży (dystrybucja).
+// Mnożnik przepływu pieniądza:  ((close - low) - (high - close)) / (high - low)
+// Wartość A/D rośnie przy akumulacji, spada przy dystrybucji.
+// Dywergencje względem ceny bywają sygnałem zbliżającego się zwrotu.
+
+adColor = color.rgb(56, 104, 174)
+
+len = input.int(21, 'Długość średniej (sygnał)', minval=1)
+showSignal = input.bool(true, 'Pokaż linię sygnału')
+
+ad = ta.accdist
+signal = ta.ema(ad, len)
+
+plot(ad, 'Akumulacja / Dystrybucja', color=adColor, linewidth=2)
+plot(showSignal ? signal : na, 'Sygnał (EMA)', color=color.rgb(215, 107, 52), linewidth=1, linestyle=plot.linestyle_dotted)
