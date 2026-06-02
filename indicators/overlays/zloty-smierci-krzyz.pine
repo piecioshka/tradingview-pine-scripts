@@ -1,0 +1,36 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📈 Złoty / Śmierci Krzyż (by PK)', shorttitle='Golden/Death Cross', overlay=true)
+
+// Złoty Krzyż (Golden Cross) — szybka średnia przecina wolną od dołu (sygnał byczy).
+// Krzyż Śmierci (Death Cross) — szybka średnia przecina wolną od góry (sygnał niedźwiedzi).
+// Klasyczne ustawienie: SMA 50 vs SMA 200.
+
+fastColor = color.rgb(56, 104, 174)
+slowColor = color.rgb(215, 107, 52)
+
+fastLen = input.int(50, 'Szybka średnia (długość)', minval=1)
+slowLen = input.int(200, 'Wolna średnia (długość)', minval=1)
+src = input.source(close, 'Źródło')
+
+fastMA = ta.sma(src, fastLen)
+slowMA = ta.sma(src, slowLen)
+
+plot(fastMA, 'Szybka SMA', color=fastColor, linewidth=2)
+plot(slowMA, 'Wolna SMA', color=slowColor, linewidth=2)
+
+goldenCross = ta.crossover(fastMA, slowMA)
+deathCross = ta.crossunder(fastMA, slowMA)
+
+if (goldenCross)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 50), style=line.style_dashed, extend=extend.both)
+    label.new(bar_index, slowMA, 'GOLDEN CROSS', color=color.new(color.green, 30), textcolor=color.white, style=label.style_label_up, size=size.normal)
+
+if (deathCross)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 50), style=line.style_dashed, extend=extend.both)
+    label.new(bar_index, slowMA, 'DEATH CROSS', color=color.new(color.red, 30), textcolor=color.white, style=label.style_label_down, size=size.normal)
+
+plotshape(goldenCross, 'Złoty Krzyż', style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(deathCross, 'Krzyż Śmierci', style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
