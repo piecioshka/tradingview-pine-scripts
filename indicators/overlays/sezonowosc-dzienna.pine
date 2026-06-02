@@ -1,0 +1,76 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📅 Sezonowość dzienna (by PK)', shorttitle='Sezonowość D', overlay = true)
+
+// Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od dnia tygodnia.
+// Najlepszy efekt na wykresach intraday i dziennych - widać powtarzający się
+// układ tygodniowy (np. niska zmienność w piątek vs. ruch w poniedziałek).
+// Strefa czasowa: domyślna giełdy (taka jak dayofweek() bez argumentu timezone).
+// Kolory: tęcza przez tydzień (poniedziałek=czerwień → niedziela=fiolet).
+
+transp         = input.int(title='Przezroczystość (0-100)', defval=80, minval=0, maxval=100, step=5)
+showLegend     = input.bool(title='Pokaż legendę', defval=true)
+legendPosition = input.string(title='Pozycja legendy', defval='Prawy górny', options=['Lewy górny', 'Prawy górny', 'Lewy dolny', 'Prawy dolny'])
+
+// Włączanie/wyłączanie poszczególnych dni tygodnia.
+// Przydatne np. dla rynków bez weekendu - można wyłączyć sobotę i niedzielę.
+gDays = 'Dni tygodnia'
+useMon = input.bool(title='Poniedziałek', defval=true, group=gDays)
+useTue = input.bool(title='Wtorek',       defval=true, group=gDays)
+useWed = input.bool(title='Środa',        defval=true, group=gDays)
+useThu = input.bool(title='Czwartek',     defval=true, group=gDays)
+useFri = input.bool(title='Piątek',       defval=true, group=gDays)
+useSat = input.bool(title='Sobota',       defval=true, group=gDays)
+useSun = input.bool(title='Niedziela',    defval=true, group=gDays)
+
+// 7 kolorów - tęcza przez tydzień
+colMon = color.rgb(230, 80, 80)    // poniedziałek - czerwień
+colTue = color.rgb(240, 150, 60)   // wtorek - pomarańcz
+colWed = color.rgb(240, 215, 60)   // środa - żółć
+colThu = color.rgb(100, 200, 80)   // czwartek - zieleń
+colFri = color.rgb(70, 200, 200)   // piątek - turkus
+colSat = color.rgb(80, 130, 230)   // sobota - błękit
+colSun = color.rgb(180, 90, 200)   // niedziela - fiolet
+
+d = dayofweek(time)
+
+bgCol = switch d
+    dayofweek.monday    => useMon ? color.new(colMon, transp) : na
+    dayofweek.tuesday   => useTue ? color.new(colTue, transp) : na
+    dayofweek.wednesday => useWed ? color.new(colWed, transp) : na
+    dayofweek.thursday  => useThu ? color.new(colThu, transp) : na
+    dayofweek.friday    => useFri ? color.new(colFri, transp) : na
+    dayofweek.saturday  => useSat ? color.new(colSat, transp) : na
+    dayofweek.sunday    => useSun ? color.new(colSun, transp) : na
+    => na
+
+bgcolor(bgCol)
+
+// Legenda - tabelka pokazująca które dni mają jaki kolor
+if showLegend and barstate.islast
+    pos = switch legendPosition
+        'Lewy górny'  => position.top_left
+        'Prawy górny' => position.top_right
+        'Lewy dolny'  => position.bottom_left
+        'Prawy dolny' => position.bottom_right
+        =>               position.top_right
+
+    days    = array.from('Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela')
+    colors  = array.from(colMon, colTue, colWed, colThu, colFri, colSat, colSun)
+    enabled = array.from(useMon, useTue, useWed, useThu, useFri, useSat, useSun)
+
+    activeCount = 0
+    for i = 0 to 6
+        if array.get(enabled, i)
+            activeCount += 1
+
+    if activeCount > 0
+        legend = table.new(position = pos, columns = 2, rows = activeCount, border_width = 1)
+        row = 0
+        for i = 0 to 6
+            if array.get(enabled, i)
+                table.cell(legend, 0, row, '    ', bgcolor = array.get(colors, i))
+                table.cell(legend, 1, row, array.get(days, i), text_color = color.white, bgcolor = color.new(color.black, 30))
+                row += 1
