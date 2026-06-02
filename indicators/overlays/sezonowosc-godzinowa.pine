@@ -1,0 +1,101 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('🕐 Sezonowość godzinowa (by PK)', shorttitle='Sezonowość H', overlay = true)
+
+// Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od godziny.
+// Zaprojektowany dla interwałów intraday (< 1D) - na dziennym i wyższym
+// hour() zwraca zawsze tę samą godzinę otwarcia świecy i efekt znika.
+// Strefa czasowa: domyślna giełdy (taka jak hour() bez argumentu timezone).
+// Kolory ułożone w gradient dobowy (noc → świt → dzień → zmierzch → noc),
+// dzięki czemu sąsiednie godziny są wizualnie blisko siebie.
+
+transp         = input.int(title='Przezroczystość (0-100)', defval=80, minval=0, maxval=100, step=5)
+showLegend     = input.bool(title='Pokaż legendę', defval=true)
+legendPosition = input.string(title='Pozycja legendy', defval='Prawy górny', options=['Lewy górny', 'Prawy górny', 'Lewy dolny', 'Prawy dolny'])
+hoursSpec      = input.string(title='Aktywne godziny', defval='0-23', tooltip='Zakresy oddzielone przecinkiem, np. "9-16,18,22". "0-23" = wszystkie.')
+
+// 24 kolory - gradient dobowy
+col00 = color.rgb(20, 30, 90)     // 00 - granat (głęboka noc)
+col01 = color.rgb(30, 35, 105)    // 01
+col02 = color.rgb(45, 40, 125)    // 02
+col03 = color.rgb(65, 45, 145)    // 03 - granatowy fiolet
+col04 = color.rgb(90, 55, 155)    // 04
+col05 = color.rgb(125, 70, 160)   // 05 - fiolet
+col06 = color.rgb(170, 90, 150)   // 06 - świt
+col07 = color.rgb(220, 130, 110)  // 07 - wschód słońca
+col08 = color.rgb(240, 160, 70)   // 08 - poranne słońce
+col09 = color.rgb(250, 190, 50)   // 09 - bursztyn poranka
+col10 = color.rgb(245, 220, 60)   // 10 - żółty
+col11 = color.rgb(210, 230, 90)   // 11 - limonka
+col12 = color.rgb(120, 220, 180)  // 12 - południe
+col13 = color.rgb(80, 200, 230)   // 13 - błękit popołudnia
+col14 = color.rgb(70, 170, 240)   // 14
+col15 = color.rgb(95, 150, 230)   // 15
+col16 = color.rgb(160, 160, 210)  // 16 - przejście
+col17 = color.rgb(230, 160, 100)  // 17 - golden hour
+col18 = color.rgb(235, 110, 70)   // 18 - zachód
+col19 = color.rgb(220, 70, 80)    // 19 - czerwień zachodu
+col20 = color.rgb(180, 55, 125)   // 20 - zmierzch magenta
+col21 = color.rgb(130, 50, 145)   // 21 - fiolet zmierzchu
+col22 = color.rgb(80, 40, 125)    // 22 - noc
+col23 = color.rgb(45, 35, 105)    // 23 - późna noc
+
+// Parser zakresów godzin: "9-16,18,22" → array<bool>[24]
+parseHours(spec) =>
+    enabled = array.new<bool>(24, false)
+    if str.length(spec) > 0
+        tokens = str.split(spec, ',')
+        for token in tokens
+            trimmed = str.trim(token)
+            if str.length(trimmed) > 0
+                if str.contains(trimmed, '-')
+                    parts = str.split(trimmed, '-')
+                    if array.size(parts) == 2
+                        sN = str.tonumber(str.trim(array.get(parts, 0)))
+                        eN = str.tonumber(str.trim(array.get(parts, 1)))
+                        if not na(sN) and not na(eN)
+                            s = int(math.round(sN))
+                            e = int(math.round(eN))
+                            if s >= 0 and e <= 23 and s <= e
+                                for i = s to e
+                                    array.set(enabled, i, true)
+                else
+                    n = str.tonumber(trimmed)
+                    if not na(n)
+                        idx = int(math.round(n))
+                        if idx >= 0 and idx <= 23
+                            array.set(enabled, idx, true)
+    enabled
+
+var enabled = parseHours(hoursSpec)
+var colors  = array.from(col00, col01, col02, col03, col04, col05, col06, col07, col08, col09, col10, col11, col12, col13, col14, col15, col16, col17, col18, col19, col20, col21, col22, col23)
+
+h = hour(time)
+bgCol = array.get(enabled, h) ? color.new(array.get(colors, h), transp) : na
+bgcolor(bgCol)
+
+// Legenda - tabelka z aktywnymi godzinami i ich kolorami
+if showLegend and barstate.islast
+    pos = switch legendPosition
+        'Lewy górny'  => position.top_left
+        'Prawy górny' => position.top_right
+        'Lewy dolny'  => position.bottom_left
+        'Prawy dolny' => position.bottom_right
+        =>               position.top_right
+
+    activeCount = 0
+    for i = 0 to 23
+        if array.get(enabled, i)
+            activeCount += 1
+
+    if activeCount > 0
+        legend = table.new(position = pos, columns = 2, rows = activeCount, border_width = 1)
+        row = 0
+        for i = 0 to 23
+            if array.get(enabled, i)
+                hourLabel = str.format('{0,number,00}:00', i)
+                table.cell(legend, 0, row, '    ', bgcolor = array.get(colors, i))
+                table.cell(legend, 1, row, hourLabel, text_color = color.white, bgcolor = color.new(color.black, 30))
+                row += 1
