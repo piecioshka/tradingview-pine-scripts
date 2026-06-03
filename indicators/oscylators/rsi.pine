@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 RSI = Relative Strength Index (by PK)', shorttitle='RSI', overlay=false)
+indicator('📈 RSI = Relative Strength Index (by PK)', shorttitle='RSI', overlay=false, precision=2)
 
 aLen = input(14, 'Długość')
 rsi = ta.rsi(close, aLen)
@@ -10,15 +10,18 @@ rsi = ta.rsi(close, aLen)
 plot(rsi, 'RSI', color=color.blue, linewidth=2)
 top = hline(70, 'Overbought', color=color.red, linestyle=hline.style_dashed)
 bottom = hline(30, 'Oversold', color=color.green, linestyle=hline.style_dashed)
+hline(50, 'Midline', color=color.gray, linestyle=hline.style_dashed)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
 
+// Wykupienie (RSI przebija 70 w górę) -> sygnał zamknięcia/sprzedaży
 if (ta.crossover(rsi, 70))
-    line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right)
-    label.new(bar_index, rsi - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
-
-if (ta.crossunder(rsi, 30))
     line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, rsi + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
+
+// Wyprzedanie (RSI przebija 30 w dół) -> sygnał otwarcia/kupna
+if (ta.crossunder(rsi, 30))
+    line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
+    label.new(bar_index, rsi - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
