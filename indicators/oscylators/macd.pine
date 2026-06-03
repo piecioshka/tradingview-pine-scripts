@@ -49,10 +49,10 @@ hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 
 if (ta.crossover(macd, cSeries))
     line.new(bar_index, macd, bar_index, macd, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, macd - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
 if (ta.crossunder(macd, cSeries))
     line.new(bar_index, macd, bar_index, macd, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, cSeries + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)

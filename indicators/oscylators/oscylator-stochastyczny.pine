@@ -20,10 +20,10 @@ fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
 
 if (ta.crossunder(K, D) and K < 30)
     line.new(bar_index, K, bar_index, K, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.both)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.both, force_overlay=true)
     label.new(bar_index, K - 10, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
 if (ta.crossover(K, D) and K > 70)
     line.new(bar_index, K, bar_index, K, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.both)
+    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.both, force_overlay=true)
     label.new(bar_index, K + 10, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
