@@ -10,6 +10,9 @@ bLen = input(200, 'Długi okres SMA')
 aSeries = ta.sma(close, aLen)
 bSeries = ta.sma(close, bLen)
 
+plot(aSeries, 'SMA krótka', color=color.aqua, linewidth=2)
+plot(bSeries, 'SMA długa', color=color.orange, linewidth=2)
+
 if (ta.crossover(aSeries, bSeries))
     strategy.entry('My Long Entry Id', strategy.long)
 
