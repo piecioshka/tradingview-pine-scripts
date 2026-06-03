@@ -2,26 +2,75 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 RSI = Relative Strength Index (by PK)', shorttitle='RSI', overlay=false, precision=2)
+indicator('📈 RSI = Relative Strength Index (by PK)', shorttitle='RSI', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
 
-aLen = input(14, 'Długość')
-rsi = ta.rsi(close, aLen)
+// --- Paleta kolorów (jedno miejsce na motyw) ---
+cRsi = color.rgb(255, 245, 157)  // linia RSI
+cOb  = color.red                 // wykupienie / strefa górna
+cOs  = color.green               // wyprzedanie / strefa dolna
+cMid = color.gray                // midline i elementy neutralne
 
-plot(rsi, 'RSI', color=color.blue, linewidth=2)
-top = hline(70, 'Overbought', color=color.red, linestyle=hline.style_dashed)
-bottom = hline(30, 'Oversold', color=color.green, linestyle=hline.style_dashed)
-hline(50, 'Midline', color=color.gray, linestyle=hline.style_dashed)
-hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
-fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
+// --- Wejścia / Inputs ---
+gCalc = 'Obliczenia'
+rsiSource = input.source(close, 'Źródło', group=gCalc, tooltip='Cena, z której liczony jest RSI (domyślnie zamknięcie świecy).')
+rsiLength = input.int(14, 'Długość', minval=1, group=gCalc, tooltip='Liczba świec w oknie RSI. Mniej = bardziej czuły, więcej = gładszy.')
 
-// Wykupienie (RSI przebija 70 w górę) -> sygnał zamknięcia/sprzedaży
-if (ta.crossover(rsi, 70))
-    line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, rsi + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
+gLevels = 'Poziomy'
+obLevel  = input.int(70, 'Wykupienie (Overbought)', minval=50, maxval=100, group=gLevels, tooltip='Powyżej tego poziomu rynek uznajemy za wykupiony.')
+osLevel  = input.int(30, 'Wyprzedanie (Oversold)',  minval=0,  maxval=50,  group=gLevels, tooltip='Poniżej tego poziomu rynek uznajemy za wyprzedany.')
+midLevel = 50  // celowo NIE input — 50 to definicyjna oś symetrii RSI
 
-// Wyprzedanie (RSI przebija 30 w dół) -> sygnał otwarcia/kupna
-if (ta.crossunder(rsi, 30))
-    line.new(bar_index, rsi, bar_index, rsi, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, rsi - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
+gView = 'Wyświetlanie'
+showZones   = input.bool(true, 'Gradient stref',                  group=gView, tooltip='Pionowy gradient w strefie wykupienia/wyprzedania (między linią RSI a progiem).')
+showSignals = input.bool(true,  'Sygnały (znaczniki na cenie)', group=gView, tooltip='Trójkąty na panelu ceny przy przecięciu progów wykupienia/wyprzedania.')
+showLabels  = input.bool(false, 'Etykiety BUY CLOSE / BUY OPEN', group=gView, tooltip='Tekstowe flagi na panelu RSI w miejscu przecięcia progu. Domyślnie wyłączone.')
+showTable   = input.bool(true,  'Tabela statusu',               group=gView, tooltip='Mały panel w rogu z bieżącą wartością RSI i stanem.')
+
+// --- Obliczenia ---
+rsi     = ta.rsi(rsiSource, rsiLength)
+crossOb = ta.crossover(rsi, obLevel)    // wejście w strefę wykupienia
+crossOs = ta.crossunder(rsi, osLevel)   // wejście w strefę wyprzedania
+
+// --- Linia RSI i ukryte progi (granice wypełnień) ---
+rsiPlot = plot(rsi, 'RSI', color=cRsi, linewidth=1)
+pOb = plot(obLevel, 'Próg wykupienia',  color=na, display=display.none, editable=false)
+pOs = plot(osLevel, 'Próg wyprzedania', color=na, display=display.none, editable=false)
+
+// --- Poziomy referencyjne ---
+hline(obLevel,  'Overbought', color=cOb,  linestyle=hline.style_dotted)
+hline(osLevel,  'Oversold',   color=cOs,  linestyle=hline.style_dotted)
+hline(midLevel, 'Midline',    color=cMid, linestyle=hline.style_dotted)
+
+// --- Pionowy gradient stref (dół->góra), tylko gdy RSI w strefie ---
+// Czerwień: blada przy progu wykupienia, mocna w stronę 100
+fill(rsiPlot, pOb, top_value=100, bottom_value=obLevel, top_color = showZones and rsi > obLevel ? color.new(cOb, 20) : na, bottom_color = showZones and rsi > obLevel ? color.new(cOb, 90) : na, title='Strefa wykupienia')
+// Zieleń: blada przy progu wyprzedania, mocna w stronę 0
+fill(rsiPlot, pOs, top_value=osLevel, bottom_value=0, top_color = showZones and rsi < osLevel ? color.new(cOs, 90) : na, bottom_color = showZones and rsi < osLevel ? color.new(cOs, 20) : na, title='Strefa wyprzedania')
+
+// --- Sygnały (jednolicie przez plotshape — bez akumulacji obiektów) ---
+// Pozycje etykiet przycięte do skali 0..100, by nie wyszły poza panel przy ekstremach RSI
+obLabelY = math.min(rsi + 5, 100)
+osLabelY = math.max(rsi - 5, 0)
+
+// Znaczniki na panelu ceny (force_overlay): wykupienie = czerwony trójkąt nad świecą, wyprzedanie = zielony pod świecą
+plotshape(showSignals and crossOb, title='Sygnał wykupienia (cena)',  style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
+plotshape(showSignals and crossOs, title='Sygnał wyprzedania (cena)', style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
+
+// Etykiety na panelu RSI w miejscu przecięcia progu
+plotshape(showLabels and crossOb ? obLabelY : na, title='Etykieta wykupienia',  text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cOb, 30), size=size.small)
+plotshape(showLabels and crossOs ? osLabelY : na, title='Etykieta wyprzedania', text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cOs, 30), size=size.small)
+
+// --- Alerty ---
+alertcondition(crossOb, 'RSI: Wykupienie',  'RSI przebił próg wykupienia w górę')
+alertcondition(crossOs, 'RSI: Wyprzedanie', 'RSI przebił próg wyprzedania w dół')
+
+// --- Tabela statusu (prawy górny róg) ---
+status      = rsi >= obLevel ? 'Wykupienie' : rsi <= osLevel ? 'Wyprzedanie' : 'Neutralnie'
+statusColor = rsi >= obLevel ? cOb : rsi <= osLevel ? cOs : cMid
+
+var table infoTable = table.new(position.top_right, 2, 2, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, 'RSI',    text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(rsi, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, 'Status', text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 1, status,   text_color=statusColor, text_size=size.small)

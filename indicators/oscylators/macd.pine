@@ -2,57 +2,78 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false)
+indicator('📈 MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false, max_lines_count=100, max_labels_count=100)
 
-macdColor = color.rgb(56, 104, 174)
-signalColor = color.rgb(215, 107, 52)
+// --- Paleta kolorów (jedno miejsce na motyw) ---
+cMacd   = color.rgb(56, 104, 174)   // linia MACD
+cSignal = color.rgb(215, 107, 52)   // linia sygnału
+cUp     = color.green               // wzrost / sygnał kupna
+cDn     = color.red                 // spadek / sygnał sprzedaży
+cMid    = color.gray                // linia zero i elementy neutralne
 
-aLen = input(12, 'Szybsza (krótsza)', group='Szybsza (krótsza)')
-aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Szybsza (krótsza)', defval='EMA')
-aSeries = switch aType
-    'SMA' => ta.sma(close, aLen)
-    'EMA' => ta.ema(close, aLen)
-    'WMA' => ta.wma(close, aLen)
-    'VWMA' => ta.vwma(close, aLen)
-    'RMA' => ta.rma(close, aLen)
-    => na
+// --- Wejścia / Inputs ---
+gFast = 'Szybka EMA (krótsza)'
+fastLen  = input.int(12, 'Długość', minval=1, group=gFast, tooltip='Okno szybszej średniej.')
+fastType = input.string('EMA', 'Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gFast)
 
-bLen = input(26, 'Szybsza (dłuższa)', group='Szybsza (dłuższa)')
-bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Szybsza (dłuższa)', defval='EMA')
-bSeries = switch bType
-    'SMA' => ta.sma(close, bLen)
-    'EMA' => ta.ema(close, bLen)
-    'WMA' => ta.wma(close, bLen)
-    'VWMA' => ta.vwma(close, bLen)
-    'RMA' => ta.rma(close, bLen)
-    => na
+gSlow = 'Wolna EMA (dłuższa)'
+slowLen  = input.int(26, 'Długość', minval=1, group=gSlow, tooltip='Okno wolniejszej średniej.')
+slowType = input.string('EMA', 'Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gSlow)
 
-macd = aSeries - bSeries
+gSig = 'Linia sygnału'
+sigLen  = input.int(9, 'Długość', minval=1, group=gSig, tooltip='Wygładzenie linii MACD = linia sygnału.')
+sigType = input.string('EMA', 'Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gSig)
 
-cLen = input(9, 'Wolniejsza', group='Wolniejsza')
-cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Wolniejsza', defval='EMA')
-cSeries = switch cType
-    'SMA' => ta.sma(macd, cLen)
-    'EMA' => ta.ema(macd, cLen)
-    'WMA' => ta.wma(macd, cLen)
-    'VWMA' => ta.vwma(macd, cLen)
-    'RMA' => ta.rma(macd, cLen)
-    => na
+gView = 'Wyświetlanie'
+showHist    = input.bool(true,  'Histogram',                     group=gView, tooltip='Słupki różnicy MACD − sygnał.')
+showSignals = input.bool(true,  'Sygnały (znaczniki na cenie)',  group=gView, tooltip='Trójkąty na panelu ceny przy przecięciu MACD z linią sygnału.')
+showLabels  = input.bool(false, 'Etykiety BUY CLOSE / BUY OPEN', group=gView, tooltip='Tekstowe flagi na panelu MACD przy przecięciu. Domyślnie wyłączone.')
+showTable   = input.bool(true,  'Tabela statusu',                group=gView, tooltip='Mały panel w rogu z wartościami i trendem.')
 
-histogram = macd - cSeries
-histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 50) : color.new(color.green, 80) : histogram < histogram[1] ? color.new(color.red, 50) : color.new(color.red, 80)
+// --- Obliczenia ---
+maOf(src, len, kind) =>
+    switch kind
+        'SMA'  => ta.sma(src, len)
+        'EMA'  => ta.ema(src, len)
+        'WMA'  => ta.wma(src, len)
+        'VWMA' => ta.vwma(src, len)
+        'RMA'  => ta.rma(src, len)
+        => ta.ema(src, len)
 
-plot(macd, 'Oscylator', color=macdColor, linewidth=2)
-plot(cSeries, 'Signal', color=signalColor, linewidth=2, linestyle=plot.linestyle_dotted)
-plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
-hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
+macd      = maOf(close, fastLen, fastType) - maOf(close, slowLen, slowType)
+signal    = maOf(macd, sigLen, sigType)
+histogram = macd - signal
+crossUp   = ta.crossover(macd, signal)    // MACD przebija sygnał w górę -> impuls byczy
+crossDn   = ta.crossunder(macd, signal)   // MACD przebija sygnał w dół  -> impuls niedźwiedzi
 
-if (ta.crossover(macd, cSeries))
-    line.new(bar_index, macd, bar_index, macd, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, macd - 5, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
+// --- Rysowanie (histogram pod liniami) ---
+histColor = histogram >= 0 ? (histogram > histogram[1] ? color.new(cUp, 50) : color.new(cUp, 80)) : (histogram < histogram[1] ? color.new(cDn, 50) : color.new(cDn, 80))
+plot(showHist ? histogram : na, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
+plot(macd,   'MACD',   color=cMacd,   linewidth=2)
+plot(signal, 'Sygnał', color=cSignal, linewidth=2, linestyle=plot.linestyle_dotted)
+hline(0, 'Zero', color=cMid, linestyle=hline.style_dotted)
 
-if (ta.crossunder(macd, cSeries))
-    line.new(bar_index, macd, bar_index, macd, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
-    label.new(bar_index, cSeries + 5, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
+// --- Sygnały (kompaktowe znaczniki + opcjonalne etykiety) ---
+// Trójkąty na panelu ceny: byczy cross = zielony pod świecą, niedźwiedzi = czerwony nad świecą
+plotshape(showSignals and crossUp, title='Sygnał byczy (cena)',       style=shape.triangleup,   location=location.belowbar, color=cUp, size=size.tiny, force_overlay=true)
+plotshape(showSignals and crossDn, title='Sygnał niedźwiedzi (cena)', style=shape.triangledown, location=location.abovebar, color=cDn, size=size.tiny, force_overlay=true)
+// Etykiety na panelu MACD (domyślnie wyłączone)
+plotshape(showLabels and crossUp ? macd   : na, title='Etykieta BUY OPEN',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cUp, 30), size=size.small)
+plotshape(showLabels and crossDn ? signal : na, title='Etykieta BUY CLOSE', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cDn, 30), size=size.small)
+
+// --- Alerty ---
+alertcondition(crossUp, 'MACD: przecięcie w górę', 'MACD przeciął linię sygnału w górę (impuls byczy)')
+alertcondition(crossDn, 'MACD: przecięcie w dół',  'MACD przeciął linię sygnału w dół (impuls niedźwiedzi)')
+
+// --- Tabela statusu (prawy górny róg) ---
+trend      = macd > signal ? 'Byczy' : macd < signal ? 'Niedźwiedzi' : 'Neutralnie'
+trendColor = macd > signal ? cUp : macd < signal ? cDn : cMid
+
+var table infoTable = table.new(position.top_right, 2, 3, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, 'MACD',   text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(macd, '#.###'),   text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, 'Sygnał', text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 1, str.tostring(signal, '#.###'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 2, 'Trend',  text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 2, trend,    text_color=trendColor, text_size=size.small)

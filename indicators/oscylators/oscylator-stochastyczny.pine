@@ -2,28 +2,75 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 Oscylator Stochastyczny (by PK)', shorttitle='SO', overlay=false)
+indicator('📈 Oscylator Stochastyczny (by PK)', shorttitle='SO', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
 
-aLen = input(14, '%K Długość')
-smothing = input(3, '%K Wygładzanie długości')
-smaLen = input(3, '%D Długość SMA')
+// --- Paleta kolorów (jedno miejsce na motyw) ---
+cK   = color.blue                // linia %K (oscylator)
+cD   = color.orange              // linia %D (sygnał)
+cOb  = color.red                 // wykupienie / strefa górna
+cOs  = color.green               // wyprzedanie / strefa dolna
+cMid = color.gray                // midline i elementy neutralne
 
-K = ta.sma(ta.stoch(close, high, low, aLen), smothing)
-D = ta.sma(K, smaLen)
+// --- Wejścia / Inputs ---
+gCalc = 'Obliczenia'
+kLen    = input.int(14, '%K Długość',            minval=1, group=gCalc, tooltip='Okno bazowego Stochastica.')
+kSmooth = input.int(3,  '%K Wygładzanie',        minval=1, group=gCalc, tooltip='Wygładzenie surowego %K.')
+dLen    = input.int(3,  '%D Długość (SMA z %K)', minval=1, group=gCalc, tooltip='Średnia z %K = linia sygnału %D.')
 
-plot(K, 'Oscylator', color=color.blue, linewidth=2)
-plot(D, 'Sygnał', color=color.orange, linewidth=2, linestyle=plot.linestyle_dotted)
+gLevels = 'Poziomy'
+obLevel  = input.int(80, 'Wykupienie (Overbought)', minval=50, maxval=100, group=gLevels, tooltip='Powyżej tego poziomu rynek uznajemy za wykupiony.')
+osLevel  = input.int(20, 'Wyprzedanie (Oversold)',  minval=0,  maxval=50,  group=gLevels, tooltip='Poniżej tego poziomu rynek uznajemy za wyprzedany.')
+midLevel = 50  // celowo NIE input — 50 to oś symetrii oscylatora
 
-top = hline(80, 'Overbought', color=color.gray, linestyle=hline.style_dashed)
-bottom = hline(20, 'Oversold', color=color.gray, linestyle=hline.style_dashed)
-fill(top, bottom, color = color.new(color.rgb(56, 104, 174), 90))
+gView = 'Wyświetlanie'
+showZones   = input.bool(true,  'Gradient stref',                group=gView, tooltip='Pionowy gradient w strefie wykupienia/wyprzedania (między %K a progiem).')
+showSignals = input.bool(true,  'Sygnały (znaczniki na cenie)',  group=gView, tooltip='Trójkąty na panelu ceny przy przecięciu %K z %D w strefie skrajnej.')
+showLabels  = input.bool(false, 'Etykiety BUY CLOSE / BUY OPEN', group=gView, tooltip='Tekstowe flagi na panelu oscylatora. Domyślnie wyłączone.')
+showTable   = input.bool(true,  'Tabela statusu',                group=gView, tooltip='Mały panel w rogu z wartościami %K/%D i stanem.')
 
-if (ta.crossunder(K, D) and K < 30)
-    line.new(bar_index, K, bar_index, K, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.both, force_overlay=true)
-    label.new(bar_index, K - 10, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
+// --- Obliczenia ---
+k = ta.sma(ta.stoch(close, high, low, kLen), kSmooth)
+d = ta.sma(k, dLen)
+// Sygnały: konwencjonalne przecięcie %K z %D w strefie skrajnej
+buyOpen  = ta.crossover(k, d)  and k < osLevel   // %K przebija %D w GÓRĘ w wyprzedaniu -> kupno
+buyClose = ta.crossunder(k, d) and k > obLevel   // %K przebija %D w DÓŁ w wykupieniu  -> sprzedaż/zamknięcie
 
-if (ta.crossover(K, D) and K > 70)
-    line.new(bar_index, K, bar_index, K, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.both)
-    line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.both, force_overlay=true)
-    label.new(bar_index, K + 10, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
+// --- Linie oscylatora i ukryte progi (granice wypełnień) ---
+kPlot = plot(k, '%K (Oscylator)', color=cK, linewidth=2)
+dPlot = plot(d, '%D (Sygnał)',    color=cD, linewidth=2, linestyle=plot.linestyle_dotted)
+pOb = plot(obLevel, 'Próg wykupienia',  color=na, display=display.none, editable=false)
+pOs = plot(osLevel, 'Próg wyprzedania', color=na, display=display.none, editable=false)
+
+// --- Poziomy referencyjne ---
+hline(obLevel,  'Overbought', color=cOb,  linestyle=hline.style_dotted)
+hline(osLevel,  'Oversold',   color=cOs,  linestyle=hline.style_dotted)
+hline(midLevel, 'Midline',    color=cMid, linestyle=hline.style_dotted)
+
+// --- Pionowy gradient stref (dół->góra), tylko gdy %K w strefie ---
+fill(kPlot, pOb, top_value=100, bottom_value=obLevel, top_color = showZones and k > obLevel ? color.new(cOb, 20) : na, bottom_color = showZones and k > obLevel ? color.new(cOb, 90) : na, title='Strefa wykupienia')
+fill(kPlot, pOs, top_value=osLevel, bottom_value=0, top_color = showZones and k < osLevel ? color.new(cOs, 90) : na, bottom_color = showZones and k < osLevel ? color.new(cOs, 20) : na, title='Strefa wyprzedania')
+
+// --- Sygnały (kompaktowe znaczniki + opcjonalne etykiety) ---
+obLabelY = math.min(k + 8, 100)
+osLabelY = math.max(k - 8, 0)
+plotshape(showSignals and buyClose, title='Sygnał wykupienia (cena)',  style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
+plotshape(showSignals and buyOpen,  title='Sygnał wyprzedania (cena)', style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
+plotshape(showLabels and buyClose ? obLabelY : na, title='Etykieta BUY CLOSE', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cOb, 30), size=size.small)
+plotshape(showLabels and buyOpen  ? osLabelY : na, title='Etykieta BUY OPEN',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cOs, 30), size=size.small)
+
+// --- Alerty ---
+alertcondition(buyClose, 'SO: Sygnał wykupienia',  'Stochastic: %K przeciął %D w górę w strefie wykupienia')
+alertcondition(buyOpen,  'SO: Sygnał wyprzedania', 'Stochastic: %K przeciął %D w dół w strefie wyprzedania')
+
+// --- Tabela statusu (prawy górny róg) ---
+status      = k >= obLevel ? 'Wykupienie' : k <= osLevel ? 'Wyprzedanie' : 'Neutralnie'
+statusColor = k >= obLevel ? cOb : k <= osLevel ? cOs : cMid
+
+var table infoTable = table.new(position.top_right, 2, 3, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, '%K',     text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(k, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, '%D',     text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 1, str.tostring(d, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 2, 'Status', text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 2, status,   text_color=statusColor, text_size=size.small)
