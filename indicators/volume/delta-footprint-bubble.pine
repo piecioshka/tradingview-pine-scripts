@@ -1,0 +1,162 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📊 Delta Footprint Bubble (by PK)', shorttitle='Delta FP Bubble', overlay=true, max_labels_count=500, max_polylines_count=100)
+
+// Delta wolumenu z prawdziwych danych footprint (request.footprint, od stycznia 2026).
+// Footprint dzieli świecę na poziomy cenowe i zna wolumen agresorów po stronie kupna (ask)
+// i sprzedaży (bid). Delta = wolumen kupna − wolumen sprzedaży:
+//   Delta > 0  → przewaga agresywnych kupujących (kupno po ask).
+//   Delta < 0  → przewaga agresywnych sprzedających (sprzedaż po bid).
+//
+// WYMAGANIA / OGRANICZENIA (narzucone przez TradingView):
+//   • Konto Premium lub Ultimate — bez tego skrypt się NIE skompiluje.
+//   • request.footprint() działa tylko dla BIEŻĄCEGO interwału wykresu (brak parametru TF).
+//   • Tylko JEDNO wywołanie request.footprint() na skrypt.
+//   • Zwraca na, gdy brak danych footprint dla świecy — zawsze sprawdzamy not na(fp).
+
+// --- Paleta kolorów (domyślne kolory świec TradingView) ---
+cBuy     = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domyślna zieleń świecy #26A69A
+cSell    = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
+cNeutral = color.gray               // brak danych / delta zerowa
+cVA      = color.rgb(150, 130, 220)  // Value Area (strefa wartości) — fiolet
+
+// --- Wejścia / Inputs ---
+gCalc = 'Footprint'
+ticksPerRow = input.int(10, 'Ticki na wiersz', minval=1, group=gCalc, tooltip='Wysokość pojedynczego wiersza footprintu w tickach. Wpływa na rozdzielczość POC/Value Area (nie zmienia sumy delty). Mniej = dokładniej, ale więcej wierszy.')
+vaPercent   = input.int(70, 'Value Area %',     minval=1, maxval=100, group=gCalc, tooltip='Procent wolumenu definiujący Value Area (klasycznie 70%).')
+
+gView = 'Wyświetlanie'
+showLabels  = input.bool(true,  'Pokaż liczby delty', group=gView, tooltip='Liczba delty wypisana przy każdej świecy (zielona = przewaga kupna, czerwona = sprzedaży).')
+fontSize    = input.string('Mała', 'Wielkość liczb', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gView)
+numPos      = input.string('Przy POC', 'Pozycja liczb', options=['Przy POC', 'Przy świecy'], group=gView, tooltip='„Przy POC" = liczba pod bąblem POC. „Przy świecy" = liczba pod świecą.')
+numGap      = input.float(0.5, 'Odstęp liczby (× ATR)', minval=0, maxval=5, step=0.1, group=gView, tooltip='Odstęp liczby od świecy / bąbla POC, w wielokrotności ATR(14). 0 = tuż przy.')
+pocColor    = input.color(color.white, 'Kolor bąbla POC', group=gView)
+pocLink     = input.bool(false, 'Łącz bąble POC linią', group=gView, tooltip='Gładka (zaokrąglona) krzywa łącząca środki kolejnych bąbli POC (ślad POC).')
+normPow     = input.float(0.5, 'Normalizacja wielkości bąbla', minval=0.1, maxval=1, step=0.05, group=gView, tooltip='Potęga skalująca wielkość bąbla (jak w histogramie): 1 = liniowo (bez normalizacji), 0.5 = pierwiastek, niżej = mocniejsza kompresja skoków. Odniesienie: max z ~500 świec.')
+showVA      = input.bool(true,  'Value Area (VAH/VAL)', group=gView, tooltip='Strefa wartości (VAH = Value Area High = górna granica, VAL = Value Area Low = dolna) — zakres cen, w którym odbył się zadany % wolumenu świecy (pole „Value Area %").')
+vaFill      = input.color(color.new(cVA, 90), 'Tło Value Area', group=gView, tooltip='Kolor i przezroczystość wypełnienia strefy Value Area (opacity ustawisz suwakiem w palecie). Linie VAH/VAL dziedziczą ten odcień.')
+
+gCvd = 'Delta skumulowana (CVD)'
+resetDaily = input.bool(true, 'Resetuj CVD na nowej sesji dziennej', group=gCvd, tooltip='Skumulowana delta (CVD) zerowana na początku każdego dnia. Wyłącz, by liczyć narastająco od początku historii.')
+
+// --- Pobranie footprintu bieżącej świecy ---
+fp = request.footprint(ticksPerRow, vaPercent)
+hasData = not na(fp)
+
+// --- Odczyt metryk (tylko gdy są dane — nie wołamy metod na na) ---
+float delta    = na
+float buyVol   = na
+float sellVol  = na
+float pocPrice = na
+float pocVol   = na
+float vahPrice = na
+float valPrice = na
+if hasData
+    delta   := fp.delta()
+    buyVol  := fp.buy_volume()
+    sellVol := fp.sell_volume()
+    pocRow = fp.poc()
+    if not na(pocRow)
+        pocPrice := (pocRow.up_price() + pocRow.down_price()) / 2
+        pocVol   := pocRow.total_volume()
+    vahRow = fp.vah()
+    if not na(vahRow)
+        vahPrice := vahRow.up_price()
+    valRow = fp.val()
+    if not na(valRow)
+        valPrice := valRow.down_price()
+
+totalVol = hasData ? buyVol + sellVol : na
+// „Mam deltę" tylko gdy footprint zwrócił realne transakcje. Gdy nie (brak footprintu / zerowy wolumen,
+// np. część rynków krypto) → czyścimy metryki do na, by NIC nie pokazywać zamiast mylących „0".
+hasDelta = hasData and not na(totalVol) and totalVol > 0
+if not hasDelta
+    delta    := na
+    buyVol   := na
+    sellVol  := na
+    pocPrice := na
+    pocVol   := na
+    vahPrice := na
+    valPrice := na
+
+// --- Delta skumulowana (CVD) ---
+newDay = ta.change(time('D')) != 0
+var float cvd = 0.0
+if resetDaily and newDay
+    cvd := 0.0
+if hasDelta
+    cvd += delta
+
+// --- Kolor liczby wg znaku delty (tekst etykiety/tabeli, NIE świeca) ---
+deltaColor = not hasDelta ? cNeutral : delta > 0 ? cBuy : delta < 0 ? cSell : cNeutral
+
+// --- Dywergencja: kierunek świecy przeczy delcie (coś dziwnego) ---
+// Świeca rośnie (close > open), a delta ujemna  → kupujący „malują" wzrost bez agresji.
+// Świeca spada (close < open), a delta dodatnia → sprzedający spychają cenę mimo przewagi kupna.
+diverg = hasDelta and ((close > open and delta < 0) or (close < open and delta > 0))
+
+// --- Ślad POC w stylu Bookmap: kulki skalowane wolumenem ---
+// Rozmiar ∝ wolumen na POC: gradacja z 3 glifów (• ● ⬤) + rozmiarów tiny/small/normal.
+// Dla TEKSTU large == huge (ten sam piksel), więc na górze skali różnicę robi zmiana glifu, nie rozmiaru.
+pocVolN   = math.pow(nz(pocVol), normPow)                // ta sama normalizacja (potęga) co w histogramie
+pocVolRef = ta.highest(pocVolN, 500)                     // odniesienie z ~500 świec (bez osobnego okna)
+pocNorm   = pocVolRef > 0 ? pocVolN / pocVolRef : 0.0    // 0..1 → stopień wielkości bąbla
+if hasDelta and not na(pocPrice)
+    lv      = math.min(6, math.floor(pocNorm * 7))
+    pocChar = lv <= 1 ? '•' : lv <= 4 ? '●' : '⬤'
+    pocSize = lv == 0 ? size.small : lv == 1 ? size.large : lv == 2 ? size.small : lv == 3 ? size.normal : lv == 4 or lv == 5 ? size.large : size.huge
+    label.new(bar_index, pocPrice, text=pocChar, yloc=yloc.price, style=label.style_none, textcolor=pocColor, size=pocSize)
+
+// Ślad POC: jedna GŁADKA (zaokrąglona) krzywa przez środki bąbli zamiast łamanej z odcinków.
+// polyline(curved=true) interpoluje krzywą; OKNO ostatnich pocTrailMax punktów (limit polyline = 10000 pkt).
+var array<chart.point> pocPts = array.new<chart.point>()
+var polyline pocPoly = na
+pocTrailMax = 500   // ślad obejmuje ostatnie N bąbli (pokrywa widoczne, mieści się w limicie polyline)
+if pocLink and hasDelta and not na(pocPrice) and barstate.isconfirmed
+    array.push(pocPts, chart.point.from_index(bar_index, pocPrice))
+    if array.size(pocPts) > pocTrailMax
+        array.shift(pocPts)   // utrzymaj okno: usuń najstarszy punkt
+if pocLink and barstate.islast and array.size(pocPts) >= 2
+    if not na(pocPoly)
+        polyline.delete(pocPoly)
+    pocPoly := polyline.new(pocPts, curved = true, line_color = color.new(pocColor, 30), line_width = 2)
+
+// --- Value Area (VAH/VAL): zakres cen z zadanym % wolumenu świecy (sterowany „Value Area %") ---
+pVah = plot(showVA ? vahPrice : na, 'VAH', color=color.new(vaFill, 25), style=plot.style_stepline, linewidth=1)
+pVal = plot(showVA ? valPrice : na, 'VAL', color=color.new(vaFill, 25), style=plot.style_stepline, linewidth=1)
+fill(pVah, pVal, color=showVA ? vaFill : na, title='Strefa Value Area')
+
+// --- Wartości w legendzie / oknie danych (delta przy kursorze — jak liczba u góry przy wskaźniku Volume) ---
+plot(delta,               'Delta',          color=deltaColor, display=display.status_line + display.data_window, format=format.volume)
+plot(buyVol,              'Kupno (ask)',    color=cBuy,       display=display.data_window, format=format.volume)
+plot(sellVol,             'Sprzedaż (bid)', color=cSell,      display=display.data_window, format=format.volume)
+plot(hasDelta ? cvd : na, 'CVD (sesja)',    color=cNeutral,   display=display.data_window, format=format.volume)
+
+// --- Skrót K/M/B; poniżej 1000 liczba całkowita (bez „.00") ---
+f_abbr(float x) =>
+    a = math.abs(x)
+    a >= 1e9 ? str.tostring(x / 1e9, '#.##') + 'B' : a >= 1e6 ? str.tostring(x / 1e6, '#.##') + 'M' : a >= 1e3 ? str.tostring(x / 1e3, '#.#') + 'K' : str.tostring(x, '#')
+
+// Pogrubienie liczby znakami Unicode (Pine nie ma natywnego boldu dla etykiet)
+f_bold(string s) =>
+    string out = ''
+    for i = 0 to str.length(s) - 1
+        ch = str.substring(s, i, i + 1)
+        b = ch == '0' ? '𝟬' : ch == '1' ? '𝟭' : ch == '2' ? '𝟮' : ch == '3' ? '𝟯' : ch == '4' ? '𝟰' : ch == '5' ? '𝟱' : ch == '6' ? '𝟲' : ch == '7' ? '𝟳' : ch == '8' ? '𝟴' : ch == '9' ? '𝟵' : ch == 'K' ? '𝗞' : ch == 'M' ? '𝗠' : ch == 'B' ? '𝗕' : ch
+        out := out + b
+    out
+
+// --- Etykiety delty (pod świecą lub pod bąblem POC; dywergencja = liczba pogrubiona) ---
+szLbl   = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
+atr     = nz(ta.atr(14))
+isAtPoc = numPos == 'Przy POC' and not na(pocPrice)
+lblY    = (isAtPoc ? pocPrice : low) - numGap * atr   // liczba poniżej bąbla POC / świecy; odstęp = numGap × ATR
+if showLabels and hasDelta
+    dTxt = diverg ? f_bold(f_abbr(delta)) : f_abbr(delta)   // dywergencja → liczba pogrubiona
+    label.new(bar_index, lblY, text=dTxt, yloc=yloc.price, style=label.style_none, textcolor=deltaColor, size=szLbl)
+
+// --- Alerty ---
+alertcondition(ta.crossover(delta, 0),  'Delta: zmiana na kupno',    'Delta przeszła na dodatnią (przewaga kupujących)')
+alertcondition(ta.crossunder(delta, 0), 'Delta: zmiana na sprzedaż', 'Delta przeszła na ujemną (przewaga sprzedających)')

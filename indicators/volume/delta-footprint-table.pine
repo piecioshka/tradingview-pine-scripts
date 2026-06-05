@@ -1,0 +1,108 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📊 Delta Footprint Table (by PK)', shorttitle='Delta FP Table', overlay=true)
+
+// Samodzielna tabela statusu footprintu: kupno / sprzedaż / delta (+ %) / POC / CVD.
+// Dodaj obok „Delta Footprint Bubble" / „Histogram". Liczy własny request.footprint — działa niezależnie.
+// Wymaga Premium/Ultimate; brak danych footprint (np. część krypto) → „—".
+
+cBuy     = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domyślna zieleń świecy #26A69A
+cSell    = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
+cNeutral = color.gray               // brak danych / delta zerowa
+
+gCalc = 'Footprint'
+ticksPerRow = input.int(10, 'Ticki na wiersz', minval=1, group=gCalc, tooltip='Wysokość pojedynczego wiersza footprintu w tickach. Wpływa na rozdzielczość POC/Value Area (nie zmienia sumy delty). Mniej = dokładniej, ale więcej wierszy.')
+vaPercent   = input.int(70, 'Value Area %', minval=1, maxval=100, group=gCalc, tooltip='Procent wolumenu definiujący Value Area (klasycznie 70%).')
+
+gTable = 'Tabela'
+tablePos     = input.string('Prawy górny róg', 'Pozycja', options=['Prawy górny róg', 'Prawy środek', 'Prawy dolny róg', 'Lewy górny róg', 'Lewy środek', 'Lewy dolny róg'], group=gTable)
+tableMarginX = input.int(1, 'Margines poziomy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od lewej/prawej krawędzi (% szerokości).')
+tableMarginY = input.int(1, 'Margines pionowy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od góry/dołu (% wysokości). Bez znaczenia dla „środek".')
+fontSize     = input.string('Normalna', 'Wielkość tekstu', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gTable)
+
+gCvd = 'Delta skumulowana (CVD)'
+resetDaily = input.bool(true, 'Resetuj CVD na nowej sesji dziennej', group=gCvd, tooltip='Skumulowana delta (CVD) zerowana na początku każdego dnia. Wyłącz, by liczyć narastająco od początku historii.')
+
+// --- Footprint + metryki ---
+fp = request.footprint(ticksPerRow, vaPercent)
+hasData = not na(fp)
+float delta    = na
+float buyVol   = na
+float sellVol  = na
+float pocPrice = na
+float pocVol   = na
+if hasData
+    delta   := fp.delta()
+    buyVol  := fp.buy_volume()
+    sellVol := fp.sell_volume()
+    pocRow = fp.poc()
+    if not na(pocRow)
+        pocPrice := (pocRow.up_price() + pocRow.down_price()) / 2
+        pocVol   := pocRow.total_volume()
+
+totalVol = hasData ? buyVol + sellVol : na
+hasDelta = hasData and not na(totalVol) and totalVol > 0
+if not hasDelta
+    delta    := na
+    buyVol   := na
+    sellVol  := na
+    pocPrice := na
+    pocVol   := na
+deltaPct = hasDelta ? delta / totalVol * 100 : na
+
+newDay = ta.change(time('D')) != 0
+var float cvd = 0.0
+if resetDaily and newDay
+    cvd := 0.0
+if hasDelta
+    cvd += delta
+
+deltaColor = not hasDelta ? cNeutral : delta > 0 ? cBuy : delta < 0 ? cSell : cNeutral
+
+// --- Skrót K/M/B; poniżej 1000 liczba całkowita (bez „.00") ---
+f_abbr(float x) =>
+    a = math.abs(x)
+    a >= 1e9 ? str.tostring(x / 1e9, '#.##') + 'B' : a >= 1e6 ? str.tostring(x / 1e6, '#.##') + 'M' : a >= 1e3 ? str.tostring(x / 1e3, '#.#') + 'K' : str.tostring(x, '#')
+
+// --- Przyjazny opis interwału wykresu (do nagłówka „ostatnia świeca") ---
+f_tf() =>
+    s = timeframe.in_seconds()
+    s < 60 ? str.tostring(s) + 's' : s < 3600 ? str.tostring(s / 60, '#') + 'm' : s < 86400 ? str.tostring(s / 3600, '#') + 'h' : timeframe.period
+
+// --- Wielkość tekstu tabeli ---
+szLbl = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
+
+// --- Tabela (pozycja + margines konfigurowalne; margines = puste komórki dystansowe, tabela bez ramki) ---
+// Nagłówek „Ostatnia świeca · {interwał}" jako pasek tytułu; szczegóły zakresu w tooltipie (hdrTip).
+isLeft = str.contains(tablePos, 'Lewy')
+isBot  = str.contains(tablePos, 'dolny')
+isMid  = str.contains(tablePos, 'środek')
+isTop  = not isBot and not isMid
+tablePosition = isLeft ? (isTop ? position.top_left : isMid ? position.middle_left : position.bottom_left) : (isTop ? position.top_right : isMid ? position.middle_right : position.bottom_right)
+c0        = isLeft ? 1 : 0
+c1        = c0 + 1
+spacerCol = isLeft ? 0 : 2
+rowOffset = isTop ? 1 : 0
+spacerRow = isTop ? 0 : 6
+hdrTip = 'Kupno / sprzedaż / delta / POC dotyczą TYLKO ostatniej (bieżącej) świecy wybranego interwału — np. ostatniej minuty na wykresie 1m. CVD liczy się narastająco w sesji.'
+hdrBg  = color.new(cNeutral, 82)   // subtelne tło paska nagłówka
+var table infoTable = table.new(tablePosition, 3, 7, frame_width=0, border_width=0)
+if barstate.islast
+    if tableMarginX > 0
+        table.cell(infoTable, spacerCol, rowOffset, '', width=tableMarginX)
+    if tableMarginY > 0 and not isMid
+        table.cell(infoTable, c0, spacerRow, '', height=tableMarginY)
+    table.cell(infoTable, c0, rowOffset + 0, 'Ostatnia świeca', text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    table.cell(infoTable, c1, rowOffset + 0, f_tf(),            text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    table.cell(infoTable, c0, rowOffset + 1, 'Kupno (ask)',    text_color=cNeutral, text_size=szLbl)
+    table.cell(infoTable, c1, rowOffset + 1, hasDelta ? f_abbr(buyVol)  : '—', text_color=cBuy,  text_size=szLbl)
+    table.cell(infoTable, c0, rowOffset + 2, 'Sprzedaż (bid)', text_color=cNeutral, text_size=szLbl)
+    table.cell(infoTable, c1, rowOffset + 2, hasDelta ? f_abbr(sellVol) : '—', text_color=cSell, text_size=szLbl)
+    table.cell(infoTable, c0, rowOffset + 3, 'Delta',          text_color=cNeutral, text_size=szLbl)
+    table.cell(infoTable, c1, rowOffset + 3, hasDelta ? f_abbr(delta) + (na(deltaPct) ? '' : ' (' + str.tostring(deltaPct, '#.#') + '%)') : '—', text_color=deltaColor, text_size=szLbl)
+    table.cell(infoTable, c0, rowOffset + 4, 'POC',            text_color=cNeutral, text_size=szLbl)
+    table.cell(infoTable, c1, rowOffset + 4, na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick) + ' · ' + f_abbr(pocVol) + ' max vol', text_color=color.white, text_size=szLbl)
+    table.cell(infoTable, c0, rowOffset + 5, 'CVD (sesja)',    text_color=cNeutral, text_size=szLbl)
+    table.cell(infoTable, c1, rowOffset + 5, hasDelta ? f_abbr(cvd) : '—', text_color=cvd > 0 ? cBuy : cvd < 0 ? cSell : cNeutral, text_size=szLbl)
