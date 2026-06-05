@@ -1,0 +1,60 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('📊 Delta Footprint Histogram (by PK)', shorttitle='Delta FP Histogram', overlay=false, max_labels_count=500)
+
+// Histogram delty z footprintu w osobnym panelu, przypięty do podstawy (0).
+// Słupek = |delta| (kupno − sprzedaż), kolor wg znaku: zielony = przewaga kupna, czerwony = sprzedaży.
+// Wysokość jest znormalizowana i ograniczona do zadanego % panelu; realne wartości delty widać
+// jako liczby na słupkach oraz w oknie danych.
+// Wymaga Premium/Ultimate; brak danych footprint (np. część krypto) → nic nie pokazuje.
+
+cBuy  = input.color(color.new(color.rgb(38, 166, 154), 50), 'Kolor delty dodatniej (kupno)')
+cSell = input.color(color.new(color.rgb(239, 83, 80),  50), 'Kolor delty ujemnej (sprzedaż)')
+
+normPow  = input.float(0.5, 'Normalizacja wysokości', minval=0.1, maxval=1, step=0.05, tooltip='Potęga skalująca wysokość słupka: 1 = liniowo (bez normalizacji), 0.5 = pierwiastek, niżej = mocniejsza kompresja skoków.')
+fillPct  = input.float(50, 'Maks. wysokość słupków (% panelu)', minval=5, maxval=100, step=5, tooltip='Najwyższy słupek zajmuje maks. ten % wysokości panelu (reszta zostaje pusta). 100 = wypełnia panel.') / 100.0
+txtColor = input.color(color.white, 'Kolor liczb')
+fontSize = input.string('Mała', 'Wielkość liczb', options=['Drobna', 'Mała', 'Normalna', 'Duża'])
+showVals = input.bool(true, 'Pokaż wartości na słupkach')
+numPos   = input.string('Nad słupkiem', 'Pozycja liczb', options=['Nad słupkiem', 'Na dole'], tooltip='„Nad słupkiem" = lekko nad słupkiem. „Na dole" = przy podstawie panelu.')
+numGap   = input.float(0.5, 'Odstęp liczby nad słupkiem (% panelu)', minval=0, maxval=20, step=0.5, tooltip='Pionowy odstęp między liczbą a czubkiem słupka, jako % wysokości panelu (dotyczy „Nad słupkiem").')
+
+// Skrót K/M/B; poniżej 1000 liczba całkowita (bez „.00")
+f_abbr(float x) =>
+    a = math.abs(x)
+    a >= 1e9 ? str.tostring(x / 1e9, '#.##') + 'B' : a >= 1e6 ? str.tostring(x / 1e6, '#.##') + 'M' : a >= 1e3 ? str.tostring(x / 1e3, '#.#') + 'K' : str.tostring(x, '#')
+
+fp = request.footprint(1)        // ticks_per_row nieistotne dla sumy delty
+float delta   = na
+float buyVol  = na
+float sellVol = na
+if not na(fp)
+    bv = fp.buy_volume()
+    sv = fp.sell_volume()
+    if bv + sv > 0
+        delta   := fp.delta()
+        buyVol  := bv
+        sellVol := sv
+
+mag        = na(delta) ? na : math.abs(delta)
+magN       = na(mag) ? na : math.pow(mag, normPow)   // znormalizowana WYSOKOŚĆ (potęga < 1 kompresuje skoki)
+maxN       = ta.highest(nz(magN), 500)               // max z ~500 świec → odniesienie dla „sufitu"
+deltaColor = na(delta) ? na : delta >= 0 ? cBuy : cSell
+
+// Słupek (baza 0) + niewidzialny „sufit" ograniczający wysokość: najwyższy słupek ≈ fillPct panelu.
+// Słupek i „sufit" tylko w panelu — ich wartości NIE mają pokazywać się przy kursorze (wysokość jest znormalizowana).
+plot(magN, 'Delta (znorm.)', color=deltaColor, style=plot.style_columns, histbase=0, display=display.pane)
+plot(maxN > 0 ? maxN / fillPct : na, 'Sufit', color=color.new(color.gray, 100), editable=false, display=display.pane)
+// REALNA delta przy kursorze (status line) + okno danych; kupno/sprzedaż w oknie danych
+plot(delta,   'Delta',          color=deltaColor, format=format.volume, display=display.status_line + display.data_window)
+plot(buyVol,  'Kupno (ask)',    color=cBuy,       format=format.volume, display=display.data_window)
+plot(sellVol, 'Sprzedaż (bid)', color=cSell,      format=format.volume, display=display.data_window)
+
+// Liczby (delta ze znakiem) — nad słupkiem albo przy podstawie
+szLbl  = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
+lblGap = maxN / fillPct * (numGap / 100)   // odstęp nad słupkiem (% wysokości panelu, konfigurowalny)
+// Etykiety na każdej świecy z danymi — TradingView trzyma ostatnie 500 (auto-trim przy skrolowaniu)
+if showVals and not na(delta)
+    label.new(bar_index, numPos == 'Nad słupkiem' ? magN + lblGap : 0, text=f_abbr(delta), yloc=yloc.price, style=label.style_none, textcolor=txtColor, size=szLbl)
