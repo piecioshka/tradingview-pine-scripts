@@ -112,7 +112,7 @@ Linia A/D wg Marca Chaikina — łączy cenę z wolumenem, mierząc presję kupn
 
 #### [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble.pine)
 
-Delta wolumenu z prawdziwych danych footprint (`request.footprint()`, dostępne od stycznia 2026) — różnica między wolumenem agresywnego kupna (po ask) a sprzedaży (po bid) w obrębie świecy. Wartość jako **liczba przy każdej świecy** (zielona = przewaga kupna, czerwona = sprzedaży; pod świecą lub pod bąblem POC, z konfigurowalnym odstępem). POC każdej świecy jako **bąbel w stylu Bookmap** (wielkość ∝ wolumen, ta sama normalizacja potęgowa co w histogramie), z opcjonalnym **śladem POC** (gładka, zaokrąglona krzywa łącząca bąble). Dodatkowo **Value Area (VAH/VAL)**. Gdy kierunek świecy przeczy delcie (rośnie przy ujemnej delcie lub spada przy dodatniej) — liczba delty zostaje **pogrubiona**.
+Delta wolumenu z prawdziwych danych footprint (`request.footprint()`, dostępne od stycznia 2026) — różnica między wolumenem agresywnego kupna (po ask) a sprzedaży (po bid) w obrębie świecy. Wartość jako **liczba przy każdej świecy** (zielona = przewaga kupna, czerwona = sprzedaży; nad/pod świecą lub nad/pod bąblem POC, z konfigurowalnym odstępem). POC każdej świecy jako **opcjonalny bąbel w stylu Bookmap** (wielkość ∝ wolumen, ta sama normalizacja potęgowa co w histogramie), z opcjonalnym **śladem POC** (linia łącząca bąble — odcinkowa łamana lub gładka, zaokrąglona krzywa). Dodatkowo **Value Area (VAH/VAL)**. Gdy kierunek świecy przeczy delcie (rośnie przy ujemnej delcie lub spada przy dodatniej) — liczba delty zostaje **pogrubiona**.
 
 ![Delta Footprint Bubble](screenshots/indicators/delta-footprint-bubble.png)
 
@@ -128,11 +128,17 @@ Delta footprintu jako **histogram w osobnym panelu** (zachowuje się jak wbudowa
 
 #### [Delta Footprint Table](indicators/volume/delta-footprint-table.pine)
 
-Samodzielna **tabela statusu** footprintu (kupno / sprzedaż / delta + % / POC / CVD) w rogu wykresu — wydzielona z „Bubble", liczy własne metryki, więc działa niezależnie. Dodaj ją obok „Delta Footprint Bubble" lub „Delta Footprint Histogram". Pasek nagłówka pokazuje **bieżący interwał** („Ostatnia świeca · 1m") i przypomina, że kupno/sprzedaż/delta/POC dotyczą **tylko ostatniej świecy** (CVD liczy się narastająco w sesji).
+Samodzielna **tabela statusu** footprintu (kupno / sprzedaż / delta + % / **imbalans ułożony** / POC / Value Area / CVD) w rogu wykresu — wydzielona z „Bubble", liczy własne metryki, więc działa niezależnie. Dodaj ją obok „Delta Footprint Bubble" lub „Delta Footprint Histogram". Wiersz **Imbalans** podsumowuje ułożone (stacked) imbalansy diagonalne bieżącej świecy (▲ poziomy kupna, ▼ poziomy sprzedaży). Pasek nagłówka pokazuje **bieżący interwał** („Ostatnia świeca · 1m") i przypomina, że kupno/sprzedaż/delta/POC dotyczą **tylko ostatniej świecy** (CVD liczy się narastająco w sesji).
 
 ![Delta Footprint Table](screenshots/indicators/delta-footprint-table.png)
 
 > ⚠️ Wymaga konta **Premium / Ultimate**; `request.footprint()` tylko dla bieżącego interwału.
+
+#### [Delta Footprint Imbalance](indicators/volume/delta-footprint-imbalance.pine)
+
+Wykrywa **imbalanse footprintu** (diagonalne: jedna strona ≥ _mnożnik_ × przeciwna po przekątnej, klasycznie 3:1) i ich **ułożone (stacked)** ciągi (N+ poziomów w tym samym kierunku). Każdy ułożony imbalans staje się **trwałą strefą wsparcia/oporu** (box ciągnący się w prawo) z **automatyczną mitygacją** — po przetestowaniu przez cenę strefa blednie lub znika, więc na wykresie zostają tylko żywe poziomy (zachowanie order‑blocków). Siła ciągu odwzorowana **intensywnością koloru**. Mini‑dashboard zlicza aktywne strefy bycze/niedźwiedzie i wskazuje najbliższą nad/pod ceną. Pełny opis: [delta-footprint-imbalance.md](indicators/volume/delta-footprint-imbalance.md).
+
+> ⚠️ Wymaga konta **Premium / Ultimate**; `request.footprint()` tylko dla bieżącego interwału. Sensowny na niskich interwałach (1–15 m).
 
 ## Strategie
 
