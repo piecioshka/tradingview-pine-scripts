@@ -23,6 +23,10 @@ gCalc = 'Footprint'
 ticksPerRow = input.int(10, 'Ticki na wiersz', minval=1, group=gCalc, tooltip='Wysokość pojedynczego wiersza footprintu w tickach. Wpływa na rozdzielczość POC/Value Area (nie zmienia sumy delty). Mniej = dokładniej, ale więcej wierszy.')
 vaPercent   = input.int(70, 'Value Area %', minval=1, maxval=100, group=gCalc, tooltip='Procent wolumenu definiujący Value Area (klasycznie 70%).')
 
+gImb = 'Imbalans (wiersz „Imbalans")'
+imbRatio    = input.float(3.0, 'Mnożnik imbalansu (X:1)', minval=1.0, step=0.1, group=gImb, tooltip='Strona dominująca ≥ X razy większa od przeciwnej po przekątnej (klasycznie 3:1). Dotyczy wiersza „Imbalans".')
+imbMinStack = input.int(3, 'Min. ułożonych poziomów', minval=2, group=gImb, tooltip='Ile kolejnych poziomów z imbalansem w tym samym kierunku liczy się jako „ułożone" (stacked).')
+
 gTable = 'Tabela'
 tablePos     = input.string('Prawy górny róg', 'Pozycja', options=['Prawy górny róg', 'Prawy środek', 'Prawy dolny róg', 'Lewy górny róg', 'Lewy środek', 'Lewy dolny róg'], group=gTable)
 tableMarginX = input.int(0, 'Margines poziomy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od lewej/prawej krawędzi (% szerokości).')
@@ -39,6 +43,7 @@ showBuy    = input.bool(true, 'Kupno (ask)',    group=gRows, tooltip='Pokaż wie
 showSell   = input.bool(true, 'Sprzedaż (bid)', group=gRows, tooltip='Pokaż wiersz z wolumenem sprzedaży (bid).')
 showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Pokaż wiersz delty (kupno − sprzedaż) jako wartość bezwzględną.')
 showDeltaPct = input.bool(true, 'Delta %',      group=gRows, tooltip='Pokaż wiersz delty jako udział procentowy w całkowitym wolumenie.')
+showImbalance = input.bool(true, 'Imbalans (ułożone)', group=gRows, tooltip='Pokaż licznik ułożonych imbalansów (stacked) w bieżącej świecy: ▲ poziomy z imbalansem kupna, ▼ poziomy z imbalansem sprzedaży. Liczone wg ustawień z grupy „Imbalans".')
 showSpread = input.bool(true, 'Spread (H−L)',   group=gRows, tooltip='Pokaż zakres bieżącej świecy: High − Low.')
 showVa     = input.bool(true, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wiersz Point of Control (cena z największym wolumenem).')
@@ -138,7 +143,7 @@ spacerCol = isLeft ? 0 : 2
 rowOffset = isTop ? 1 : 0
 hdrTip = 'Kupno / sprzedaż / delta / POC dotyczą TYLKO ostatniej (bieżącej) świecy wybranego interwału — np. ostatniej minuty na wykresie 1m. CVD liczy się narastająco w sesji.'
 hdrBg  = color.new(cNeutral, 82)   // subtelne tło paska nagłówka
-anyCandle = showVolume or showBuy or showSell or showDelta or showDeltaPct or showSpread or showVa or showPoc or showMaxVol
+anyCandle = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance or showSpread or showVa or showPoc or showMaxVol
 anyLevel  = showSpread or showVa or showPoc or showMaxVol
 sepText   = '┄┄┄┄┄┄'
 sepColor  = color.new(cNeutral, 40)
@@ -147,8 +152,52 @@ sepColor  = color.new(cNeutral, 40)
 f_signColor(float x) =>
     na(x) ? cNeutral : x > 0 ? cBuy : x < 0 ? cSell : cNeutral
 
-MAX_ROWS = 18   // nagłówek + maks. wszystkie wiersze + 2 separatory + margines (z zapasem)
+MAX_ROWS = 20   // nagłówek + maks. wszystkie wiersze + 2 separatory + margines (z zapasem)
 var table infoTable = table.new(tablePosition, 3, MAX_ROWS, frame_width=0, border_width=0)
+// --- Imbalans ułożony (stacked) w bieżącej świecy: licznik poziomów po obu stronach ---
+// Diagonal: kupno na poziomie vs sprzedaż o poziom niżej / sprzedaż vs kupno o poziom wyżej.
+// Liczymy tylko poziomy należące do ciągów ≥ imbMinStack. Tanie: jeden przebieg po wierszach footprintu.
+int imbBuyLv  = 0
+int imbSellLv = 0
+if barstate.islast and showImbalance and hasData
+    rws = fp.rows()
+    nr = array.size(rws)
+    if nr >= 2
+        bV  = array.new<float>()
+        sV  = array.new<float>()
+        dnP = array.new<float>()
+        for ri = 0 to nr - 1
+            rr = array.get(rws, ri)
+            array.push(bV,  rr.buy_volume())
+            array.push(sV,  rr.sell_volume())
+            array.push(dnP, rr.down_price())
+        if array.get(dnP, 0) > array.get(dnP, nr - 1)   // ułóż rosnąco po cenie (indeks 0 = najniższy)
+            array.reverse(bV)
+            array.reverse(sV)
+        dr = array.new<int>(nr, 0)
+        for ri = 0 to nr - 1
+            bv = array.get(bV, ri)
+            sv = array.get(sV, ri)
+            bi = ri >= 1      and bv > 0 and bv >= imbRatio * array.get(sV, ri - 1)
+            si = ri <= nr - 2 and sv > 0 and sv >= imbRatio * array.get(bV, ri + 1)
+            array.set(dr, ri, bi and si ? (bv >= sv ? 1 : -1) : bi ? 1 : si ? -1 : 0)
+        ri = 0
+        while ri < nr
+            dv = array.get(dr, ri)
+            if dv != 0
+                jj = ri
+                while jj + 1 < nr and array.get(dr, jj + 1) == dv
+                    jj += 1
+                ln = jj - ri + 1
+                if ln >= imbMinStack
+                    if dv == 1
+                        imbBuyLv  += ln
+                    else
+                        imbSellLv += ln
+                ri := jj + 1
+            else
+                ri += 1
+
 if barstate.islast
     // 1) Złóż listę widocznych wierszy w kolejności wyświetlania (separator = Row z sepText w obu kolumnach).
     rows = array.new<Row>()
@@ -172,7 +221,11 @@ if barstate.islast
         rows.push(Row.new('Delta', hasDelta ? f_abbr(delta) : '—', cNeutral, deltaColor))
     if showDeltaPct
         rows.push(Row.new('Delta %', na(deltaPct) ? '—' : str.tostring(deltaPct, '#.#') + '%', cNeutral, deltaColor))
-    if showDeltaPct and anyLevel
+    if showImbalance
+        imbVal   = not hasDelta ? '—' : (imbBuyLv == 0 and imbSellLv == 0) ? 'brak' : '▲' + str.tostring(imbBuyLv) + '  ▼' + str.tostring(imbSellLv)
+        imbColor = imbBuyLv > imbSellLv ? cBuy : imbSellLv > imbBuyLv ? cSell : cNeutral
+        rows.push(Row.new('Imbalans', imbVal, cNeutral, imbColor))
+    if (showDeltaPct or showImbalance) and anyLevel
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showSpread
         rows.push(Row.new('Spread (H−L)', str.tostring(high - low, format.mintick), cNeutral, colSpread))
