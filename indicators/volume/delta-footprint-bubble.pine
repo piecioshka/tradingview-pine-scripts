@@ -30,12 +30,14 @@ vaPercent   = input.int(70, 'Value Area %',     minval=1, maxval=100, group=gCal
 gView = 'Wyświetlanie'
 showLabels  = input.bool(true,  'Pokaż liczby delty', group=gView, tooltip='Liczba delty wypisana przy każdej świecy (zielona = przewaga kupna, czerwona = sprzedaży).')
 fontSize    = input.string('Mała', 'Wielkość liczb', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gView)
-numPos      = input.string('Przy POC', 'Pozycja liczb', options=['Przy POC', 'Przy świecy'], group=gView, tooltip='„Przy POC" = liczba pod bąblem POC. „Przy świecy" = liczba pod świecą.')
+numPos      = input.string('Pod POC', 'Pozycja liczb', options=['Pod POC', 'Nad POC', 'Pod świecą', 'Nad świecą'], group=gView, tooltip='Gdzie wypisać liczbę delty: „Pod/Nad POC" = pod/nad bąblem POC, „Pod/Nad świecą" = pod świecą (low) / nad świecą (high). Brak danych POC → pozycje POC spadają na świecę.')
 numGap      = input.float(0.5, 'Odstęp liczby (× ATR)', minval=0, maxval=5, step=0.1, group=gView, tooltip='Odstęp liczby od świecy / bąbla POC, w wielokrotności ATR(14). 0 = tuż przy.')
-pocColor    = input.color(color.white, 'Kolor bąbla POC', group=gView)
-pocLink     = input.bool(false, 'Łącz bąble POC linią', group=gView, tooltip='Gładka (zaokrąglona) krzywa łącząca środki kolejnych bąbli POC (ślad POC).')
+showBubble  = input.bool(true, 'Pokaż bąble POC', group=gView, tooltip='Bąble (kropki) na poziomie POC, skalowane wolumenem. Wyłącz, by zostawić same liczby delty / Value Area / ślad POC.')
+pocColor    = input.color(color.new(color.orange, 20), 'Kolor bąbla POC', group=gView)
+pocLink     = input.bool(false, 'Łącz bąble POC linią', group=gView, tooltip='Linia łącząca środki kolejnych bąbli POC (ślad POC).')
+pocLinkMode = input.string('Odcinkowa', 'Styl linii POC', options=['Odcinkowa', 'Zaokrąglona'], group=gView, tooltip='„Zaokrąglona" = gładka, interpolowana krzywa przez środki bąbli. „Odcinkowa" = zwykła łamana z prostych odcinków łączących kolejne POC.')
 normPow     = input.float(0.5, 'Normalizacja wielkości bąbla', minval=0.1, maxval=1, step=0.05, group=gView, tooltip='Potęga skalująca wielkość bąbla (jak w histogramie): 1 = liniowo (bez normalizacji), 0.5 = pierwiastek, niżej = mocniejsza kompresja skoków. Odniesienie: max z ~500 świec.')
-showVA      = input.bool(true,  'Value Area (VAH/VAL)', group=gView, tooltip='Strefa wartości (VAH = Value Area High = górna granica, VAL = Value Area Low = dolna) — zakres cen, w którym odbył się zadany % wolumenu świecy (pole „Value Area %").')
+showVA      = input.bool(false,  'Value Area (VAH/VAL)', group=gView, tooltip='Strefa wartości (VAH = Value Area High = górna granica, VAL = Value Area Low = dolna) — zakres cen, w którym odbył się zadany % wolumenu świecy (pole „Value Area %").')
 vaFill      = input.color(color.new(cVA, 90), 'Tło Value Area', group=gView, tooltip='Kolor i przezroczystość wypełnienia strefy Value Area (opacity ustawisz suwakiem w palecie). Linie VAH/VAL dziedziczą ten odcień.')
 
 gCvd = 'Delta skumulowana (CVD)'
@@ -103,14 +105,14 @@ diverg = hasDelta and ((close > open and delta < 0) or (close < open and delta >
 pocVolN   = math.pow(nz(pocVol), normPow)                // ta sama normalizacja (potęga) co w histogramie
 pocVolRef = ta.highest(pocVolN, 500)                     // odniesienie z ~500 świec (bez osobnego okna)
 pocNorm   = pocVolRef > 0 ? pocVolN / pocVolRef : 0.0    // 0..1 → stopień wielkości bąbla
-if hasDelta and not na(pocPrice)
+if showBubble and hasDelta and not na(pocPrice)
     lv      = math.min(6, math.floor(pocNorm * 7))
     pocChar = lv <= 1 ? '•' : lv <= 4 ? '●' : '⬤'
     pocSize = lv == 0 ? size.small : lv == 1 ? size.large : lv == 2 ? size.small : lv == 3 ? size.normal : lv == 4 or lv == 5 ? size.large : size.huge
     label.new(bar_index, pocPrice, text=pocChar, yloc=yloc.price, style=label.style_none, textcolor=pocColor, size=pocSize)
 
-// Ślad POC: jedna GŁADKA (zaokrąglona) krzywa przez środki bąbli zamiast łamanej z odcinków.
-// polyline(curved=true) interpoluje krzywą; OKNO ostatnich pocTrailMax punktów (limit polyline = 10000 pkt).
+// Ślad POC: jedna polyline przez środki bąbli — gładka krzywa (curved=true) albo łamana z odcinków (curved=false),
+// zależnie od pola „Styl linii POC". OKNO ostatnich pocTrailMax punktów (limit polyline = 10000 pkt).
 var array<chart.point> pocPts = array.new<chart.point>()
 var polyline pocPoly = na
 pocTrailMax = 500   // ślad obejmuje ostatnie N bąbli (pokrywa widoczne, mieści się w limicie polyline)
@@ -121,7 +123,7 @@ if pocLink and hasDelta and not na(pocPrice) and barstate.isconfirmed
 if pocLink and barstate.islast and array.size(pocPts) >= 2
     if not na(pocPoly)
         polyline.delete(pocPoly)
-    pocPoly := polyline.new(pocPts, curved = true, line_color = color.new(pocColor, 30), line_width = 2)
+    pocPoly := polyline.new(pocPts, curved = pocLinkMode == 'Zaokrąglona', line_color = color.new(pocColor, 30), line_width = 2)
 
 // --- Value Area (VAH/VAL): zakres cen z zadanym % wolumenu świecy (sterowany „Value Area %") ---
 pVah = plot(showVA ? vahPrice : na, 'VAH', color=color.new(vaFill, 25), style=plot.style_stepline, linewidth=1)
@@ -148,11 +150,13 @@ f_bold(string s) =>
         out := out + b
     out
 
-// --- Etykiety delty (pod świecą lub pod bąblem POC; dywergencja = liczba pogrubiona) ---
+// --- Etykiety delty (pod/nad świecą lub pod/nad bąblem POC; dywergencja = liczba pogrubiona) ---
 szLbl   = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
 atr     = nz(ta.atr(14))
-isAtPoc = numPos == 'Przy POC' and not na(pocPrice)
-lblY    = (isAtPoc ? pocPrice : low) - numGap * atr   // liczba poniżej bąbla POC / świecy; odstęp = numGap × ATR
+usePoc  = (numPos == 'Pod POC' or numPos == 'Nad POC') and not na(pocPrice)   // brak POC → spada na świecę
+above   = numPos == 'Nad POC' or numPos == 'Nad świecą'
+baseY   = usePoc ? pocPrice : (above ? high : low)
+lblY    = above ? baseY + numGap * atr : baseY - numGap * atr   // odstęp = numGap × ATR; nad lub pod bąblem POC / świecą
 if showLabels and hasDelta
     dTxt = diverg ? f_bold(f_abbr(delta)) : f_abbr(delta)   // dywergencja → liczba pogrubiona
     label.new(bar_index, lblY, text=dTxt, yloc=yloc.price, style=label.style_none, textcolor=deltaColor, size=szLbl)
