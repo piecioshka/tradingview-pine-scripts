@@ -12,15 +12,41 @@ cBuy     = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domy�
 cSell    = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
 cNeutral = color.gray               // brak danych / delta zerowa
 
+// Pojedynczy wiersz tabeli (etykieta + wartość + kolory). Separatory to wiersz z sepText w obu kolumnach.
+type Row
+    string label
+    string value
+    color  labColor
+    color  valColor
+
 gCalc = 'Footprint'
 ticksPerRow = input.int(10, 'Ticki na wiersz', minval=1, group=gCalc, tooltip='Wysokość pojedynczego wiersza footprintu w tickach. Wpływa na rozdzielczość POC/Value Area (nie zmienia sumy delty). Mniej = dokładniej, ale więcej wierszy.')
 vaPercent   = input.int(70, 'Value Area %', minval=1, maxval=100, group=gCalc, tooltip='Procent wolumenu definiujący Value Area (klasycznie 70%).')
 
 gTable = 'Tabela'
 tablePos     = input.string('Prawy górny róg', 'Pozycja', options=['Prawy górny róg', 'Prawy środek', 'Prawy dolny róg', 'Lewy górny róg', 'Lewy środek', 'Lewy dolny róg'], group=gTable)
-tableMarginX = input.int(1, 'Margines poziomy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od lewej/prawej krawędzi (% szerokości).')
-tableMarginY = input.int(1, 'Margines pionowy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od góry/dołu (% wysokości). Bez znaczenia dla „środek".')
-fontSize     = input.string('Normalna', 'Wielkość tekstu', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gTable)
+tableMarginX = input.int(0, 'Margines poziomy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od lewej/prawej krawędzi (% szerokości).')
+tableMarginY = input.int(0, 'Margines pionowy (%)', minval=0, maxval=20, group=gTable, tooltip='Odsunięcie tabeli od góry/dołu (% wysokości). Bez znaczenia dla „środek".')
+fontSize     = input.string('Mała', 'Wielkość tekstu', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gTable)
+
+gRows = 'Wiersze tabeli'
+showSessionStart = input.bool(true, 'Start sesji',    group=gRows, tooltip='Pokaż datę i godzinę rozpoczęcia bieżącej sesji (zgodnie z resetem CVD).')
+showBarCount     = input.bool(true, 'Liczba słupków', group=gRows, tooltip='Pokaż liczbę słupków (świec) od początku bieżącej sesji.')
+showCvd     = input.bool(true, 'CVD (sesja)',   group=gRows, tooltip='Pokaż wiersz skumulowanej delty (CVD) w sesji.')
+showCvdHour = input.bool(true, 'CVD (1h)',      group=gRows, tooltip='Pokaż skumulowaną deltę z ostatniej godziny (krocząca suma delty z ostatnich 60 minut, niezależna od resetu sesji). Na interwałach ≥ 1h pokazuje „—".')
+showVolume = input.bool(true, 'Volume',         group=gRows, tooltip='Pokaż łączny wolumen bieżącej świecy (kupno + sprzedaż).')
+showBuy    = input.bool(true, 'Kupno (ask)',    group=gRows, tooltip='Pokaż wiersz z wolumenem kupna (ask).')
+showSell   = input.bool(true, 'Sprzedaż (bid)', group=gRows, tooltip='Pokaż wiersz z wolumenem sprzedaży (bid).')
+showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Pokaż wiersz delty (kupno − sprzedaż) jako wartość bezwzględną.')
+showDeltaPct = input.bool(true, 'Delta %',      group=gRows, tooltip='Pokaż wiersz delty jako udział procentowy w całkowitym wolumenie.')
+showSpread = input.bool(true, 'Spread (H−L)',   group=gRows, tooltip='Pokaż zakres bieżącej świecy: High − Low.')
+showVa     = input.bool(true, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
+showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wiersz Point of Control (cena z największym wolumenem).')
+showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC.')
+
+gColors = 'Kolory'
+colSpread = input.color(color.white,  'Spread (H−L)', group=gColors, tooltip='Kolor wartości spreadu (High − Low).')
+colMaxVol = input.color(color.orange, 'Max volume',   group=gColors, tooltip='Kolor wartości Max volume (wolumen na poziomie POC).')
 
 gCvd = 'Delta skumulowana (CVD)'
 resetDaily = input.bool(true, 'Resetuj CVD na nowej sesji dziennej', group=gCvd, tooltip='Skumulowana delta (CVD) zerowana na początku każdego dnia. Wyłącz, by liczyć narastająco od początku historii.')
@@ -33,6 +59,8 @@ float buyVol   = na
 float sellVol  = na
 float pocPrice = na
 float pocVol   = na
+float vahPrice = na
+float valPrice = na
 if hasData
     delta   := fp.delta()
     buyVol  := fp.buy_volume()
@@ -41,6 +69,12 @@ if hasData
     if not na(pocRow)
         pocPrice := (pocRow.up_price() + pocRow.down_price()) / 2
         pocVol   := pocRow.total_volume()
+    vahRow = fp.vah()
+    if not na(vahRow)
+        vahPrice := (vahRow.up_price() + vahRow.down_price()) / 2
+    valRow = fp.val()
+    if not na(valRow)
+        valPrice := (valRow.up_price() + valRow.down_price()) / 2
 
 totalVol = hasData ? buyVol + sellVol : na
 hasDelta = hasData and not na(totalVol) and totalVol > 0
@@ -50,7 +84,10 @@ if not hasDelta
     sellVol  := na
     pocPrice := na
     pocVol   := na
+    vahPrice := na
+    valPrice := na
 deltaPct = hasDelta ? delta / totalVol * 100 : na
+vaSpread = (not na(vahPrice) and not na(valPrice)) ? vahPrice - valPrice : na
 
 newDay = ta.change(time('D')) != 0
 var float cvd = 0.0
@@ -58,6 +95,21 @@ if resetDaily and newDay
     cvd := 0.0
 if hasDelta
     cvd += delta
+
+// --- CVD z ostatniej godziny (krocząca suma delty z ostatnich 60 minut) ---
+tfSec       = timeframe.in_seconds()
+deltaForSum = hasDelta ? delta : 0.0
+barsPerHour = math.max(1, int(math.round(3600.0 / tfSec)))
+hourValid   = tfSec <= 3600
+cvdHour     = hourValid ? math.sum(deltaForSum, barsPerHour) : na
+
+// --- Start sesji + liczba słupków (sesja = doba przy resecie CVD, inaczej cała historia) ---
+var int sessionStart = na
+var int sessionBars  = 0
+if barstate.isfirst or (resetDaily and newDay)
+    sessionStart := time
+    sessionBars  := 0
+sessionBars += 1
 
 deltaColor = not hasDelta ? cNeutral : delta > 0 ? cBuy : delta < 0 ? cSell : cNeutral
 
@@ -68,8 +120,7 @@ f_abbr(float x) =>
 
 // --- Przyjazny opis interwału wykresu (do nagłówka „ostatnia świeca") ---
 f_tf() =>
-    s = timeframe.in_seconds()
-    s < 60 ? str.tostring(s) + 's' : s < 3600 ? str.tostring(s / 60, '#') + 'm' : s < 86400 ? str.tostring(s / 3600, '#') + 'h' : timeframe.period
+    tfSec < 60 ? str.tostring(tfSec) + 's' : tfSec < 3600 ? str.tostring(tfSec / 60, '#') + 'm' : tfSec < 86400 ? str.tostring(tfSec / 3600, '#') + 'h' : timeframe.period
 
 // --- Wielkość tekstu tabeli ---
 szLbl = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
@@ -85,24 +136,67 @@ c0        = isLeft ? 1 : 0
 c1        = c0 + 1
 spacerCol = isLeft ? 0 : 2
 rowOffset = isTop ? 1 : 0
-spacerRow = isTop ? 0 : 6
 hdrTip = 'Kupno / sprzedaż / delta / POC dotyczą TYLKO ostatniej (bieżącej) świecy wybranego interwału — np. ostatniej minuty na wykresie 1m. CVD liczy się narastająco w sesji.'
 hdrBg  = color.new(cNeutral, 82)   // subtelne tło paska nagłówka
-var table infoTable = table.new(tablePosition, 3, 7, frame_width=0, border_width=0)
+anyCandle = showVolume or showBuy or showSell or showDelta or showDeltaPct or showSpread or showVa or showPoc or showMaxVol
+anyLevel  = showSpread or showVa or showPoc or showMaxVol
+sepText   = '┄┄┄┄┄┄'
+sepColor  = color.new(cNeutral, 40)
+
+// Kolor wartości CVD wg znaku (zielony dodatni / czerwony ujemny / szary zerowy lub brak)
+f_signColor(float x) =>
+    na(x) ? cNeutral : x > 0 ? cBuy : x < 0 ? cSell : cNeutral
+
+MAX_ROWS = 18   // nagłówek + maks. wszystkie wiersze + 2 separatory + margines (z zapasem)
+var table infoTable = table.new(tablePosition, 3, MAX_ROWS, frame_width=0, border_width=0)
 if barstate.islast
+    // 1) Złóż listę widocznych wierszy w kolejności wyświetlania (separator = Row z sepText w obu kolumnach).
+    rows = array.new<Row>()
+    if showSessionStart
+        rows.push(Row.new('Start sesji', na(sessionStart) ? '—' : str.format_time(sessionStart, 'yyyy-MM-dd HH:mm', syminfo.timezone), cNeutral, cNeutral))
+    if showBarCount
+        rows.push(Row.new('Liczba słupków', str.tostring(sessionBars, '#'), cNeutral, cNeutral))
+    if showCvd
+        rows.push(Row.new('CVD (sesja)', hasDelta ? f_abbr(cvd) : '—', cNeutral, f_signColor(cvd)))
+    if showCvdHour
+        rows.push(Row.new('CVD (1h)', na(cvdHour) ? '—' : f_abbr(cvdHour), cNeutral, f_signColor(cvdHour)))
+    if (showCvd or showCvdHour) and anyCandle
+        rows.push(Row.new(sepText, sepText, sepColor, sepColor))
+    if showVolume
+        rows.push(Row.new('Volume', hasDelta ? f_abbr(totalVol) : '—', cNeutral, cNeutral))
+    if showBuy
+        rows.push(Row.new('Kupno (ask)', hasDelta ? f_abbr(buyVol) : '—', cNeutral, cBuy))
+    if showSell
+        rows.push(Row.new('Sprzedaż (bid)', hasDelta ? f_abbr(sellVol) : '—', cNeutral, cSell))
+    if showDelta
+        rows.push(Row.new('Delta', hasDelta ? f_abbr(delta) : '—', cNeutral, deltaColor))
+    if showDeltaPct
+        rows.push(Row.new('Delta %', na(deltaPct) ? '—' : str.tostring(deltaPct, '#.#') + '%', cNeutral, deltaColor))
+    if showDeltaPct and anyLevel
+        rows.push(Row.new(sepText, sepText, sepColor, sepColor))
+    if showSpread
+        rows.push(Row.new('Spread (H−L)', str.tostring(high - low, format.mintick), cNeutral, colSpread))
+    if showVa
+        rows.push(Row.new('Value Area', na(vaSpread) ? '—' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
+    if showPoc
+        rows.push(Row.new('POC', na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
+    if showMaxVol
+        rows.push(Row.new('Max volume', hasDelta ? f_abbr(pocVol) : '—', cNeutral, colMaxVol))
+
+    // 2) Render: czyść poprzedni układ, marginesy (puste komórki dystansowe), nagłówek, potem wiersze.
+    table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
     if tableMarginX > 0
         table.cell(infoTable, spacerCol, rowOffset, '', width=tableMarginX)
-    if tableMarginY > 0 and not isMid
-        table.cell(infoTable, c0, spacerRow, '', height=tableMarginY)
-    table.cell(infoTable, c0, rowOffset + 0, 'Ostatnia świeca', text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
-    table.cell(infoTable, c1, rowOffset + 0, f_tf(),            text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
-    table.cell(infoTable, c0, rowOffset + 1, 'Kupno (ask)',    text_color=cNeutral, text_size=szLbl)
-    table.cell(infoTable, c1, rowOffset + 1, hasDelta ? f_abbr(buyVol)  : '—', text_color=cBuy,  text_size=szLbl)
-    table.cell(infoTable, c0, rowOffset + 2, 'Sprzedaż (bid)', text_color=cNeutral, text_size=szLbl)
-    table.cell(infoTable, c1, rowOffset + 2, hasDelta ? f_abbr(sellVol) : '—', text_color=cSell, text_size=szLbl)
-    table.cell(infoTable, c0, rowOffset + 3, 'Delta',          text_color=cNeutral, text_size=szLbl)
-    table.cell(infoTable, c1, rowOffset + 3, hasDelta ? f_abbr(delta) + (na(deltaPct) ? '' : ' (' + str.tostring(deltaPct, '#.#') + '%)') : '—', text_color=deltaColor, text_size=szLbl)
-    table.cell(infoTable, c0, rowOffset + 4, 'POC',            text_color=cNeutral, text_size=szLbl)
-    table.cell(infoTable, c1, rowOffset + 4, na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick) + ' · ' + f_abbr(pocVol) + ' max vol', text_color=color.white, text_size=szLbl)
-    table.cell(infoTable, c0, rowOffset + 5, 'CVD (sesja)',    text_color=cNeutral, text_size=szLbl)
-    table.cell(infoTable, c1, rowOffset + 5, hasDelta ? f_abbr(cvd) : '—', text_color=cvd > 0 ? cBuy : cvd < 0 ? cSell : cNeutral, text_size=szLbl)
+    if tableMarginY > 0 and not isMid and isTop
+        table.cell(infoTable, c0, 0, '', height=tableMarginY)
+    table.cell(infoTable, c0, rowOffset, 'Ostatnia świeca', text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    table.cell(infoTable, c1, rowOffset, f_tf(),            text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    nRows = rows.size()
+    if nRows > 0
+        for i = 0 to nRows - 1
+            rw = rows.get(i)
+            rr = rowOffset + 1 + i
+            table.cell(infoTable, c0, rr, rw.label, text_color=rw.labColor, text_size=szLbl)
+            table.cell(infoTable, c1, rr, rw.value, text_color=rw.valColor, text_size=szLbl)
+    if tableMarginY > 0 and not isMid and not isTop
+        table.cell(infoTable, c0, rowOffset + 1 + nRows, '', height=tableMarginY)
