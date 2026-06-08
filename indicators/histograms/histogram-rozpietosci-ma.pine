@@ -30,12 +30,14 @@ histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 5
 plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 
-if (ta.crossunder(aSeries, bSeries))
+// Krótka przebija długą w GÓRĘ (histogram przechodzi nad zero) -> impuls byczy -> BUY OPEN.
+if (ta.crossover(aSeries, bSeries))
     line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, 0, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal)
 
-if (ta.crossover(aSeries, bSeries))
+// Krótka przebija długą w DÓŁ (histogram przechodzi pod zero) -> impuls niedźwiedzi -> BUY CLOSE.
+if (ta.crossunder(aSeries, bSeries))
     line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, 0, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal)
