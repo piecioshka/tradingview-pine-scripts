@@ -16,8 +16,8 @@ cSell = input.color(color.new(color.rgb(239, 83, 80), 50), 'Kolor delty ujemnej 
 
 gView = 'Wyświetlanie'
 showLabels = input.bool(true, 'Pokaż liczby delty', tooltip='Liczba delty wypisana przy każdym słupku.', group=gView)
-txtUp    = input.color(color.new(color.rgb(38, 166, 154), 50), 'Kolor liczby — delta rosnąca', group=gView, tooltip='Kolor liczby przy delcie dodatniej. Domyślnie taki jak kolor słupka wzrostowego.')
-txtDown  = input.color(color.new(color.rgb(239, 83, 80), 50),  'Kolor liczby — delta ujemna',  group=gView, tooltip='Kolor liczby przy delcie ujemnej. Domyślnie taki jak kolor słupka spadkowego.')
+txtUp    = input.color(color.new(color.rgb(38, 166, 154), 0), 'Kolor liczby — delta rosnąca', group=gView, tooltip='Kolor liczby przy delcie dodatniej. Domyślnie taki jak kolor słupka wzrostowego.')
+txtDown  = input.color(color.new(color.rgb(239, 83, 80), 0),  'Kolor liczby — delta ujemna',  group=gView, tooltip='Kolor liczby przy delcie ujemnej. Domyślnie taki jak kolor słupka spadkowego.')
 fontSize = input.string('Mała', 'Wielkość liczb', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gView)
 numPos   = input.string('Nad słupkiem', 'Pozycja liczb', options=['Nad słupkiem', 'Na dole'], tooltip='„Nad słupkiem" = lekko nad słupkiem. „Na dole" = przy podstawie panelu.', group=gView)
 numGap   = input.float(0.5, 'Odstęp liczby nad słupkiem (% panelu)', minval=0, maxval=20, step=0.5, tooltip='Pionowy odstęp między liczbą a czubkiem słupka, jako % wysokości panelu (dotyczy „Nad słupkiem").', group=gView)
