@@ -4,6 +4,36 @@
 
 > 📝 Notatki techniczne i cheatsheet Pine Script: [NOTES.md](NOTES.md)
 
+## Spis treści
+
+- [Wskaźniki](#wskaźniki)
+  - [Nakładki (overlays)](#nakładki-overlays)
+    - [1x MA](#1x-ma)
+    - [2x MA](#2x-ma)
+    - [3x MA](#3x-ma)
+    - [Koperty](#koperty)
+    - [Wstęgi Bollingera](#wstęgi-bollingera)
+    - [GMMA](#gmma)
+    - [Złoty / Śmierci Krzyż](#złoty--śmierci-krzyż)
+    - [Sezonowość miesięczna](#sezonowość-miesięczna)
+    - [Sezonowość dzienna](#sezonowość-dzienna)
+    - [Sezonowość godzinowa](#sezonowość-godzinowa)
+  - [Histogramy](#histogramy)
+    - [Histogram Rozpiętości MA](#histogram-rozpiętości-ma)
+  - [Oscylatory](#oscylatory)
+    - [MACD](#macd)
+    - [Oscylator Stochastyczny](#oscylator-stochastyczny)
+    - [RSI](#rsi)
+    - [ROC](#roc)
+  - [Wolumen](#wolumen)
+    - [Akumulacja / Dystrybucja](#akumulacja--dystrybucja)
+    - [Delta Footprint Bubble](#delta-footprint-bubble)
+    - [Delta Footprint Histogram](#delta-footprint-histogram)
+    - [Delta Footprint Table](#delta-footprint-table)
+    - [Delta Footprint Imbalance](#delta-footprint-imbalance)
+- [Strategie](#strategie)
+  - [Cross 2x SMA](#cross-2x-sma)
+
 ## Wskaźniki
 
 ### Nakładki (overlays)
