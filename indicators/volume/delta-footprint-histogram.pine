@@ -15,6 +15,7 @@ cBuy  = input.color(color.new(color.rgb(38, 166, 154), 50), 'Kolor delty dodatni
 cSell = input.color(color.new(color.rgb(239, 83, 80), 50), 'Kolor delty ujemnej (sprzedaż)', group=gDelta)
 
 gView = 'Wyświetlanie'
+diverge    = input.bool(true, 'Czerwone słupki rosną w dół', tooltip='Gdy włączone, słupki delty ujemnej (sprzedaż) rosną w dół od linii zera, a dodatniej (kupno) w górę — układ rozbieżny.', group=gView)
 showLabels = input.bool(true, 'Pokaż liczby delty', tooltip='Liczba delty wypisana przy każdym słupku.', group=gView)
 txtUp    = input.color(color.new(color.rgb(38, 166, 154), 0), 'Kolor liczby — delta rosnąca', group=gView, tooltip='Kolor liczby przy delcie dodatniej. Domyślnie taki jak kolor słupka wzrostowego.')
 txtDown  = input.color(color.new(color.rgb(239, 83, 80), 0),  'Kolor liczby — delta ujemna',  group=gView, tooltip='Kolor liczby przy delcie ujemnej. Domyślnie taki jak kolor słupka spadkowego.')
@@ -55,8 +56,11 @@ deltaColor = not hasDelta ? na : delta >= 0 ? cBuy : cSell
 
 // Słupek (baza 0) + niewidzialny „sufit" ograniczający wysokość: najwyższy słupek ≈ fillPct panelu.
 // Słupek i „sufit" tylko w panelu — ich wartości NIE mają pokazywać się przy kursorze (wysokość jest znormalizowana).
-plot(magN, 'Delta (znorm.)', color=deltaColor, style=plot.style_columns, histbase=0, display=display.pane)
+isDown = diverge and not na(delta) and delta < 0   // słupek sprzedaży rysowany w dół (układ rozbieżny)
+barN   = na(magN) ? na : (isDown ? -magN : magN)
+plot(barN, 'Delta (znorm.)', color=deltaColor, style=plot.style_columns, histbase=0, display=display.pane)
 plot(maxN > 0 ? maxN / fillPct : na, 'Sufit', color=color.new(color.gray, 100), editable=false, display=display.pane)
+plot(diverge and maxN > 0 ? -maxN / fillPct : na, 'Podłoga', color=color.new(color.gray, 100), editable=false, display=display.pane)
 // REALNA delta przy kursorze (status line) + okno danych; kupno/sprzedaż w oknie danych
 plot(delta,   'Delta',          color=deltaColor, format=format.volume, display=display.status_line + display.data_window)
 plot(buyVol,  'Kupno (ask)',    color=cBuy,       format=format.volume, display=display.data_window)
@@ -69,4 +73,11 @@ lblGap = maxN / fillPct * (numGap / 100)   // odstęp nad słupkiem (% wysokośc
 // Kolor liczby wg znaku delty — osobne kolory dla rosnącej/ujemnej (domyślnie jak słupki)
 if showLabels and not na(delta)
     lblColor = delta >= 0 ? txtUp : txtDown
-    label.new(bar_index, numPos == 'Nad słupkiem' ? magN + lblGap : 0, text=f_abbr(delta), yloc=yloc.price, style=label.style_none, textcolor=lblColor, size=szLbl)
+    tip      = isDown ? -magN : magN                                   // czubek słupka (uwzględnia kierunek)
+    // „Nad słupkiem" = przy czubku; „Na dole" = przy linii zera (czerwone nad opadającym słupkiem)
+    anchor   = numPos == 'Nad słupkiem' ? tip : 0
+    below    = numPos == 'Nad słupkiem' ? isDown : (diverge ? not isDown : false)  // czy tekst ma iść pod kotwicę
+    // Styl kierunkowy z przezroczystym tłem: odsuwa CAŁY tekst poza kotwicę (bez nachodzenia na słupek)
+    lblStyle = below ? label.style_label_up : label.style_label_down
+    lblY     = anchor + (below ? -lblGap : lblGap)
+    label.new(bar_index, lblY, text=f_abbr(delta), yloc=yloc.price, style=lblStyle, color=color.new(color.white, 100), textcolor=lblColor, size=szLbl)
