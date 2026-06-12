@@ -25,7 +25,7 @@ numGap   = input.float(0.5, 'Odstęp liczby nad słupkiem (% panelu)', minval=0,
 
 gNorm = 'Normalizacja słupków'
 normPow  = input.float(0.5, 'Normalizacja wysokości', minval=0.1, maxval=1, step=0.05, tooltip='Potęga skalująca wysokość słupka: 1 = liniowo (bez normalizacji), 0.5 = pierwiastek, niżej = mocniejsza kompresja skoków. Odniesienie: max z ~500 świec.', group=gNorm)
-fillPct  = input.float(50, 'Maks. wysokość słupków (% panelu)', minval=5, maxval=100, step=5, tooltip='Najwyższy słupek zajmuje maks. ten % wysokości panelu (reszta zostaje pusta). 100 = wypełnia panel.', group=gNorm) / 100.0
+fillPct  = input.float(100, 'Maks. wysokość słupków (% panelu)', minval=5, maxval=100, step=5, tooltip='Najwyższy słupek zajmuje maks. ten % wysokości panelu (reszta zostaje pusta). 100 = wypełnia panel.', group=gNorm) / 100.0
 
 // --- Skrót K/M/B; poniżej 1000 liczba całkowita (bez „.00") ---
 f_abbr(float x) =>
