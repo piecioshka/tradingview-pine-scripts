@@ -177,3 +177,7 @@ Wykrywa **imbalanse footprintu** (diagonalne: jedna strona ≥ _mnożnik_ × prz
 Strategia oparta na przecięciu dwóch średnich kroczących (krótkiej i długiej).
 
 ![Cross 2x SMA](screenshots/strategies/cross-2x-sma.png)
+
+## License
+
+[The MIT License](http://piecioshka.mit-license.org) @ 2026
