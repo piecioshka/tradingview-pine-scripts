@@ -8,9 +8,8 @@ indicator('📊 Delta Footprint Table (by PK)', shorttitle='Delta FP Table', ove
 // Dodaj obok „Delta Footprint Bubble" / „Histogram". Liczy własny request.footprint — działa niezależnie.
 // Wymaga Premium/Ultimate; brak danych footprint (np. część krypto) → „—".
 
-cBuy     = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domyślna zieleń świecy #26A69A
-cSell    = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
-cNeutral = color.gray               // brak danych / delta zerowa
+cBuy  = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domyślna zieleń świecy #26A69A
+cSell = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
 
 // Pojedynczy wiersz tabeli (etykieta + wartość + kolory). Separatory to wiersz z sepText w obu kolumnach.
 type Row
@@ -50,8 +49,9 @@ showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wie
 showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC.')
 
 gColors = 'Kolory'
-colSpread = input.color(color.white,  'Spread (H−L)', group=gColors, tooltip='Kolor wartości spreadu (High − Low).')
-colMaxVol = input.color(color.orange, 'Max volume',   group=gColors, tooltip='Kolor wartości Max volume (wolumen na poziomie POC).')
+cNeutral  = input.color(color.gray,   'Kolor podstawowy', group=gColors, tooltip='Podstawowy kolor tekstu tabeli: nazwy wierszy i wartości neutralne (brak danych, delta zerowa). Z niego pochodzą też tło nagłówka i separatory.')
+colSpread = input.color(color.white,  'Spread (H−L)',     group=gColors, tooltip='Kolor wartości spreadu (High − Low).')
+colMaxVol = input.color(color.orange, 'Max volume',       group=gColors, tooltip='Kolor wartości Max volume (wolumen na poziomie POC).')
 
 gCvd = 'Delta skumulowana (CVD)'
 resetDaily = input.bool(true, 'Resetuj CVD na nowej sesji dziennej', group=gCvd, tooltip='Skumulowana delta (CVD) zerowana na początku każdego dnia. Wyłącz, by liczyć narastająco od początku historii.')
