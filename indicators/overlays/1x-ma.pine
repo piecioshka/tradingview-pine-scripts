@@ -4,10 +4,9 @@
 //@version=6
 indicator('📈 1x MA = Moving Average (by PK)', shorttitle='1x MA', overlay = true)
 
-aColor = color.white
-
 aLen = input(20, 'Długość')
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], defval='SMA')
+aColor = input.color(color.white, 'Kolor')
 
 aSeries = switch aType
     'SMA' => ta.sma(close, aLen)

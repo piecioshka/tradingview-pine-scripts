@@ -4,12 +4,9 @@
 //@version=6
 indicator('📈 3x MA = Moving Average (by PK)', shorttitle='3x MA', overlay = true)
 
-aColor = color.rgb(237, 197, 57)
-bColor = color.rgb(141, 68, 57)
-cColor = color.rgb(194, 59, 47)
-
 aLen = input(4, 'Długość', group='Krótki')
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Krótki', defval='SMA')
+aColor = input.color(color.rgb(237, 197, 57), 'Kolor', group='Krótki')
 aSeries = switch aType
     'SMA' => ta.sma(close, aLen)
     'EMA' => ta.ema(close, aLen)
@@ -20,6 +17,7 @@ aSeries = switch aType
 
 bLen = input(9, 'Długość', group='Średni')
 bType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Średni', defval='SMA')
+bColor = input.color(color.rgb(141, 68, 57), 'Kolor', group='Średni')
 bSeries = switch bType
     'SMA' => ta.sma(close, bLen)
     'EMA' => ta.ema(close, bLen)
@@ -30,6 +28,7 @@ bSeries = switch bType
 
 cLen = input(18, 'Długość', group='Długi')
 cType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Długi', defval='SMA')
+cColor = input.color(color.rgb(194, 59, 47), 'Kolor', group='Długi')
 cSeries = switch cType
     'SMA' => ta.sma(close, cLen)
     'EMA' => ta.ema(close, cLen)
