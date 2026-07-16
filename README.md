@@ -40,19 +40,19 @@
 
 #### [1x MA](indicators/overlays/1x-ma.pine)
 
-Pojedyncza średnia krocząca — SMA / EMA / WMA / VWMA / RMA.
+Pojedyncza średnia krocząca — SMA / EMA / WMA / VWMA / RMA. Opcjonalna etykieta z długością i typem (np. „200 EMA") przy końcu linii.
 
 ![1x MA](screenshots/indicators/1x-ma.png)
 
 #### [2x MA](indicators/overlays/2x-ma.pine)
 
-Dwie średnie kroczące z konfigurowalnym typem każdej z nich.
+Dwie średnie kroczące z konfigurowalnym typem każdej z nich. Opcjonalne etykiety z długością i typem przy końcach linii.
 
 ![2x MA](screenshots/indicators/2x-ma.png)
 
 #### [3x MA](indicators/overlays/3x-ma.pine)
 
-Trzy średnie kroczące.
+Trzy średnie kroczące. Opcjonalne etykiety z długością i typem przy końcach linii.
 
 ![3x MA](screenshots/indicators/3x-ma.png)
 

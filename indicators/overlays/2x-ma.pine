@@ -27,8 +27,25 @@ bSeries = switch bType
     'RMA' => ta.rma(close, bLen)
     => na
 
+showLabels = input.bool(false, 'Pokaż etykiety (długość i typ)', group='Etykiety')
+
 plot(aSeries, 'Krótki', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
 plot(bSeries, 'Długi', color=color.new(bColor, 30), linewidth=2, force_overlay=true, linestyle=plot.linestyle_dotted)
+
+updateLabel(label lbl, float y, string txt, color col) =>
+    label result = lbl
+    if na(result)
+        result := label.new(bar_index, y, txt, style=label.style_label_left, color=color.new(color.black, 100), textcolor=col, force_overlay=true)
+    label.set_xy(result, bar_index, y)
+    label.set_text(result, txt)
+    result
+
+var label aLabel = na
+var label bLabel = na
+
+if showLabels and barstate.islast
+    aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)
+    bLabel := updateLabel(bLabel, bSeries, str.tostring(bLen) + ' ' + bType, bColor)
 
 if (ta.crossover(aSeries, bSeries))
     label.new(bar_index, aSeries, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal, force_overlay=true)

@@ -17,4 +17,19 @@ aSeries = switch aType
     'RMA' => ta.rma(close, aLen)
     => na
 
+showLabels = input.bool(false, 'Pokaż etykietę (długość i typ)', group='Etykiety')
+
 plot(aSeries, 'MA', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
+
+updateLabel(label lbl, float y, string txt, color col) =>
+    label result = lbl
+    if na(result)
+        result := label.new(bar_index, y, txt, style=label.style_label_left, color=color.new(color.black, 100), textcolor=col, force_overlay=true)
+    label.set_xy(result, bar_index, y)
+    label.set_text(result, txt)
+    result
+
+var label aLabel = na
+
+if showLabels and barstate.islast
+    aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)

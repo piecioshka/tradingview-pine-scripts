@@ -38,6 +38,25 @@ cSeries = switch cType
     'RMA' => ta.rma(close, cLen)
     => na
 
+showLabels = input.bool(false, 'Pokaż etykiety (długość i typ)', group='Etykiety')
+
 plot(aSeries, 'Krótki', color=color.new(aColor, 0), linewidth=2, force_overlay=true)
 plot(bSeries, 'Średni', color=color.new(bColor, 0), linewidth=2, force_overlay=true)
 plot(cSeries, 'Długi', color=color.new(cColor, 0), linewidth=2, force_overlay=true)
+
+updateLabel(label lbl, float y, string txt, color col) =>
+    label result = lbl
+    if na(result)
+        result := label.new(bar_index, y, txt, style=label.style_label_left, color=color.new(color.black, 100), textcolor=col, force_overlay=true)
+    label.set_xy(result, bar_index, y)
+    label.set_text(result, txt)
+    result
+
+var label aLabel = na
+var label bLabel = na
+var label cLabel = na
+
+if showLabels and barstate.islast
+    aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)
+    bLabel := updateLabel(bLabel, bSeries, str.tostring(bLen) + ' ' + bType, bColor)
+    cLabel := updateLabel(cLabel, cSeries, str.tostring(cLen) + ' ' + cType, cColor)
