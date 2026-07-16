@@ -37,7 +37,7 @@ cSeries = switch cType
     'RMA' => ta.rma(close, cLen)
     => na
 
-showLabels = input.bool(false, 'Pokaż etykiety (długość i typ)', group='Etykiety')
+showLabels = input.bool(true, 'Pokaż etykiety (długość i typ)', group='Etykiety')
 
 plot(aSeries, 'Krótki', color=color.new(aColor, 0), linewidth=2, force_overlay=true)
 plot(bSeries, 'Średni', color=color.new(bColor, 0), linewidth=2, force_overlay=true)
