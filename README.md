@@ -15,6 +15,7 @@
     - [Wstęgi Bollingera](#wstęgi-bollingera)
     - [GMMA](#gmma)
     - [Złoty / Śmierci Krzyż](#złoty--śmierci-krzyż)
+  - [Sezonowość](#sezonowość)
     - [Sezonowość miesięczna](#sezonowość-miesięczna)
     - [Sezonowość dzienna](#sezonowość-dzienna)
     - [Sezonowość godzinowa](#sezonowość-godzinowa)
@@ -80,19 +81,21 @@ Golden Cross i Death Cross — przecięcia szybkiej i wolnej średniej (klasyczn
 
 ![Złoty / Śmierci Krzyż](screenshots/indicators/zloty-smierci-krzyz.png)
 
-#### [Sezonowość miesięczna](indicators/overlays/sezonowosc-miesieczna.pine)
+### Sezonowość
+
+#### [Sezonowość miesięczna](indicators/sezonowosc/sezonowosc-miesieczna.pine)
 
 Tło wykresu kolorowane wg miesiąca — widoczne sezonowe układy (np. Lean Hogs). Każdy z 12 miesięcy można włączać/wyłączać; nazwy zawierają kody kontraktów futures (F, G, H, …).
 
 ![Sezonowość miesięczna](screenshots/indicators/sezonowosc-miesieczna.png)
 
-#### [Sezonowość dzienna](indicators/overlays/sezonowosc-dzienna.pine)
+#### [Sezonowość dzienna](indicators/sezonowosc/sezonowosc-dzienna.pine)
 
 Tło wykresu kolorowane wg dnia tygodnia — tęcza przez tydzień (poniedziałek → niedziela), z możliwością wyłączania wybranych dni.
 
 ![Sezonowość dzienna](screenshots/indicators/sezonowosc-dzienna.png)
 
-#### [Sezonowość godzinowa](indicators/overlays/sezonowosc-godzinowa.pine)
+#### [Sezonowość godzinowa](indicators/sezonowosc/sezonowosc-godzinowa.pine)
 
 Tło wykresu kolorowane wg godziny — gradient dobowy (noc → świt → dzień → zmierzch). Wybór aktywnych godzin polem tekstowym, np. `"9-16,18,22"`.
 
