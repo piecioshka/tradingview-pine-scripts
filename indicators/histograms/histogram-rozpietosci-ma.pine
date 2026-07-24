@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Histogram Rozpiętości MA', shorttitle='HRMA', overlay=false)
+indicator('Histogram Rozpiętości MA', overlay=false)
 
 aLen = input(50, 'Długość', group='Krótki')
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Krótki', defval='SMA')

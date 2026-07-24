@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('3x MA = Moving Average', shorttitle='3x MA', overlay = true)
+indicator('3x MA = Moving Average', overlay = true)
 
 aLen = input(4, 'Długość', group='Krótki')
 aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Krótki', defval='SMA')

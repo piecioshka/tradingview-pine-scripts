@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Sezonowość godzinowa', shorttitle='Sezonowość H', overlay = true)
+indicator('Sezonowość godzinowa', overlay = true)
 
 // Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od godziny.
 // Zaprojektowany dla interwałów intraday (< 1D) - na dziennym i wyższym

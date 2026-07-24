@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 // @version=6
-indicator('Wstęgi Bollingera', shorttitle='Bollinger Bands', overlay = true)
+indicator('Wstęgi Bollingera', overlay = true)
 
 aColor = color.rgb(114, 48, 131)
 bColor = color.rgb(240, 199, 58)

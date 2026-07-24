@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Akumulacja / Dystrybucja', shorttitle='Accum/Dist', overlay=false)
+indicator('Akumulacja / Dystrybucja', overlay=false)
 
 // Linia Akumulacji / Dystrybucji (A/D) — Marc Chaikin.
 // Łączy cenę z wolumenem, mierząc presję kupna (akumulacja) i sprzedaży (dystrybucja).

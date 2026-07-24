@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('RSI = Relative Strength Index', shorttitle='RSI', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
+indicator('RSI = Relative Strength Index', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
 
 // --- Paleta kolorów (jedno miejsce na motyw) ---
 cRsi = color.rgb(255, 245, 157)  // linia RSI

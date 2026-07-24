@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Sezonowość dzienna', shorttitle='Sezonowość D', overlay = true)
+indicator('Sezonowość dzienna', overlay = true)
 
 // Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od dnia tygodnia.
 // Najlepszy efekt na wykresach intraday i dziennych - widać powtarzający się
