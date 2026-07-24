@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📊 Delta Footprint Table (by PK)', shorttitle='Delta FP Table', overlay=true)
+indicator('Delta Footprint Table (by PK)', shorttitle='Delta FP Table', overlay=true)
 
 // Samodzielna tabela statusu footprintu: kupno / sprzedaż / delta (+ %) / POC / CVD.
 // Dodaj obok „Delta Footprint Bubble" / „Histogram". Liczy własny request.footprint — działa niezależnie.

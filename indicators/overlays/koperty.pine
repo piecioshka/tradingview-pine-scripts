@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 // @version=6
-indicator('📈 Koperty (by PK)', shorttitle='Envelopes', overlay = true)
+indicator('Koperty (by PK)', shorttitle='Envelopes', overlay = true)
 
 // Dobre ustawienia dla kopert to:
 // - 3% wokół prostej średniej 21-dniowej

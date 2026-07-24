@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('🗓️ Sezonowość miesięczna (by PK)', shorttitle='Sezonowość M', overlay = true)
+indicator('Sezonowość miesięczna (by PK)', shorttitle='Sezonowość M', overlay = true)
 
 // Wskaźnik koloruje tło wykresu różnymi kolorami w zależności od miesiąca.
 // Zaprojektowany dla interwału miesięcznego (1M) - każda świeca = jeden miesiąc.

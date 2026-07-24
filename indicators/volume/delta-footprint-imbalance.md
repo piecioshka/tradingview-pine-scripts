@@ -1,4 +1,4 @@
-# 📊 Delta Footprint Imbalance (by PK)
+# Delta Footprint Imbalance (by PK)
 
 Wskaźnik order flow dla TradingView (Pine Script v6). Wykrywa **imbalanse footprintu** (diagonalne i ułożone), zamienia je w **trwałe strefy wsparcia/oporu** z automatyczną mitygacją i podsumowuje sytuację w mini‑dashboardzie.
 

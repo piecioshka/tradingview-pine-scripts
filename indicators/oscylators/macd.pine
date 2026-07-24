@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📈 MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false, max_lines_count=100, max_labels_count=100)
+indicator('MACD = Moving Average Convergence Divergence (by PK)', shorttitle='MACD', overlay=false, max_lines_count=100, max_labels_count=100)
 
 // --- Paleta kolorów (jedno miejsce na motyw) ---
 cMacd   = color.rgb(56, 104, 174)   // linia MACD

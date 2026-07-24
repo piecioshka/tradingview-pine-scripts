@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('📊 Delta Footprint Histogram (by PK)', shorttitle='Delta FP Histogram', overlay=false, max_labels_count=500)
+indicator('Delta Footprint Histogram (by PK)', shorttitle='Delta FP Histogram', overlay=false, max_labels_count=500)
 
 // Histogram delty z footprintu w osobnym panelu, przypięty do podstawy (0).
 // Słupek = |delta| (kupno − sprzedaż), kolor wg znaku: zielony = przewaga kupna, czerwony = sprzedaży.
