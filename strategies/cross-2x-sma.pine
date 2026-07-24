@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-strategy('Strategy (by PK)', overlay=true, fill_orders_on_standard_ohlc = true)
+strategy('Strategy', overlay=true, fill_orders_on_standard_ohlc = true)
 
 aLen = input(50, 'Krótki okres SMA')
 bLen = input(200, 'Długi okres SMA')

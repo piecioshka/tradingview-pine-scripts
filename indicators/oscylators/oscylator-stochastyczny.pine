@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Oscylator Stochastyczny (by PK)', shorttitle='SO', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
+indicator('Oscylator Stochastyczny', shorttitle='SO', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
 
 // --- Paleta kolorów (jedno miejsce na motyw) ---
 cK   = color.blue                // linia %K (oscylator)

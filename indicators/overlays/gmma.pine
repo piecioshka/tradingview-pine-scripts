@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('GMMA — Guppy Multiple Moving Average (by PK)', shorttitle='GMMA', overlay=true)
+indicator('GMMA — Guppy Multiple Moving Average', shorttitle='GMMA', overlay=true)
 
 // GMMA (Guppy Multiple Moving Average) — Daryl Guppy.
 // Dwie grupy wykładniczych średnich kroczących:

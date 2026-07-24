@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Złoty / Śmierci Krzyż (by PK)', shorttitle='Golden/Death Cross', overlay=true)
+indicator('Złoty / Śmierci Krzyż', shorttitle='Golden/Death Cross', overlay=true)
 
 // Złoty Krzyż (Golden Cross) — szybka średnia przecina wolną od dołu (sygnał byczy).
 // Krzyż Śmierci (Death Cross) — szybka średnia przecina wolną od góry (sygnał niedźwiedzi).

@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('ROC = Rate of Change (by PK)', shorttitle='ROC', overlay=false)
+indicator('ROC = Rate of Change', shorttitle='ROC', overlay=false)
 
 aLen = input.int(9, 'Długość')
 src = input.source(close, 'Źródło')

@@ -5,7 +5,7 @@
 // Pokazuje przy linii aktualnej ceny datę i godzinę, kiedy ostatni raz
 // rynek był na tym poziomie. „Ostatni raz" = najbliższy wstecz bar,
 // którego zakres [low, high] obejmował bieżącą cenę.
-indicator('Ostatnio taka cena (by PK)', shorttitle = 'Last Time @ Price', overlay = true, max_bars_back = 5000)
+indicator('Ostatnio taka cena', shorttitle = 'Last Time @ Price', overlay = true, max_bars_back = 5000)
 
 priceSource = input.source(close, title = 'Cena odniesienia')
 maxLookback = input.int(5000, title = 'Maksymalny zasięg wstecz (bary)', minval = 1, maxval = 5000)
