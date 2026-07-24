@@ -46,7 +46,7 @@ showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Pokaż wie
 showImbalance = input.bool(false, 'Imbalans (ułożone)', group=gRows, tooltip='Pokaż licznik ułożonych imbalansów (stacked) w bieżącej świecy: ▲ poziomy z imbalansem kupna, ▼ poziomy z imbalansem sprzedaży. Liczone wg ustawień z grupy „Imbalans".')
 showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wiersz Point of Control (cena z największym wolumenem).')
-showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC wraz z ceną tego poziomu.')
+showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC (cena tego poziomu — patrz wiersz POC).')
 
 gColors = 'Kolory'
 cNeutral  = input.color(color.gray,   'Kolor podstawowy', group=gColors, tooltip='Podstawowy kolor tekstu tabeli: nazwy wierszy i wartości neutralne (brak danych, delta zerowa). Z niego pochodzą też tło nagłówka i separatory.')
@@ -232,7 +232,7 @@ if barstate.islast
     if showPoc
         rows.push(Row.new('POC', na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
     if showMaxVol
-        rows.push(Row.new('Max volume', na(pocVol) ? '—' : f_abbr(pocVol) + ' @ ' + str.tostring(pocPrice, format.mintick), cNeutral, colMaxVol))
+        rows.push(Row.new('Max volume', na(pocVol) ? '—' : f_abbr(pocVol), cNeutral, colMaxVol))
 
     // 2) Render: czyść poprzedni układ, marginesy (puste komórki dystansowe), nagłówek, potem wiersze.
     table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
