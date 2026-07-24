@@ -33,18 +33,18 @@ tableMarginY = input.int(0, 'Margines pionowy (%)', minval=0, maxval=20, group=g
 fontSize     = input.string('Mała', 'Wielkość tekstu', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gTable)
 
 gRows = 'Wiersze tabeli'
-showSessionStart = input.bool(true, 'Start sesji',    group=gRows, tooltip='Pokaż datę i godzinę rozpoczęcia bieżącej sesji (zgodnie z resetem CVD).')
-showBarCount     = input.bool(true, 'Liczba słupków', group=gRows, tooltip='Pokaż liczbę słupków (świec) od początku bieżącej sesji.')
+showSessionStart = input.bool(false, 'Start sesji',    group=gRows, tooltip='Pokaż datę i godzinę rozpoczęcia bieżącej sesji (zgodnie z resetem CVD).')
+showBarCount     = input.bool(false, 'Liczba słupków', group=gRows, tooltip='Pokaż liczbę słupków (świec) od początku bieżącej sesji.')
 showCvd     = input.bool(true, 'CVD (sesja)',   group=gRows, tooltip='Pokaż wiersz skumulowanej delty (CVD) w sesji.')
 showCvdHour = input.bool(true, 'CVD (1h)',      group=gRows, tooltip='Pokaż skumulowaną deltę z ostatniej godziny (krocząca suma delty z ostatnich 60 minut, niezależna od resetu sesji). Na interwałach ≥ 1h pokazuje „—".')
 showVolume = input.bool(true, 'Volume',         group=gRows, tooltip='Pokaż łączny wolumen bieżącej świecy (kupno + sprzedaż).')
 showBuy    = input.bool(true, 'Kupno (ask)',    group=gRows, tooltip='Pokaż wiersz z wolumenem kupna (ask).')
 showSell   = input.bool(true, 'Sprzedaż (bid)', group=gRows, tooltip='Pokaż wiersz z wolumenem sprzedaży (bid).')
-showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Pokaż wiersz delty (kupno − sprzedaż) jako wartość bezwzględną.')
-showDeltaPct = input.bool(true, 'Delta %',      group=gRows, tooltip='Pokaż wiersz delty jako udział procentowy w całkowitym wolumenie.')
-showImbalance = input.bool(true, 'Imbalans (ułożone)', group=gRows, tooltip='Pokaż licznik ułożonych imbalansów (stacked) w bieżącej świecy: ▲ poziomy z imbalansem kupna, ▼ poziomy z imbalansem sprzedaży. Liczone wg ustawień z grupy „Imbalans".')
+showDelta    = input.bool(false, 'Delta',       group=gRows, tooltip='Pokaż wiersz delty (kupno − sprzedaż) jako wartość bezwzględną.')
+showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Pokaż wiersz delty jako udział procentowy w całkowitym wolumenie.')
+showImbalance = input.bool(false, 'Imbalans (ułożone)', group=gRows, tooltip='Pokaż licznik ułożonych imbalansów (stacked) w bieżącej świecy: ▲ poziomy z imbalansem kupna, ▼ poziomy z imbalansem sprzedaży. Liczone wg ustawień z grupy „Imbalans".')
 showSpread = input.bool(true, 'Spread (H−L)',   group=gRows, tooltip='Pokaż zakres bieżącej świecy: High − Low.')
-showVa     = input.bool(true, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
+showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wiersz Point of Control (cena z największym wolumenem).')
 showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC.')
 
@@ -143,8 +143,9 @@ spacerCol = isLeft ? 0 : 2
 rowOffset = isTop ? 1 : 0
 hdrTip = 'Kupno / sprzedaż / delta / POC dotyczą TYLKO ostatniej (bieżącej) świecy wybranego interwału — np. ostatniej minuty na wykresie 1m. CVD liczy się narastająco w sesji.'
 hdrBg  = color.new(cNeutral, 82)   // subtelne tło paska nagłówka
-anyCandle = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance or showSpread or showVa or showPoc or showMaxVol
-anyLevel  = showSpread or showVa or showPoc or showMaxVol
+anySession = showSessionStart or showBarCount or showCvd or showCvdHour
+anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance
+anyLevel   = showSpread or showVa or showPoc or showMaxVol
 sepText   = '┄┄┄┄┄┄'
 sepColor  = color.new(cNeutral, 40)
 
@@ -209,7 +210,7 @@ if barstate.islast
         rows.push(Row.new('CVD (sesja)', hasDelta ? f_abbr(cvd) : '—', cNeutral, f_signColor(cvd)))
     if showCvdHour
         rows.push(Row.new('CVD (1h)', na(cvdHour) ? '—' : f_abbr(cvdHour), cNeutral, f_signColor(cvdHour)))
-    if (showCvd or showCvdHour) and anyCandle
+    if anySession and (anyCandle or anyLevel)
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showVolume
         rows.push(Row.new('Volume', hasDelta ? f_abbr(totalVol) : '—', cNeutral, cNeutral))
@@ -225,7 +226,7 @@ if barstate.islast
         imbVal   = not hasDelta ? '—' : (imbBuyLv == 0 and imbSellLv == 0) ? 'brak' : '▲' + str.tostring(imbBuyLv) + '  ▼' + str.tostring(imbSellLv)
         imbColor = imbBuyLv > imbSellLv ? cBuy : imbSellLv > imbBuyLv ? cSell : cNeutral
         rows.push(Row.new('Imbalans', imbVal, cNeutral, imbColor))
-    if (showDeltaPct or showImbalance) and anyLevel
+    if anyCandle and anyLevel
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showSpread
         rows.push(Row.new('Spread (H−L)', str.tostring(high - low, format.mintick), cNeutral, colSpread))
