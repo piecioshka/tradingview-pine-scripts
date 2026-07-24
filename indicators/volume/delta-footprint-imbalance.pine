@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Delta Footprint Imbalance', shorttitle='Delta FP Imbalance', overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+indicator('Delta Footprint Imbalance', shorttitle='Delta Footprint Imbalance', overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
 
 // Imbalans footprintu (diagonal / stacked) z prawdziwych danych request.footprint (od stycznia 2026).
 // Footprint dzieli świecę na poziomy cenowe i zna wolumen agresorów po stronie kupna (ask) i sprzedaży (bid).

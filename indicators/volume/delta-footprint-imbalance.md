@@ -115,7 +115,7 @@ To **nie** jest wskaźnik „kup/sprzedaj". To **mapa miejsc, gdzie był agresor
    - Strefy **w kierunku trendu w środku ruchu** → kontynuacja (paliwo).
 3. **Strefy jako magnesy.** Świeża, nietknięta strefa często zostaje „przetestowana" — cena ma tendencję do powrotu.
 
-**Sygnał jest mocniejszy, gdy zgadza się z resztą:** kierunkiem delty/CVD (wskaźniki _Delta FP Table_ / _Histogram_), wolumenem i kluczowymi poziomami z wykresu.
+**Sygnał jest mocniejszy, gdy zgadza się z resztą:** kierunkiem delty/CVD (wskaźniki _Delta Footprint Table_ / _Histogram_), wolumenem i kluczowymi poziomami z wykresu.
 
 ---
 
@@ -138,9 +138,9 @@ To **nie** jest wskaźnik „kup/sprzedaj". To **mapa miejsc, gdzie był agresor
 
 Wskaźnik najlepiej działa obok pozostałych:
 
-- **Delta FP Bubble** — delta + bąble POC + Value Area + CVD.
-- **Delta FP Histogram** — delta w osobnym panelu.
-- **Delta FP Table** — tabela: kupno/sprzedaż/delta%/POC/CVD (+ licznik ułożonych imbalansów).
+- **Delta Footprint Bubble** — delta + bąble POC + Value Area + CVD.
+- **Delta Footprint Histogram** — delta w osobnym panelu.
+- **Delta Footprint Table** — tabela: kupno/sprzedaż/delta%/POC/CVD (+ licznik ułożonych imbalansów).
 
 ---
 

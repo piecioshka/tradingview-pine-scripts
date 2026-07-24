@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Delta Footprint Bubble', shorttitle='Delta FP Bubble', overlay=true, max_labels_count=500, max_polylines_count=100)
+indicator('Delta Footprint Bubble', shorttitle='Delta Footprint Bubble', overlay=true, max_labels_count=500, max_polylines_count=100)
 
 // Delta wolumenu z prawdziwych danych footprint (request.footprint, od stycznia 2026).
 // Footprint dzieli świecę na poziomy cenowe i zna wolumen agresorów po stronie kupna (ask)
