@@ -44,13 +44,13 @@ showSell   = input.bool(true, 'Sprzedaż (bid)', group=gRows, tooltip='Pokaż wi
 showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Pokaż wiersz delty (kupno − sprzedaż) jako wartość bezwzględną.')
 showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Pokaż wiersz delty jako udział procentowy w całkowitym wolumenie.')
 showImbalance = input.bool(false, 'Imbalans (ułożone)', group=gRows, tooltip='Pokaż licznik ułożonych imbalansów (stacked) w bieżącej świecy: ▲ poziomy z imbalansem kupna, ▼ poziomy z imbalansem sprzedaży. Liczone wg ustawień z grupy „Imbalans".')
-showSpread = input.bool(true, 'Spread (H−L)',   group=gRows, tooltip='Pokaż zakres bieżącej świecy: High − Low.')
 showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Pokaż szerokość Value Area z footprintu: VAH − VAL.\n\nValue Area to przedział cen skupiający zadany % wolumenu (domyślnie 70%) wokół POC.\nVAH (Value Area High) = górna granica tego przedziału.\nVAL (Value Area Low) = dolna granica.\nWiersz pokazuje szerokość VAH − VAL: węższa = wolumen skupiony, szersza = rozproszony.')
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Pokaż wiersz Point of Control (cena z największym wolumenem).')
+showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Pokaż wiersz z wolumenem na poziomie POC wraz z ceną tego poziomu.')
 
 gColors = 'Kolory'
 cNeutral  = input.color(color.gray,   'Kolor podstawowy', group=gColors, tooltip='Podstawowy kolor tekstu tabeli: nazwy wierszy i wartości neutralne (brak danych, delta zerowa). Z niego pochodzą też tło nagłówka i separatory.')
-colSpread = input.color(color.white,  'Spread (H−L)',     group=gColors, tooltip='Kolor wartości spreadu (High − Low).')
+colMaxVol = input.color(color.orange, 'Max volume',       group=gColors, tooltip='Kolor wartości Max volume (wolumen na poziomie POC).')
 
 gCvd = 'Delta skumulowana (CVD)'
 resetDaily = input.bool(true, 'Resetuj CVD na nowej sesji dziennej', group=gCvd, tooltip='Skumulowana delta (CVD) zerowana na początku każdego dnia. Wyłącz, by liczyć narastająco od początku historii.')
@@ -62,6 +62,7 @@ float delta    = na
 float buyVol   = na
 float sellVol  = na
 float pocPrice = na
+float pocVol   = na
 float vahPrice = na
 float valPrice = na
 if hasData
@@ -71,6 +72,7 @@ if hasData
     pocRow = fp.poc()
     if not na(pocRow)
         pocPrice := (pocRow.up_price() + pocRow.down_price()) / 2
+        pocVol   := pocRow.total_volume()
     vahRow = fp.vah()
     if not na(vahRow)
         vahPrice := (vahRow.up_price() + vahRow.down_price()) / 2
@@ -85,6 +87,7 @@ if not hasDelta
     buyVol   := na
     sellVol  := na
     pocPrice := na
+    pocVol   := na
     vahPrice := na
     valPrice := na
 deltaPct = hasDelta ? delta / totalVol * 100 : na
@@ -141,7 +144,7 @@ hdrTip = 'Kupno / sprzedaż / delta / POC dotyczą TYLKO ostatniej (bieżącej) 
 hdrBg  = color.new(cNeutral, 82)   // subtelne tło paska nagłówka
 anySession = showSessionStart or showBarCount or showCvd or showCvdHour
 anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance
-anyLevel   = showSpread or showVa or showPoc
+anyLevel   = showVa or showPoc or showMaxVol
 sepText   = '┄┄┄┄┄┄'
 sepColor  = color.new(cNeutral, 40)
 
@@ -224,12 +227,12 @@ if barstate.islast
         rows.push(Row.new('Imbalans', imbVal, cNeutral, imbColor))
     if anyCandle and anyLevel
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
-    if showSpread
-        rows.push(Row.new('Spread (H−L)', str.tostring(high - low, format.mintick), cNeutral, colSpread))
     if showVa
         rows.push(Row.new('Value Area', na(vaSpread) ? '—' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
     if showPoc
         rows.push(Row.new('POC', na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
+    if showMaxVol
+        rows.push(Row.new('Max volume', na(pocVol) ? '—' : f_abbr(pocVol) + ' @ ' + str.tostring(pocPrice, format.mintick), cNeutral, colMaxVol))
 
     // 2) Render: czyść poprzedni układ, marginesy (puste komórki dystansowe), nagłówek, potem wiersze.
     table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
