@@ -72,10 +72,20 @@ color10 = input.color(DEF_COLOR, '', inline = '10', group = GRP)
 style10 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '10', group = GRP)
 width10 = input.int(1, '', minval = 1, maxval = 4, inline = '10', group = GRP)
 
-tzMode = input.string('Giełda', 'Strefa czasowa', options = ['Giełda', 'UTC'], group = 'Ogólne')
+// Godziny liczone są w tej strefie. Domyślnie „Warszawa", bo oś czasu wykresu
+// zwykle pokazuje strefę użytkownika, a nie giełdy — przy strefie giełdy linie
+// wypadają przesunięte względem tego, co widać na osi.
+tzMode = input.string('Warszawa', 'Strefa czasowa', options = ['Warszawa', 'Londyn', 'Nowy Jork', 'Giełda', 'UTC', 'Własna'], group = 'Ogólne')
+tzCustom = input.string('Europe/Warsaw', 'Własna strefa (IANA)', group = 'Ogólne', tooltip = 'Używane tylko gdy wybrano „Własna". Np. Europe/Berlin, America/Chicago, Asia/Tokyo.')
 extendMode = input.string('Cały wykres', 'Rozciągnięcie', options = ['Cały wykres', 'Tylko w górę', 'Tylko w dół'], group = 'Ogólne')
 
-tz = tzMode == 'UTC' ? 'UTC' : syminfo.timezone
+tz = switch tzMode
+    'Warszawa' => 'Europe/Warsaw'
+    'Londyn' => 'Europe/London'
+    'Nowy Jork' => 'America/New_York'
+    'Giełda' => syminfo.timezone
+    'UTC' => 'UTC'
+    => tzCustom
 
 lineStyleOf(string name) =>
     switch name

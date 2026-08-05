@@ -84,7 +84,7 @@ Golden Cross i Death Cross — przecięcia szybkiej i wolnej średniej (klasyczn
 
 #### [Pionowe linie godzinowe](indicators/overlays/pionowe-linie-godzinowe.pine)
 
-Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własnym włącznikiem, godziną, kolorem, stylem i grubością (jedna linijka ustawień na slot). Domyślnie włączone 10:30, 15:00, 20:00 i 23:00 jako jasnofioletowa linia przerywana z przezroczystością 70%.
+Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własnym włącznikiem, godziną, kolorem, stylem i grubością (jedna linijka ustawień na slot). Domyślnie włączone 10:30, 15:00, 20:00 i 23:00 jako jasnofioletowa linia przerywana z przezroczystością 70%. Strefa czasowa do wyboru (domyślnie Warszawa, opcjonalnie giełdy, UTC lub własna IANA) — musi zgadzać się ze strefą osi czasu wykresu, inaczej linie wypadną przesunięte.
 
 ### Sezonowość
 
