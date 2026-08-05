@@ -1,0 +1,127 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+// Rysuje pionowe linie o zadanych godzinach — do 10 slotów, każdy z własnym
+// kolorem, stylem i grubością. Linie powstają na barze, w którym po raz pierwszy
+// przekroczony zostaje próg danej godziny (działa na dowolnym interwale
+// intraday, także takim, który nie trafia w godzinę równo).
+indicator('Pionowe linie godzinowe', overlay = true, max_lines_count = 500)
+
+GRP = 'Linie'
+DEF_COLOR = color.new(#BA8FFF, 70)
+DEF_STYLE = 'Przerywana'
+
+on1 = input.bool(true, 'Włącz', inline = '1', group = GRP)
+at1 = input.string('10:30', '', inline = '1', group = GRP)
+color1 = input.color(DEF_COLOR, '', inline = '1', group = GRP)
+style1 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '1', group = GRP)
+width1 = input.int(1, '', minval = 1, maxval = 4, inline = '1', group = GRP)
+
+on2 = input.bool(true, 'Włącz', inline = '2', group = GRP)
+at2 = input.string('15:00', '', inline = '2', group = GRP)
+color2 = input.color(DEF_COLOR, '', inline = '2', group = GRP)
+style2 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '2', group = GRP)
+width2 = input.int(1, '', minval = 1, maxval = 4, inline = '2', group = GRP)
+
+on3 = input.bool(true, 'Włącz', inline = '3', group = GRP)
+at3 = input.string('20:00', '', inline = '3', group = GRP)
+color3 = input.color(DEF_COLOR, '', inline = '3', group = GRP)
+style3 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '3', group = GRP)
+width3 = input.int(1, '', minval = 1, maxval = 4, inline = '3', group = GRP)
+
+on4 = input.bool(true, 'Włącz', inline = '4', group = GRP)
+at4 = input.string('23:00', '', inline = '4', group = GRP)
+color4 = input.color(DEF_COLOR, '', inline = '4', group = GRP)
+style4 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '4', group = GRP)
+width4 = input.int(1, '', minval = 1, maxval = 4, inline = '4', group = GRP)
+
+on5 = input.bool(false, 'Włącz', inline = '5', group = GRP)
+at5 = input.string('09:00', '', inline = '5', group = GRP)
+color5 = input.color(DEF_COLOR, '', inline = '5', group = GRP)
+style5 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '5', group = GRP)
+width5 = input.int(1, '', minval = 1, maxval = 4, inline = '5', group = GRP)
+
+on6 = input.bool(false, 'Włącz', inline = '6', group = GRP)
+at6 = input.string('09:00', '', inline = '6', group = GRP)
+color6 = input.color(DEF_COLOR, '', inline = '6', group = GRP)
+style6 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '6', group = GRP)
+width6 = input.int(1, '', minval = 1, maxval = 4, inline = '6', group = GRP)
+
+on7 = input.bool(false, 'Włącz', inline = '7', group = GRP)
+at7 = input.string('09:00', '', inline = '7', group = GRP)
+color7 = input.color(DEF_COLOR, '', inline = '7', group = GRP)
+style7 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '7', group = GRP)
+width7 = input.int(1, '', minval = 1, maxval = 4, inline = '7', group = GRP)
+
+on8 = input.bool(false, 'Włącz', inline = '8', group = GRP)
+at8 = input.string('09:00', '', inline = '8', group = GRP)
+color8 = input.color(DEF_COLOR, '', inline = '8', group = GRP)
+style8 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '8', group = GRP)
+width8 = input.int(1, '', minval = 1, maxval = 4, inline = '8', group = GRP)
+
+on9 = input.bool(false, 'Włącz', inline = '9', group = GRP)
+at9 = input.string('09:00', '', inline = '9', group = GRP)
+color9 = input.color(DEF_COLOR, '', inline = '9', group = GRP)
+style9 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '9', group = GRP)
+width9 = input.int(1, '', minval = 1, maxval = 4, inline = '9', group = GRP)
+
+on10 = input.bool(false, 'Włącz', inline = '10', group = GRP)
+at10 = input.string('09:00', '', inline = '10', group = GRP)
+color10 = input.color(DEF_COLOR, '', inline = '10', group = GRP)
+style10 = input.string(DEF_STYLE, '', options = ['Ciągła', 'Przerywana', 'Kropkowana'], inline = '10', group = GRP)
+width10 = input.int(1, '', minval = 1, maxval = 4, inline = '10', group = GRP)
+
+tzMode = input.string('Giełda', 'Strefa czasowa', options = ['Giełda', 'UTC'], group = 'Ogólne')
+extendMode = input.string('Cały wykres', 'Rozciągnięcie', options = ['Cały wykres', 'Tylko w górę', 'Tylko w dół'], group = 'Ogólne')
+
+tz = tzMode == 'UTC' ? 'UTC' : syminfo.timezone
+
+lineStyleOf(string name) =>
+    switch name
+        'Ciągła' => line.style_solid
+        'Kropkowana' => line.style_dotted
+        => line.style_dashed
+
+extendOf = switch extendMode
+    'Tylko w górę' => extend.right
+    'Tylko w dół' => extend.left
+    => extend.both
+
+// "10:30" -> 630 minut od północy; przy błędnym formacie zwraca na
+minutesOf(string hhmm) =>
+    parts = str.split(str.replace_all(hhmm, ' ', ''), ':')
+    int result = na
+    if array.size(parts) == 2
+        h = str.tonumber(array.get(parts, 0))
+        m = str.tonumber(array.get(parts, 1))
+        if not na(h) and not na(m) and h >= 0 and h <= 23 and m >= 0 and m <= 59
+            result := int(h) * 60 + int(m)
+    result
+
+nowMinutes = hour(time, tz) * 60 + minute(time, tz)
+prevMinutes = nowMinutes[1]
+newDay = dayofmonth(time, tz) != dayofmonth(time[1], tz)
+
+// Bar "zalicza" próg, gdy jego godzina sięgnęła progu, a poprzedni bar
+// jeszcze nie. Reset na starcie dnia obsługuje przypadek, gdy pierwszy
+// bar sesji jest już po progu (np. próg wypada w przerwie handlu).
+crossedAt(int target) =>
+    firstOfDay = newDay or na(prevMinutes)
+    na(target) ? false : nowMinutes >= target and (firstOfDay or prevMinutes < target)
+
+drawAt(bool enabled, string hhmm, color col, string styleName, int width) =>
+    target = minutesOf(hhmm)
+    if enabled and crossedAt(target)
+        line.new(bar_index, low, bar_index, high, xloc = xloc.bar_index, extend = extendOf, color = col, style = lineStyleOf(styleName), width = width)
+
+drawAt(on1, at1, color1, style1, width1)
+drawAt(on2, at2, color2, style2, width2)
+drawAt(on3, at3, color3, style3, width3)
+drawAt(on4, at4, color4, style4, width4)
+drawAt(on5, at5, color5, style5, width5)
+drawAt(on6, at6, color6, style6, width6)
+drawAt(on7, at7, color7, style7, width7)
+drawAt(on8, at8, color8, style8, width8)
+drawAt(on9, at9, color9, style9, width9)
+drawAt(on10, at10, color10, style10, width10)

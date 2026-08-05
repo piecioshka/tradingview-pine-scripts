@@ -15,6 +15,7 @@
     - [Wstęgi Bollingera](#wstęgi-bollingera)
     - [GMMA](#gmma)
     - [Złoty / Śmierci Krzyż](#złoty--śmierci-krzyż)
+    - [Pionowe linie godzinowe](#pionowe-linie-godzinowe)
   - [Sezonowość](#sezonowość)
     - [Sezonowość miesięczna](#sezonowość-miesięczna)
     - [Sezonowość dzienna](#sezonowość-dzienna)
@@ -80,6 +81,10 @@ Guppy Multiple Moving Average — dwie grupy EMA: krótkoterminowe (spekulanci) 
 Golden Cross i Death Cross — przecięcia szybkiej i wolnej średniej (klasycznie SMA 50 vs SMA 200).
 
 ![Złoty / Śmierci Krzyż](screenshots/indicators/zloty-smierci-krzyz.png)
+
+#### [Pionowe linie godzinowe](indicators/overlays/pionowe-linie-godzinowe.pine)
+
+Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własnym włącznikiem, godziną, kolorem, stylem i grubością (jedna linijka ustawień na slot). Domyślnie włączone 10:30, 15:00, 20:00 i 23:00 jako jasnofioletowa linia przerywana z przezroczystością 70%.
 
 ### Sezonowość
 
