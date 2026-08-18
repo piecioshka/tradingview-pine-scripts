@@ -156,19 +156,19 @@ Rate of Change - the percentage price change over a given period. Optional LONG 
 
 #### [Accumulation / Distribution](indicators/volume/accumulation-distribution.pine)
 
-The A/D line by Marc Chaikin - combines price with volume, measuring buying and selling pressure. Optional EMA signal line (default 21) and LONG / SELL labels on the price panel when the Chaikin oscillator (EMA 3 - EMA 10 of the A/D line) crosses zero.
+The A/D line by Marc Chaikin - combines price with volume, measuring buying and selling pressure. Optional EMA signal line (default 21). Full description: [accumulation-distribution.md](indicators/volume/accumulation-distribution.md).
 
 ![Accumulation / Distribution](screenshots/indicators/accumulation-distribution.png)
 
 #### [Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density.pine)
 
-Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's indicator from xStation (XTB). Looks for candles whose volume-to-price-movement ratio (**density** = volume per unit of range) is disproportionately high and which set a local extreme - heavy turnover with little movement at a low/high suggests position accumulation/distribution and a potential turning point. **▲ marker** below a candle = accumulation density (potential bullish signal), **▼ marker** above a candle = distribution density (potential bearish signal); the marker shape (triangle, arrow, label arrow, circle, diamond), size, and colors are configurable. Parameters as in xStation: Max/Min of, Average Spread of, Average Density of, Spread Factor (with a toggle), Density Factor, and the Bar close % filter. Built-in `alertcondition` for both signals. Requires an instrument with volume data (TVC CFDs lack it - use e.g. futures contracts).
+Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's indicator from xStation (XTB). Looks for candles whose volume-to-price-movement ratio (**density** = volume per unit of range) is disproportionately high and which set a local extreme - heavy turnover with little movement at a low/high suggests position accumulation/distribution and a potential turning point. **▲ marker** below a candle = accumulation density (potential bullish signal), **▼ marker** above a candle = distribution density (potential bearish signal); the marker shape (triangle, arrow, label arrow, circle, diamond), size, and colors are configurable. Parameters as in xStation: Max/Min of, Average Spread of, Average Density of, Spread Factor (with a toggle), Density Factor, and the Bar close % filter. Built-in `alertcondition` for both signals. Requires an instrument with volume data (TVC CFDs lack it - use e.g. futures contracts). Full description: [accumulation-distribution-density.md](indicators/volume/accumulation-distribution-density.md).
 
 ![Accumulation / Distribution Density](screenshots/indicators/accumulation-distribution-density.png)
 
 #### [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble.pine)
 
-Volume delta from real footprint data (`request.footprint()`, available since January 2026) - the difference between aggressive buy volume (at the ask) and sell volume (at the bid) within a candle. The value shown as a **number next to each candle** (green = buy dominance, red = sell; above/below the candle or above/below the POC bubble, with a configurable gap). Each candle's POC as an **optional Bookmap-style bubble** (size ∝ volume, the same power normalization as in the histogram), with an optional **POC trail** (a line connecting the bubbles - a segmented polyline or a smooth, rounded curve). Additionally **Value Area (VAH/VAL)** and a session **CVD** (in the data window). When the candle direction contradicts the delta (rising with negative delta or falling with positive) - the delta number is shown **in bold**.
+Volume delta from real footprint data (`request.footprint()`, available since January 2026) - the difference between aggressive buy volume (at the ask) and sell volume (at the bid) within a candle. The value shown as a **number next to each candle** (green = buy dominance, red = sell; above/below the candle or above/below the POC bubble, with a configurable gap). Each candle's POC as an **optional Bookmap-style bubble** (size ∝ volume, the same power normalization as in the histogram), with an optional **POC trail** (a line connecting the bubbles - a segmented polyline or a smooth, rounded curve). Additionally **Value Area (VAH/VAL)** and a session **CVD** (in the data window). When the candle direction contradicts the delta (rising with negative delta or falling with positive) - the delta number is shown **in bold**. Full description: [delta-footprint-bubble.md](indicators/volume/delta-footprint-bubble.md).
 
 ![Delta Footprint Bubble](screenshots/indicators/delta-footprint-bubble.png)
 
@@ -176,7 +176,7 @@ Volume delta from real footprint data (`request.footprint()`, available since Ja
 
 #### [Delta Footprint Histogram](indicators/volume/delta-footprint-histogram.pine)
 
-The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
+The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel. Full description: [delta-footprint-histogram.md](indicators/volume/delta-footprint-histogram.md).
 
 ![Delta Footprint Histogram](screenshots/indicators/delta-footprint-histogram.png)
 
@@ -184,7 +184,7 @@ The footprint delta as a **histogram in a separate panel** (behaves like the bui
 
 #### [Delta Footprint Table](indicators/volume/delta-footprint-table.pine)
 
-A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session).
+A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session). Full description: [delta-footprint-table.md](indicators/volume/delta-footprint-table.md).
 
 ![Delta Footprint Table](screenshots/indicators/delta-footprint-table.png)
 
