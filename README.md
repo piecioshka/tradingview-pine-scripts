@@ -29,6 +29,7 @@
     - [ROC](#roc)
   - [Wolumen](#wolumen)
     - [Akumulacja / Dystrybucja](#akumulacja--dystrybucja)
+    - [Gęstość Akumulacji / Dystrybucji](#gęstość-akumulacji--dystrybucji)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Delta Footprint Table](#delta-footprint-table)
@@ -147,6 +148,12 @@ Rate of Change — procentowa zmiana ceny w zadanym okresie.
 Linia A/D wg Marca Chaikina — łączy cenę z wolumenem, mierząc presję kupna i sprzedaży.
 
 ![Akumulacja / Dystrybucja](screenshots/indicators/akumulacja-dystrybucja.png)
+
+#### [Gęstość Akumulacji / Dystrybucji](indicators/volume/gestosc-akumulacji-dystrybucji.pine)
+
+Profil gęstości akumulacji / dystrybucji na poziomach cenowych (nakładka). Dla wybranego zakresu (**widoczny zakres** / bieżąca sesja / ostatnie N świec) sumuje wolumen kupna i sprzedaży z footprintu na poszczególnych poziomach ceny: szerokość poziomu = łączny wolumen, kolor = znak delty netto (zielony — akumulacja, czerwony — dystrybucja), intensywność = czystość przewagi jednej strony. Opcjonalne linie **POC** i **Value Area**. Wymaga Premium/Ultimate (`request.footprint`).
+
+![Gęstość Akumulacji / Dystrybucji](screenshots/indicators/gestosc-akumulacji-dystrybucji.png)
 
 #### [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble.pine)
 
