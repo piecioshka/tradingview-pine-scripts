@@ -156,7 +156,7 @@ Linia A/D wg Marca Chaikina — łączy cenę z wolumenem, mierząc presję kupn
 
 #### [Gęstość Akumulacji / Dystrybucji](indicators/volume/gestosc-akumulacji-dystrybucji.pine)
 
-Profil gęstości akumulacji / dystrybucji na poziomach cenowych (nakładka). Dla wybranego zakresu (**widoczny zakres** / bieżąca sesja / ostatnie N świec) sumuje wolumen kupna i sprzedaży z footprintu na poszczególnych poziomach ceny: szerokość poziomu = łączny wolumen, kolor = znak delty netto (zielony — akumulacja, czerwony — dystrybucja), intensywność = czystość przewagi jednej strony. Opcjonalne linie **POC** i **Value Area**. Wymaga Premium/Ultimate (`request.footprint`).
+Gęstość akumulacji / dystrybucji (VD) — wzorowany na wskaźniku Mieczysława Siudka z xStation (XTB). Szuka świec, w których stosunek wolumenu do ruchu ceny (**gęstość** = wolumen na jednostkę amplitudy) jest nieproporcjonalnie zawyżony i które wyznaczają lokalne ekstremum — duży obrót przy małym ruchu na dołku/szczycie sugeruje akumulację/dystrybucję pozycji i potencjalny punkt zwrotny. **▲ zielony trójkąt** pod świecą = gęstość akumulacji (potencjalny sygnał wzrostowy), **▼ czerwony trójkąt** nad świecą = gęstość dystrybucji (potencjalny sygnał spadkowy). Parametry jak w xStation: Max./Min. z, Średni Spread z, Średnia Gęstość z, Współczynnik Spreadu (z włącznikiem), Współczynnik Gęstości i filtr Zamknięcie bara %. Wbudowane `alertcondition` dla obu sygnałów. Wymaga instrumentu z danymi wolumenu (CFD od TVC ich nie mają — użyj np. kontraktów futures).
 
 ![Gęstość Akumulacji / Dystrybucji](screenshots/indicators/gestosc-akumulacji-dystrybucji.png)
 

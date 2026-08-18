@@ -2,207 +2,50 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Gęstość Akumulacji / Dystrybucji', overlay=true, max_boxes_count=500)
+indicator('Gęstość Akumulacji / Dystrybucji', overlay=true)
 
-// Profil gęstości akumulacji / dystrybucji na poziomach cenowych.
-// Dla wybranego zakresu (widoczny zakres / bieżąca sesja / ostatnie N świec) sumuje wolumen
-// kupna i sprzedaży z footprintu na poszczególnych poziomach ceny i rysuje przy prawej
-// krawędzi zakresu poziomy profil:
-//   - szerokość poziomu  = łączny wolumen (gęstość obrotu),
-//   - kolor              = znak delty netto (zielony = akumulacja, czerwony = dystrybucja),
-//   - intensywność       = udział |delty| w wolumenie (czystsza przewaga = mocniejszy kolor).
-// Liczy własny request.footprint — działa niezależnie od innych wskaźników rodziny Delta Footprint.
-// Wymaga Premium/Ultimate; brak danych footprint (np. część krypto) → brak profilu, bez błędu.
+// Gęstość akumulacji / dystrybucji (VD) — wzorowany na wskaźniku Mieczysława Siudka z xStation (XTB).
+// Szuka świec, w których stosunek wolumenu do ruchu ceny (gęstość = wolumen na jednostkę amplitudy)
+// jest nieproporcjonalnie zawyżony i które wyznaczają lokalne ekstremum. Duży obrót przy małym ruchu
+// na dołku/szczycie sugeruje akumulację/dystrybucję pozycji i potencjalny punkt zwrotny.
+// ▲ zielony trójkąt pod świecą  = gęstość akumulacji  (potencjalny sygnał wzrostowy),
+// ▼ czerwony trójkąt nad świecą = gęstość dystrybucji (potencjalny sygnał spadkowy).
+// Sygnał na niedomkniętej świecy może zniknąć do jej zamknięcia (warunki liczone z bieżących wartości).
 
-cBuy  = color.rgb(38, 166, 154)  // przewaga kupna (delta dodatnia) — domyślna zieleń świecy #26A69A
-cSell = color.rgb(239, 83, 80)   // przewaga sprzedaży (delta ujemna) — domyślna czerwień świecy #EF5350
+cBuy  = color.rgb(38, 166, 154)  // akumulacja — domyślna zieleń świecy #26A69A
+cSell = color.rgb(239, 83, 80)   // dystrybucja — domyślna czerwień świecy #EF5350
 
-gCalc = 'Obliczenia'
-ticksPerRow  = input.int(10, 'Ticki na poziom', minval=1, group=gCalc, tooltip='Wysokość pojedynczego poziomu profilu w tickach. Mniej = dokładniej, ale więcej poziomów (przy przekroczeniu limitu poziomy są automatycznie łączone).')
-rangeMode    = input.string('Widoczny zakres', 'Zakres', options=['Widoczny zakres', 'Bieżąca sesja', 'Ostatnie N świec'], group=gCalc, tooltip='Które świece budują profil.\n\nWidoczny zakres — tylko świece widoczne na ekranie; profil przelicza się przy przewijaniu i zoomie.\nBieżąca sesja — od początku dnia (sesji dziennej).\nOstatnie N świec — okno kroczące o długości N.')
-lastN        = input.int(500, 'N świec (dla „Ostatnie N świec")', minval=1, group=gCalc)
-maxBarsStore = input.int(2000, 'Maks. świec w pamięci', minval=100, maxval=5000, group=gCalc, tooltip='Ile ostatnich świec z danymi footprint skrypt trzyma w pamięci. Zakres sięgający dalej wstecz nie zbuduje pełnego profilu. Większa wartość = więcej pamięci; przy bardzo drobnych poziomach najstarsze świece mogą wypaść wcześniej (limit łącznej liczby wierszy).')
+g = 'Parametry'
+lenExtreme    = input.int(10, 'Max./Min. z (świec)', minval=1, group=g, tooltip='Liczba wcześniejszych świec, względem których świeca sygnałowa musi wyznaczać nowy dołek (akumulacja) lub nowy szczyt (dystrybucja).')
+lenSpread     = input.int(10, 'Średni Spread z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej amplitudy (high − low).')
+lenDensity    = input.int(10, 'Średnia Gęstość z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej gęstości (wolumen / amplituda).')
+useSpread     = input.bool(true, 'Warunek spreadu', group=g, tooltip='Wymagaj, by amplituda świecy sygnałowej nie przekraczała Współczynnik Spreadu × średnia amplituda (świeca nie może być za duża — gęstość to duży obrót przy MAŁYM ruchu).')
+spreadFactor  = input.float(2.0, 'Współczynnik Spreadu', minval=0.1, step=0.1, group=g, tooltip='O ile większa może być amplituda świecy sygnałowej od średniej, by sygnał się pojawił.')
+densityFactor = input.float(1.5, 'Współczynnik Gęstości', minval=1.0, step=0.1, group=g, tooltip='O ile gęstość świecy sygnałowej musi przewyższać średnią gęstość.')
+closePct      = input.int(50, 'Zamknięcie bara (%)', minval=0, maxval=100, group=g, tooltip='Filtr pozycji zamknięcia w amplitudzie świecy: dla akumulacji zamknięcie co najmniej X% od dołu świecy, dla dystrybucji co najmniej X% od góry. 0 wyłącza filtr.')
 
-gProfile = 'Profil'
-widthPct  = input.int(30, 'Szerokość profilu (% zakresu)', minval=5, maxval=100, group=gProfile, tooltip='Maksymalna szerokość profilu (poziom o największym wolumenie) jako procent szerokości zakresu.')
-maxLevels = input.int(150, 'Maks. poziomów', minval=10, maxval=490, group=gProfile, tooltip='Górny limit liczby poziomów profilu. Przy przekroczeniu sąsiednie poziomy są łączone (profil grubieje, suma wolumenu bez zmian).')
-showPoc   = input.bool(true, 'Linia POC', group=gProfile, tooltip='Pozioma linia na poziomie o największym wolumenie w profilu (Point of Control).')
-showVa    = input.bool(false, 'Value Area (VAH / VAL)', group=gProfile, tooltip='Linie granic Value Area — przedziału cen skupiającego zadany % wolumenu profilu wokół POC.')
-vaPercent = input.int(70, 'Value Area %', minval=1, maxval=100, group=gProfile, tooltip='Procent wolumenu definiujący Value Area (klasycznie 70%).')
+spread  = high - low
+density = volume / math.max(spread, syminfo.mintick)   // wolumen na jednostkę ruchu; doji z zerową amplitudą → wolumen na 1 tick
 
-gColors = 'Kolory'
-cPoc     = input.color(color.orange, 'POC',        group=gColors)
-cVa      = input.color(color.gray,   'Value Area', group=gColors)
-cNeutral = input.color(color.gray,   'Neutralny',  group=gColors, tooltip='Kolor poziomu z zerową deltą netto.')
+// Średnie liczone z okna KOŃCZĄCEGO SIĘ na poprzedniej świecy — świeca sygnałowa nie zawyża własnego progu.
+avgSpread  = ta.sma(spread, lenSpread)[1]
+avgDensity = ta.sma(density, lenDensity)[1]
 
-fp   = request.footprint(ticksPerRow)
-rowH = ticksPerRow * syminfo.mintick
+isNewLow  = low <= ta.lowest(low, lenExtreme)[1]
+isNewHigh = high >= ta.highest(high, lenExtreme)[1]
 
-// --- Start bieżącej sesji dziennej (dla zakresu „Bieżąca sesja") ---
-newDay = ta.change(time('D')) != 0
-var int sessionStartTime = na
-if barstate.isfirst or newDay
-    sessionStartTime := time
+densityOK = density >= densityFactor * avgDensity
+spreadOK  = not useSpread or spread <= spreadFactor * avgSpread
 
-// --- Magazyn wierszy footprintu z ostatnich świec (płaskie tablice + liczniki na świecę) ---
-// Historia: zapisujemy tylko ostatnie maxBarsStore świec (starsze pomijamy już przy wczytywaniu).
-// Realtime: wpis bieżącej świecy jest nadpisywany przy każdym ticku (rozpoznanie po czasie otwarcia),
-// dzięki czemu profil zawsze zawiera aktualny stan niedomkniętej świecy bez podwójnego liczenia.
-MAX_ROWS_STORE = 90000
+// Pozycja zamknięcia w amplitudzie świecy (0–100); świeca bez amplitudy przechodzi filtr w obu kierunkach
+posFromLow  = spread > 0 ? (close - low) / spread * 100 : 100
+posFromHigh = spread > 0 ? (high - close) / spread * 100 : 100
 
-var array<int>   barTimes  = array.new<int>()
-var array<int>   barCounts = array.new<int>()
-var array<float> rowPrices = array.new<float>()  // down_price poziomu (dolna krawędź)
-var array<float> rowBuys   = array.new<float>()
-var array<float> rowSells  = array.new<float>()
+accSignal  = volume > 0 and isNewLow and densityOK and spreadOK and posFromLow >= closePct
+distSignal = volume > 0 and isNewHigh and densityOK and spreadOK and posFromHigh >= closePct
 
-if bar_index > last_bar_index - maxBarsStore
-    if array.size(barTimes) > 0 and array.get(barTimes, array.size(barTimes) - 1) == time
-        prevCnt = array.pop(barCounts)
-        array.pop(barTimes)
-        if prevCnt > 0
-            for i = 1 to prevCnt
-                array.pop(rowPrices)
-                array.pop(rowBuys)
-                array.pop(rowSells)
-    int cnt = 0
-    if not na(fp)
-        rws = fp.rows()
-        n = array.size(rws)
-        if n > 0
-            for i = 0 to n - 1
-                r = array.get(rws, i)
-                if r.total_volume() > 0
-                    array.push(rowPrices, r.down_price())
-                    array.push(rowBuys, r.buy_volume())
-                    array.push(rowSells, r.sell_volume())
-                    cnt += 1
-    array.push(barTimes, time)
-    array.push(barCounts, cnt)
-    while array.size(barTimes) > maxBarsStore or array.size(rowPrices) > MAX_ROWS_STORE
-        dropCnt = array.shift(barCounts)
-        array.shift(barTimes)
-        if dropCnt > 0
-            for i = 1 to dropCnt
-                array.shift(rowPrices)
-                array.shift(rowBuys)
-                array.shift(rowSells)
+plotshape(accSignal, 'Gęstość akumulacji', style=shape.triangleup, location=location.belowbar, color=cBuy, size=size.small)
+plotshape(distSignal, 'Gęstość dystrybucji', style=shape.triangledown, location=location.abovebar, color=cSell, size=size.small)
 
-// --- Dodanie wiersza do map agregacji (klucz = indeks poziomu ceny) ---
-f_addRow(map<int, float> buyMap, map<int, float> sellMap, float price, float b, float s) =>
-    k = int(math.round(price / rowH))
-    buyMap.put(k, nz(buyMap.get(k)) + b)
-    sellMap.put(k, nz(sellMap.get(k)) + s)
-
-// --- Rysunki profilu (kasowane i odtwarzane przy każdym przeliczeniu) ---
-var array<box>  profBoxes = array.new<box>()
-var array<line> profLines = array.new<line>()
-
-if barstate.islast
-    while array.size(profBoxes) > 0
-        box.delete(array.pop(profBoxes))
-    while array.size(profLines) > 0
-        line.delete(array.pop(profLines))
-
-    // Zakres czasowy profilu [leftT, rightT]
-    int storedBars = array.size(barTimes)
-    int leftT  = na
-    int rightT = time
-    if rangeMode == 'Widoczny zakres' and not na(chart.left_visible_bar_time)
-        leftT  := chart.left_visible_bar_time
-        rightT := chart.right_visible_bar_time
-    else if rangeMode == 'Bieżąca sesja'
-        leftT := sessionStartTime
-    else if rangeMode == 'Ostatnie N świec'
-        leftT := lastN <= 1 or storedBars == 0 ? time : array.get(barTimes, math.max(0, storedBars - (lastN - 1)))
-    if na(leftT)
-        leftT := storedBars > 0 ? array.get(barTimes, 0) : time
-
-    // Agregacja wierszy z magazynu (od końca; świece starsze niż leftT przerywają pętlę)
-    buyMap  = map.new<int, float>()
-    sellMap = map.new<int, float>()
-    int idxEnd = array.size(rowPrices)
-    if storedBars > 0
-        for bi = storedBars - 1 to 0
-            cnt = array.get(barCounts, bi)
-            t   = array.get(barTimes, bi)
-            if t < leftT
-                break
-            idxStart = idxEnd - cnt
-            if t <= rightT and cnt > 0
-                for ri = idxStart to idxEnd - 1
-                    f_addRow(buyMap, sellMap, array.get(rowPrices, ri), array.get(rowBuys, ri), array.get(rowSells, ri))
-            idxEnd := idxStart
-
-    if buyMap.size() > 0
-        // Łączenie poziomów, by nie przekroczyć limitu maxLevels
-        keys = buyMap.keys()
-        nKeys = array.size(keys)
-        int minK = na
-        int maxK = na
-        for i = 0 to nKeys - 1
-            k = array.get(keys, i)
-            minK := na(minK) ? k : math.min(minK, k)
-            maxK := na(maxK) ? k : math.max(maxK, k)
-        span    = maxK - minK + 1
-        group   = math.max(1, int(math.ceil(span / (maxLevels * 1.0))))
-        nGroups = int(math.ceil(span / (group * 1.0)))
-        gBuy  = array.new<float>(nGroups, 0.0)
-        gSell = array.new<float>(nGroups, 0.0)
-        for i = 0 to nKeys - 1
-            k  = array.get(keys, i)
-            gi = int((k - minK) / group)
-            array.set(gBuy, gi, array.get(gBuy, gi) + nz(buyMap.get(k)))
-            array.set(gSell, gi, array.get(gSell, gi) + nz(sellMap.get(k)))
-
-        // Maksimum, suma i POC
-        float maxVol   = 0.0
-        float totalVol = 0.0
-        int   pocGi    = 0
-        for gi = 0 to nGroups - 1
-            v = array.get(gBuy, gi) + array.get(gSell, gi)
-            totalVol += v
-            if v > maxVol
-                maxVol := v
-                pocGi  := gi
-        effH   = rowH * group
-        baseMs = math.max(1, rightT - leftT) * widthPct / 100.0
-
-        if maxVol > 0
-            // Boxy profilu — zakotwiczone przy prawej krawędzi zakresu, rosną w lewo
-            for gi = 0 to nGroups - 1
-                b = array.get(gBuy, gi)
-                s = array.get(gSell, gi)
-                v = b + s
-                if v > 0
-                    delta    = b - s
-                    strength = math.abs(delta) / v
-                    col      = delta > 0 ? cBuy : delta < 0 ? cSell : cNeutral
-                    transp   = 88 - int(math.round(strength * 38))   // 88 (mętny) → 50 (czysta przewaga)
-                    bottom   = (minK + gi * group) * rowH
-                    boxLeft  = rightT - int(v / maxVol * baseMs)
-                    array.push(profBoxes, box.new(boxLeft, bottom + effH, rightT, bottom, xloc=xloc.bar_time, border_width=0, bgcolor=color.new(col, transp)))
-
-            profLeft = rightT - int(baseMs)
-            if showPoc
-                pocPrice = (minK + pocGi * group) * rowH + effH / 2
-                array.push(profLines, line.new(profLeft, pocPrice, rightT, pocPrice, xloc=xloc.bar_time, color=cPoc, style=line.style_dashed, width=2))
-            if showVa
-                // Rozszerzanie od POC: dokładaj większego sąsiada, aż zbierzesz vaPercent% wolumenu
-                float vaVol = maxVol
-                int lo = pocGi
-                int hi = pocGi
-                target = totalVol * vaPercent / 100.0
-                while vaVol < target and (lo > 0 or hi < nGroups - 1)
-                    vLo = lo > 0 ? array.get(gBuy, lo - 1) + array.get(gSell, lo - 1) : -1.0
-                    vHi = hi < nGroups - 1 ? array.get(gBuy, hi + 1) + array.get(gSell, hi + 1) : -1.0
-                    if vHi >= vLo
-                        hi += 1
-                        vaVol += vHi
-                    else
-                        lo -= 1
-                        vaVol += vLo
-                valPrice = (minK + lo * group) * rowH
-                vahPrice = (minK + hi * group) * rowH + effH
-                array.push(profLines, line.new(profLeft, vahPrice, rightT, vahPrice, xloc=xloc.bar_time, color=cVa, style=line.style_dotted, width=1))
-                array.push(profLines, line.new(profLeft, valPrice, rightT, valPrice, xloc=xloc.bar_time, color=cVa, style=line.style_dotted, width=1))
+alertcondition(accSignal, 'Gęstość akumulacji', 'Gęstość akumulacji — potencjalny sygnał wzrostowy (duży wolumen przy małym ruchu na nowym dołku)')
+alertcondition(distSignal, 'Gęstość dystrybucji', 'Gęstość dystrybucji — potencjalny sygnał spadkowy (duży wolumen przy małym ruchu na nowym szczycie)')
