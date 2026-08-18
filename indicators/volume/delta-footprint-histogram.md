@@ -24,14 +24,14 @@ File: [`delta-footprint-histogram.pine`](./delta-footprint-histogram.pine)
 ```
         +2.1K
          ██
-         ██   +940
-   +600  ██    ██                       ← buys (up from 0)
-    ██   ██    ██        ██
- ──────────────────────────────── 0
-              ██    ██                  ← sells (down from 0,
-              ██    ██                     "diverging" layout)
-             -1.3K  ██
-                   -3.4K
+         ██  +940
+   +600  ██   ██                       ← buys (up from 0)
+    ██   ██   ██             ██
+ ───────────────────────────────── 0
+                   ██   ██             ← sells (down from 0,
+                   ██   ██                "diverging" layout)
+                  -1.3K ██
+                       -3.4K
 ```
 
 - The **real delta value** is printed as a number on each column (K/M/B abbreviated) and shown in the status line / data window at the cursor.

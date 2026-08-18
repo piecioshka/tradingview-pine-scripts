@@ -24,10 +24,10 @@ One side overwhelms the other, compared **diagonally** (a buy at price P consume
 
 ```
  level   sell(bid) | buy(ask)
- 4315        12    |   90   ← buy 90 vs sell 8 one level DOWN: 90 >= 3x8  ✅ buy imbalance
- 4314         8    |   75   ← 75 vs 5   ✅ buy imbalance
- 4313         5    |   61   ← 61 vs 4   ✅ buy imbalance    } 3 in a row =
- 4312         4    |   10                                   } STACKED = zone
+ 4315        12    |   90   ✅ 90 >= 3 x 8  (vs sell one level down)  ┐
+ 4314         8    |   75   ✅ 75 >= 3 x 5                            ├  3 in a row = STACKED zone
+ 4313         5    |   61   ✅ 61 >= 3 x 4                            ┘
+ 4312         4    |   10
  4311        30    |    9
 ```
 

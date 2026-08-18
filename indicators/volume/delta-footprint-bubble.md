@@ -28,16 +28,16 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 
 ```
  price
-   │            +1.2K              numbers = delta per candle
-   │    ⬤      ┌──┐               ⬤ ● •  = POC bubbles
-   │   ┌──┐    │  │    -890        (size ~ volume at POC)
-   │   │  │  ● │  │    ┌──┐
-   │ • │  │ ┈┈┈└──┘┈┈┈┈│⬤│┈┈┈    ┈┈┈ = POC trail (optional)
-   │┌──┐└──┘           │  │
-   ││  │  -450         └──┘
-   │└──┘
+   │            +1.2K               numbers = delta per candle
+   │            ┌──┐                • ● ⬤ = POC bubbles
+   │            │  │    -890          (size ~ volume at POC)
+   │    ┌──┐  ● │  │    ┌──┐
+   │  • │  │ ┈┈┈│  │┈┈┈┈│  │┈┈┈    ┈┈┈ = POC trail (optional)
+   │┌──┐│  │    │  │    │ ●│
+   ││  │└──┘    └──┘    └──┘
+   │└──┘  -450
    └───────────────────────────── time
-        ░░░░░░ Value Area (VAH-VAL) = price range with 70% of volume ░░░░░░
+      ░░░░░ Value Area (VAH-VAL) = price range with 70% of volume ░░░░░
 ```
 
 ### Elements, one by one

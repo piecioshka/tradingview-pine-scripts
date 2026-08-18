@@ -13,7 +13,7 @@ Every candle adds its "money flow volume" to a running total (Pine's built-in `t
 ```
                         (close - low) - (high - close)
 money flow multiplier = ------------------------------     range: -1 ... +1
-                                 high - low
+                                  high - low
 
 money flow volume = multiplier x volume
 A/D line          = cumulative sum of money flow volume

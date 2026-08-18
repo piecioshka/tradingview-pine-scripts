@@ -14,13 +14,12 @@ File: [`accumulation-distribution-density.pine`](./accumulation-distribution-den
 - 🪶 A lot of volume + a big candle = normal. The volume simply traveled with the price.
 
 ```
-      normal candle          density candle
-                                                    volume:  ████████ 8K
-   volume: ██ 2K               volume: ████████ 8K  range:   ▮ small
-   range:  │  big              range:  ▮ small
-           │                                        8K went in...
-           │                       ▮                ...and price barely moved →
-           │                       ▲                someone ABSORBED it
+   normal candle              density candle
+   volume:  ██ 2K             volume:  ████████ 8K
+   range:   │ (big)           range:   ▮ (small)
+            │
+            │                          ▮  ← 8K went in, price barely moved:
+            │                          ▲     someone ABSORBED it (marker)
 ```
 
 When such a candle also sets a **new local low**, buyers were absorbing the sell-off → **accumulation** (marker **below** the candle). At a **new local high**, sellers were absorbing the buying → **distribution** (marker **above** the candle).
