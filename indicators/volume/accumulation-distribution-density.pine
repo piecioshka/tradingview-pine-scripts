@@ -2,18 +2,17 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Accumulation / Distribution Density', overlay=true)
+indicator('Accumulation / Distribution Density', overlay=true, max_labels_count=500)
 
 // Accumulation / distribution density (VD) — modeled after Mieczyslaw Siudek's indicator from xStation (XTB).
 // Looks for candles whose volume-to-price-movement ratio (density = volume per unit of range)
 // is disproportionately high and which set a local extreme. Heavy turnover with little movement
 // at a low/high suggests position accumulation/distribution and a potential turning point.
-// ▲ green triangle below a candle = accumulation density  (potential bullish signal),
-// ▼ red triangle above a candle   = distribution density  (potential bearish signal).
+// Marker below a candle = accumulation density  (potential bullish signal),
+// marker above a candle = distribution density  (potential bearish signal).
+// Marker shape, size, and colors are configurable (Appearance group).
 // A signal on an unclosed candle may disappear before it closes (conditions use live values).
-
-cBuy  = color.rgb(38, 166, 154)  // accumulation — default candle green #26A69A
-cSell = color.rgb(239, 83, 80)   // distribution — default candle red #EF5350
+// Markers are drawn as labels — only the most recent 500 stay on the chart.
 
 g = 'Parameters'
 lenExtreme    = input.int(5, 'Max/Min of (bars)', minval=1, group=g, tooltip='Number of previous candles against which the signal candle must set a new low (accumulation) or a new high (distribution).')
@@ -23,6 +22,12 @@ useSpread     = input.bool(true, 'Spread condition', group=g, tooltip='Require t
 spreadFactor  = input.float(1.4, 'Spread Factor', minval=0.1, step=0.1, group=g, tooltip='How much larger the signal candle range may be than the average for a signal to appear.')
 densityFactor = input.float(2, 'Density Factor', minval=1.0, step=0.1, group=g, tooltip='How much the signal candle density must exceed the average density.')
 closePct      = input.int(0, 'Bar close (%)', minval=0, maxval=100, group=g, tooltip='Filter on the close position within the candle range: for accumulation the close must be at least X% above the low, for distribution at least X% below the high. 0 disables the filter.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle — solid triangle (as in xStation).\nArrow — small thin arrow.\nLabel arrow — arrow-shaped label bubble.\nCircle / Diamond — neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+cBuy      = input.color(color.rgb(74, 136, 250), 'Accumulation', group=gA)
+cSell     = input.color(color.rgb(215, 125, 95), 'Distribution', group=gA)
 
 spread  = high - low
 density = volume / math.max(spread, syminfo.mintick)   // volume per unit of movement; a zero-range doji → volume per 1 tick
@@ -44,8 +49,15 @@ posFromHigh = spread > 0 ? (high - close) / spread * 100 : 100
 accSignal  = volume > 0 and isNewLow and densityOK and spreadOK and posFromLow >= closePct
 distSignal = volume > 0 and isNewHigh and densityOK and spreadOK and posFromHigh >= closePct
 
-plotshape(accSignal, 'Accumulation density', style=shape.triangleup, location=location.belowbar, color=cBuy, size=size.small)
-plotshape(distSignal, 'Distribution density', style=shape.triangledown, location=location.abovebar, color=cSell, size=size.small)
+// Markers as labels — the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+accStyle = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+distStyle = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
+
+if accSignal
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=accStyle, color=cBuy, size=markerSize)
+if distSignal
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=distStyle, color=cSell, size=markerSize)
 
 alertcondition(accSignal, 'Accumulation density', 'Accumulation density — potential bullish signal (heavy volume with little movement at a new low)')
 alertcondition(distSignal, 'Distribution density', 'Distribution density — potential bearish signal (heavy volume with little movement at a new high)')
