@@ -2,7 +2,10 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('RSI = Relative Strength Index', overlay=false, precision=2, max_lines_count=100, max_labels_count=100, timeframe='', timeframe_gaps=true)
+// No "timeframe" argument (MTF): Pine forbids it in scripts that create
+// drawings - and the price markers, threshold-cross labels, and the status
+// table here are all label/table objects.
+indicator('RSI = Relative Strength Index', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
 
 // --- Color palette (single place for the theme) ---
 cRsi = color.rgb(255, 245, 157)  // RSI line

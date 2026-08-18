@@ -136,7 +136,7 @@ Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default
 
 #### [RSI](indicators/oscillators/rsi.pine)
 
-Relative Strength Index with configurable overbought/oversold levels (default 70/30) and a zone gradient. Optional smoothing MA (also with Bollinger Bands), regular bull/bear divergences, markers on the price panel, a status table, multi-timeframe support, and built-in alerts.
+Relative Strength Index with configurable overbought/oversold levels (default 70/30) and a zone gradient. Optional smoothing MA (also with Bollinger Bands), regular bull/bear divergences, markers on the price panel, a status table, and built-in alerts.
 
 ![RSI](screenshots/indicators/rsi.png)
 
