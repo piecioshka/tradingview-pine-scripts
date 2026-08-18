@@ -18,7 +18,7 @@ upColor = input.color(#26A69A, 'Up color', group = GRP)
 downColor = input.color(#EF5350, 'Down color', group = GRP)
 lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP)
 lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
-textSizeName = input.string('Small', 'Text size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP)
+textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP)
 showLive = input.bool(true, 'Show percent during session', group = 'General', tooltip = 'On: during the ongoing session the label follows the end of the line, at the open price level, to the right of the line. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
@@ -27,6 +27,7 @@ lineStyle = switch lineStyleName
     => line.style_solid
 
 textSize = switch textSizeName
+    'Auto' => size.auto
     'Tiny' => size.tiny
     'Normal' => size.normal
     'Large' => size.large
