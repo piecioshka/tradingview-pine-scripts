@@ -46,8 +46,10 @@ if showLabels and barstate.islast
     aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)
     bLabel := updateLabel(bLabel, bSeries, str.tostring(bLen) + ' ' + bType, bColor)
 
+// BUY OPEN — solid triangle below the candle (as in Accumulation / Distribution Density)
 if (ta.crossover(aSeries, bSeries))
-    label.new(bar_index, aSeries, 'BUY OPEN', color=color.new(color.green, 50), style=label.style_label_up, size=size.normal, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=label.style_triangleup, color=color.green, size=size.small, force_overlay=true)
 
+// BUY CLOSE — solid triangle above the candle
 if (ta.crossunder(aSeries, bSeries))
-    label.new(bar_index, aSeries, 'BUY CLOSE', color=color.new(color.red, 50), style=label.style_label_down, size=size.normal, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=label.style_triangledown, color=color.red, size=size.small, force_overlay=true)

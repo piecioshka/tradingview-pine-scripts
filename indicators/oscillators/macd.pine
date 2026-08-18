@@ -27,7 +27,7 @@ sigType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA
 gView = 'Display'
 showHist    = input.bool(true,  'Histogram',                     group=gView, tooltip='Columns of the MACD − signal difference.')
 showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Triangles on the price panel when MACD crosses the signal line.')
-showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN labels',   group=gView, tooltip='Text flags on the MACD panel at crossings. Off by default.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers',  group=gView, tooltip='Solid triangles on the MACD panel at crossings. Off by default.')
 showTable   = input.bool(true,  'Status table',                  group=gView, tooltip='Small corner panel with values and trend.')
 
 // --- Calculations ---
@@ -57,9 +57,9 @@ hline(0, 'Zero', color=cMid, linestyle=hline.style_dotted)
 // Triangles on the price panel: bullish cross = green below the candle, bearish = red above
 plotshape(showSignals and crossUp, title='Bullish signal (price)', style=shape.triangleup,   location=location.belowbar, color=cUp, size=size.tiny, force_overlay=true)
 plotshape(showSignals and crossDn, title='Bearish signal (price)', style=shape.triangledown, location=location.abovebar, color=cDn, size=size.tiny, force_overlay=true)
-// Labels on the MACD panel (off by default)
-plotshape(showLabels and crossUp ? macd   : na, title='BUY OPEN label',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cUp, 30), size=size.small)
-plotshape(showLabels and crossDn ? signal : na, title='BUY CLOSE label', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cDn, 30), size=size.small)
+// Markers on the MACD panel (off by default) — solid triangles (as in Accumulation / Distribution Density)
+plotshape(showLabels and crossUp ? macd   : na, title='BUY OPEN marker',  style=shape.triangleup,   location=location.absolute, color=cUp, size=size.small)
+plotshape(showLabels and crossDn ? signal : na, title='BUY CLOSE marker', style=shape.triangledown, location=location.absolute, color=cDn, size=size.small)
 
 // --- Alerts ---
 alertcondition(crossUp, 'MACD: cross up',   'MACD crossed the signal line up (bullish impulse)')

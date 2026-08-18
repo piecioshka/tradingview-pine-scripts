@@ -25,7 +25,7 @@ midLevel = 50  // deliberately NOT an input — 50 is the oscillator's axis of s
 gView = 'Display'
 showZones   = input.bool(true,  'Zone gradient',                group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between %K and the threshold).')
 showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Triangles on the price panel when %K crosses %D inside an extreme zone.')
-showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN labels',  group=gView, tooltip='Text flags on the oscillator panel. Off by default.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Solid triangles on the oscillator panel. Off by default.')
 showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with %K/%D values and state.')
 
 // --- Calculations ---
@@ -55,8 +55,9 @@ obLabelY = math.min(k + 8, 100)
 osLabelY = math.max(k - 8, 0)
 plotshape(showSignals and buyClose, title='Overbought signal (price)', style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
 plotshape(showSignals and buyOpen,  title='Oversold signal (price)',   style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
-plotshape(showLabels and buyClose ? obLabelY : na, title='BUY CLOSE label', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cOb, 30), size=size.small)
-plotshape(showLabels and buyOpen  ? osLabelY : na, title='BUY OPEN label',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cOs, 30), size=size.small)
+// Panel markers — solid triangles (as in Accumulation / Distribution Density)
+plotshape(showLabels and buyClose ? obLabelY : na, title='BUY CLOSE marker', style=shape.triangledown, location=location.absolute, color=cOb, size=size.small)
+plotshape(showLabels and buyOpen  ? osLabelY : na, title='BUY OPEN marker',  style=shape.triangleup,   location=location.absolute, color=cOs, size=size.small)
 
 // --- Alerts ---
 alertcondition(buyClose, 'SO: Overbought signal', 'Stochastic: %K crossed %D down in the overbought zone')
