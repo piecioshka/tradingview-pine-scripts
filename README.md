@@ -90,7 +90,7 @@ Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własn
 
 #### [Linia otwarcia sesji](indicators/overlays/linia-otwarcia-sesji.pine)
 
-Pozioma linia na cenie otwarcia sesji, ciągnięta od pierwszego do ostatniego bara sesji. Na ostatnim barze sesji po prawej stronie linii pojawia się jedna etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs otwarcie); opcjonalnie procent może być pokazywany na żywo w trakcie sesji. Kolor linii i etykiety zależy od znaku zmiany. Działa na interwałach intraday — na D i wyższych każdy bar to osobna sesja, więc wskaźnik pokazuje tylko podpowiedź.
+Pozioma linia na cenie otwarcia sesji, ciągnięta od pierwszego do ostatniego bara sesji. Na ostatnim barze sesji, nad końcem linii, pojawia się jedna etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs otwarcie); opcjonalnie procent może być pokazywany na żywo w trakcie sesji. Kolor linii i etykiety zależy od znaku zmiany. Działa na interwałach intraday — na D i wyższych każdy bar to osobna sesja, więc wskaźnik pokazuje tylko podpowiedź.
 
 ### Sezonowość
 

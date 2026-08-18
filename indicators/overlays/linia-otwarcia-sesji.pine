@@ -3,8 +3,8 @@
 
 //@version=6
 // Rysuje poziomą linię na cenie otwarcia sesji — od pierwszego do ostatniego
-// bara sesji. Na ostatnim barze sesji po prawej stronie linii pojawia się
-// jedna etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs
+// bara sesji. Na ostatnim barze sesji, nad końcem linii, pojawia się jedna
+// etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs
 // otwarcie sesji). Kolor linii i etykiety zależy od znaku zmiany. Działa na
 // interwałach intraday — na D i wyższych każdy bar to osobna sesja, więc
 // wskaźnik pokazuje tylko podpowiedź.
@@ -33,7 +33,7 @@ fmtPct(float pct) =>
     (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '%'
 
 newLabel(int x, float y, float pct, string sizeName) =>
-    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = label.style_label_left, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
+    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = label.style_label_down, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
 
 // time('D') zmienia się na pierwszym barze dnia handlowego, więc działa też
 // dla sesji przechodzących przez północ (np. futures).
