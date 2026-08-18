@@ -88,7 +88,7 @@ Vertical lines at the given hours — 10 independent slots, each with its own to
 
 #### [Session Open Line](indicators/overlays/session-open-line.pine)
 
-A horizontal line at the session open price, drawn from the first to the last bar of the session. On the last bar of the session, above the end of the line, a single label appears with the percent price change during the session (close vs open); optionally the percent can be shown live during the session. The line and label colors depend on the sign of the change. Works on intraday timeframes — on D and above every bar is its own session, so the indicator only shows a hint.
+A horizontal line at the session open price, drawn from the first to the last bar of the session. Completed sessions keep a single label above the end of the line with the percent price change during the session (close vs open); for the ongoing session the label sits in the same place - above the current end of the line - and updates live with the current change. The line and label colors depend on the sign of the change. Works on intraday timeframes — on D and above every bar is its own session, so the indicator only shows a hint.
 
 ### Seasonality
 
