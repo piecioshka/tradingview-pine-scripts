@@ -24,9 +24,18 @@ midLevel = 50  // deliberately NOT an input — 50 is the oscillator's axis of s
 
 gView = 'Display'
 showZones   = input.bool(true,  'Zone gradient',                group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between %K and the threshold).')
-showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Triangles on the price panel when %K crosses %D inside an extreme zone.')
-showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Solid triangles on the oscillator panel. Off by default.')
+showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Markers on the price panel when %K crosses %D inside an extreme zone.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Markers on the oscillator panel. Off by default.')
 showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with %K/%D values and state.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 // --- Calculations ---
 k = ta.sma(ta.stoch(close, high, low, kLen), kSmooth)
@@ -50,14 +59,19 @@ hline(midLevel, 'Midline',    color=cMid, linestyle=hline.style_dotted)
 fill(kPlot, pOb, top_value=100, bottom_value=obLevel, top_color = showZones and k > obLevel ? color.new(cOb, 20) : na, bottom_color = showZones and k > obLevel ? color.new(cOb, 90) : na, title='Overbought zone')
 fill(kPlot, pOs, top_value=osLevel, bottom_value=0, top_color = showZones and k < osLevel ? color.new(cOs, 90) : na, bottom_color = showZones and k < osLevel ? color.new(cOs, 20) : na, title='Oversold zone')
 
-// --- Signals (compact markers + optional labels) ---
+// --- Signals (markers as labels - the shape comes from the Appearance inputs) ---
 obLabelY = math.min(k + 8, 100)
 osLabelY = math.max(k - 8, 0)
-plotshape(showSignals and buyClose, title='Overbought signal (price)', style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
-plotshape(showSignals and buyOpen,  title='Oversold signal (price)',   style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
-// Panel markers — solid triangles (as in Accumulation / Distribution Density)
-plotshape(showLabels and buyClose ? obLabelY : na, title='BUY CLOSE marker', style=shape.triangledown, location=location.absolute, color=cOb, size=size.small)
-plotshape(showLabels and buyOpen  ? osLabelY : na, title='BUY OPEN marker',  style=shape.triangleup,   location=location.absolute, color=cOs, size=size.small)
+// Markers on the price panel (force_overlay): sell = red above the candle, buy = green below
+if showSignals and buyClose
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cOb, size=markerSize, force_overlay=true)
+if showSignals and buyOpen
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cOs, size=markerSize, force_overlay=true)
+// Markers on the oscillator panel (BUY CLOSE above, BUY OPEN below)
+if showLabels and buyClose
+    label.new(bar_index, obLabelY, '', style=downStyle, color=cOb, size=markerSize)
+if showLabels and buyOpen
+    label.new(bar_index, osLabelY, '', style=upStyle, color=cOs, size=markerSize)
 
 // --- Alerts ---
 alertcondition(buyClose, 'SO: Overbought signal', 'Stochastic: %K crossed %D down in the overbought zone')

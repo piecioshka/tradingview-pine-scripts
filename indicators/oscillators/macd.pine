@@ -26,9 +26,18 @@ sigType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA
 
 gView = 'Display'
 showHist    = input.bool(true,  'Histogram',                     group=gView, tooltip='Columns of the MACD − signal difference.')
-showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Triangles on the price panel when MACD crosses the signal line.')
-showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers',  group=gView, tooltip='Solid triangles on the MACD panel at crossings. Off by default.')
+showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Markers on the price panel when MACD crosses the signal line.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers',  group=gView, tooltip='Markers on the MACD panel at crossings. Off by default.')
 showTable   = input.bool(true,  'Status table',                  group=gView, tooltip='Small corner panel with values and trend.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 // --- Calculations ---
 maOf(src, len, kind) =>
@@ -53,13 +62,17 @@ plot(macd,   'MACD',   color=cMacd,   linewidth=2)
 plot(signal, 'Signal', color=cSignal, linewidth=2, linestyle=plot.linestyle_dotted)
 hline(0, 'Zero', color=cMid, linestyle=hline.style_dotted)
 
-// --- Signals (compact markers + optional labels) ---
-// Triangles on the price panel: bullish cross = green below the candle, bearish = red above
-plotshape(showSignals and crossUp, title='Bullish signal (price)', style=shape.triangleup,   location=location.belowbar, color=cUp, size=size.tiny, force_overlay=true)
-plotshape(showSignals and crossDn, title='Bearish signal (price)', style=shape.triangledown, location=location.abovebar, color=cDn, size=size.tiny, force_overlay=true)
-// Markers on the MACD panel (off by default) — solid triangles (as in Accumulation / Distribution Density)
-plotshape(showLabels and crossUp ? macd   : na, title='BUY OPEN marker',  style=shape.triangleup,   location=location.absolute, color=cUp, size=size.small)
-plotshape(showLabels and crossDn ? signal : na, title='BUY CLOSE marker', style=shape.triangledown, location=location.absolute, color=cDn, size=size.small)
+// --- Signals (compact markers + optional panel markers) ---
+// Markers on the price panel: bullish cross = green below the candle, bearish = red above
+if showSignals and crossUp
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cUp, size=markerSize, force_overlay=true)
+if showSignals and crossDn
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cDn, size=markerSize, force_overlay=true)
+// Markers on the MACD panel (off by default)
+if showLabels and crossUp
+    label.new(bar_index, macd, '', style=upStyle, color=cUp, size=markerSize)
+if showLabels and crossDn
+    label.new(bar_index, signal, '', style=downStyle, color=cDn, size=markerSize)
 
 // --- Alerts ---
 alertcondition(crossUp, 'MACD: cross up',   'MACD crossed the signal line up (bullish impulse)')

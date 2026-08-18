@@ -35,9 +35,18 @@ calculateDivergence = input.bool(false, 'Calculate divergences', group=gDiv, dis
 
 gView = 'Display'
 showZones   = input.bool(true, 'Zone gradient',                 group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between the RSI line and the threshold).')
-showSignals = input.bool(false, 'Signals (markers on price)',   group=gView, tooltip='Triangles on the price panel when the overbought/oversold thresholds are crossed. Off by default.')
-showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Solid triangles on the RSI panel where the threshold is crossed. Off by default.')
+showSignals = input.bool(false, 'Signals (markers on price)',   group=gView, tooltip='Markers on the price panel when the overbought/oversold thresholds are crossed. Off by default.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Markers on the RSI panel where the threshold is crossed. Off by default.')
 showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with the current RSI value and state.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 // --- Calculations ---
 rsi     = ta.rsi(rsiSource, rsiLength)
@@ -77,18 +86,22 @@ bbUpperBand = plot(smoothingMA + smoothingStDev, 'Upper Bollinger Band', color=c
 bbLowerBand = plot(smoothingMA - smoothingStDev, 'Lower Bollinger Band', color=cBb, display = isBB ? display.all : display.none, editable=isBB)
 fill(bbUpperBand, bbLowerBand, color = isBB ? color.new(cBb, 90) : na, title='Bollinger Bands background', display = isBB ? display.all : display.none, editable=isBB)
 
-// --- Signals (uniformly via plotshape - no object accumulation) ---
+// --- Signals (markers as labels - the shape comes from the Appearance inputs) ---
 // Marker positions clipped to the 0..100 scale so they stay inside the panel at RSI extremes
 obLabelY = math.min(rsi + 5, 100)
 osLabelY = math.max(rsi - 5, 0)
 
-// Markers on the price panel (force_overlay): overbought = red triangle above the candle, oversold = green below
-plotshape(showSignals and crossOb, title='Overbought signal (price)', style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
-plotshape(showSignals and crossOs, title='Oversold signal (price)',   style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
+// Markers on the price panel (force_overlay): overbought = red above the candle, oversold = green below
+if showSignals and crossOb
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cOb, size=markerSize, force_overlay=true)
+if showSignals and crossOs
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cOs, size=markerSize, force_overlay=true)
 
-// Markers on the RSI panel where the threshold is crossed — solid triangles (as in Accumulation / Distribution Density)
-plotshape(showLabels and crossOb ? obLabelY : na, title='Overbought marker (BUY CLOSE)', style=shape.triangledown, location=location.absolute, color=cOb, size=size.small)
-plotshape(showLabels and crossOs ? osLabelY : na, title='Oversold marker (BUY OPEN)',    style=shape.triangleup,   location=location.absolute, color=cOs, size=size.small)
+// Markers on the RSI panel where the threshold is crossed (BUY CLOSE above, BUY OPEN below)
+if showLabels and crossOb
+    label.new(bar_index, obLabelY, '', style=downStyle, color=cOb, size=markerSize)
+if showLabels and crossOs
+    label.new(bar_index, osLabelY, '', style=upStyle, color=cOs, size=markerSize)
 
 // --- Divergences (regular, on RSI pivots vs price) ---
 lookbackRight = 5

@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Golden / Death Cross', overlay=true)
+indicator('Golden / Death Cross', overlay=true, max_labels_count=500)
 
 // Golden Cross — the fast average crosses the slow one from below (bullish signal).
 // Death Cross — the fast average crosses the slow one from above (bearish signal).
@@ -14,6 +14,15 @@ slowColor = color.rgb(215, 107, 52)
 fastLen = input.int(50, 'Fast MA (length)', minval=1)
 slowLen = input.int(200, 'Slow MA (length)', minval=1)
 src = input.source(close, 'Source')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 fastMA = ta.sma(src, fastLen)
 slowMA = ta.sma(src, slowLen)
@@ -27,10 +36,9 @@ deathCross = ta.crossunder(fastMA, slowMA)
 if (goldenCross)
     line.new(bar_index, high, bar_index, low, color=color.new(color.green, 50), style=line.style_dashed, extend=extend.both)
     label.new(bar_index, slowMA, 'GOLDEN CROSS', color=color.new(color.green, 30), textcolor=color.white, style=label.style_label_up, size=size.normal)
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize)
 
 if (deathCross)
     line.new(bar_index, high, bar_index, low, color=color.new(color.red, 50), style=line.style_dashed, extend=extend.both)
     label.new(bar_index, slowMA, 'DEATH CROSS', color=color.new(color.red, 30), textcolor=color.white, style=label.style_label_down, size=size.normal)
-
-plotshape(goldenCross, 'Golden Cross', style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
-plotshape(deathCross, 'Death Cross', style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize)

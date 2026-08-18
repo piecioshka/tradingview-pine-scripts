@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('2x MA = Moving Average', overlay = true)
+indicator('2x MA = Moving Average', overlay = true, max_labels_count=500)
 
 aLen = input(50, 'Length', group='Short')
 aType = input.string(title='Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group='Short', defval='SMA')
@@ -28,6 +28,15 @@ bSeries = switch bType
 
 showLabels = input.bool(true, 'Show labels (length and type)', group='Labels')
 
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
+
 plot(aSeries, 'Short', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
 plot(bSeries, 'Long', color=color.new(bColor, 30), linewidth=2, force_overlay=true, linestyle=plot.linestyle_dotted)
 
@@ -46,10 +55,10 @@ if showLabels and barstate.islast
     aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)
     bLabel := updateLabel(bLabel, bSeries, str.tostring(bLen) + ' ' + bType, bColor)
 
-// BUY OPEN — solid triangle below the candle (as in Accumulation / Distribution Density)
+// BUY OPEN - marker below the candle (as in Accumulation / Distribution Density)
 if (ta.crossover(aSeries, bSeries))
-    label.new(bar_index, na, '', yloc=yloc.belowbar, style=label.style_triangleup, color=color.green, size=size.small, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 
-// BUY CLOSE — solid triangle above the candle
+// BUY CLOSE - marker above the candle
 if (ta.crossunder(aSeries, bSeries))
-    label.new(bar_index, na, '', yloc=yloc.abovebar, style=label.style_triangledown, color=color.red, size=size.small, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)
