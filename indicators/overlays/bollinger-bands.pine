@@ -9,7 +9,16 @@ bColor = color.rgb(240, 199, 58)
 
 len = input.int(20, 'SMA')
 mult = input.float(2.0, 'StdDev', minval=0.001, step=0.5)
-showTrades = input.bool(true, 'LONG / SELL labels', tooltip='Mean-reversion signals: LONG when close drops below the lower band (bet on a return to the mean), SELL when close rises above the upper band.')
+showTrades = input.bool(true, 'Signal markers', tooltip='Mean-reversion signals as markers: below the candle (long) when close drops below the lower band (bet on a return to the mean), above the candle (sell) when close rises above the upper band. Shape and size in the Appearance group.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 std = ta.stdev(close, len)
 sma = ta.sma(close, len)
@@ -23,11 +32,11 @@ plotLower = plot(lower, color=bColor, force_overlay=true)
 fill(plotUpper, center, color = color.new(aColor, 90))
 fill(center, plotLower, color = color.new(bColor, 90))
 
-// --- LONG / SELL trade labels (mean reversion on the bands) ---
+// --- Signal markers (mean reversion on the bands) ---
 longTrade = ta.crossunder(close, lower)
 sellTrade = ta.crossover(close, upper)
 
 if showTrades and longTrade
-    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(color.green, 20), textcolor=color.white, size=size.small)
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize)
 if showTrades and sellTrade
-    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small)
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize)

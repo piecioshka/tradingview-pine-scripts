@@ -20,13 +20,12 @@ dLen    = input.int(3,  '%D Length (SMA of %K)', minval=1, group=gCalc, tooltip=
 gLevels = 'Levels'
 obLevel  = input.int(80, 'Overbought', minval=50, maxval=100, group=gLevels, tooltip='Above this level the market is considered overbought.')
 osLevel  = input.int(20, 'Oversold',   minval=0,  maxval=50,  group=gLevels, tooltip='Below this level the market is considered oversold.')
-midLevel = 50  // deliberately NOT an input — 50 is the oscillator's axis of symmetry
+midLevel = 50  // deliberately NOT an input - 50 is the oscillator's axis of symmetry
 
 gView = 'Display'
 showZones   = input.bool(true,  'Zone gradient',                group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between %K and the threshold).')
-showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Markers on the price panel when %K crosses %D inside an extreme zone.')
+showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Markers on the price panel: green below the candle when %K crosses %D up and the previous candle was oversold, red above the candle when %K crosses %D down and the previous candle was overbought. Shape and size in the Appearance group.')
 showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Markers on the oscillator panel. Off by default.')
-showTrades  = input.bool(true,  'LONG / SELL labels',           group=gView, tooltip='Text labels on the price panel: LONG when %K crosses %D up and the previous candle was oversold, SELL when %K crosses %D down and the previous candle was overbought.')
 showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with %K/%D values and state.')
 
 gA = 'Appearance'
@@ -41,12 +40,10 @@ markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal
 // --- Calculations ---
 k = ta.sma(ta.stoch(close, high, low, kLen), kSmooth)
 d = ta.sma(k, dLen)
-// Signals: conventional %K/%D cross inside an extreme zone
-buyOpen  = ta.crossover(k, d)  and k < osLevel   // %K crosses %D UP while oversold -> buy
-buyClose = ta.crossunder(k, d) and k > obLevel   // %K crosses %D DOWN while overbought -> sell/close
-// Trade labels: the zone check uses the PREVIOUS candle, so the cross that exits the zone still counts
-longTrade = ta.crossover(k, d)  and k[1] < osLevel
-sellTrade = ta.crossunder(k, d) and k[1] > obLevel
+// Signals: conventional %K/%D cross inside an extreme zone.
+// The zone check uses the PREVIOUS candle, so the cross that exits the zone still counts.
+buyOpen  = ta.crossover(k, d)  and k[1] < osLevel   // %K crosses %D UP while oversold -> buy
+buyClose = ta.crossunder(k, d) and k[1] > obLevel   // %K crosses %D DOWN while overbought -> sell/close
 
 // --- Oscillator lines and hidden thresholds (fill boundaries) ---
 kPlot = plot(k, '%K (Oscillator)', color=cK, linewidth=2)
@@ -71,11 +68,6 @@ if showSignals and buyClose
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cOb, size=markerSize, force_overlay=true)
 if showSignals and buyOpen
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cOs, size=markerSize, force_overlay=true)
-// LONG / SELL trade labels on the price panel
-if showTrades and longTrade
-    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(cOs, 20), textcolor=color.white, size=size.small, force_overlay=true)
-if showTrades and sellTrade
-    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(cOb, 20), textcolor=color.white, size=size.small, force_overlay=true)
 // Markers on the oscillator panel (BUY CLOSE above, BUY OPEN below)
 if showLabels and buyClose
     label.new(bar_index, obLabelY, '', style=downStyle, color=cOb, size=markerSize)

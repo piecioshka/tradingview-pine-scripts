@@ -18,7 +18,16 @@ showSignal = input.bool(true, 'Show signal line')
 gCh = 'Chaikin oscillator (signals)'
 chFastLen = input.int(3, 'Fast EMA', minval=1, group=gCh, tooltip='Chaikin oscillator = fast EMA - slow EMA of the A/D line.')
 chSlowLen = input.int(10, 'Slow EMA', minval=1, group=gCh)
-showTrades = input.bool(true, 'LONG / SELL labels', group=gCh, tooltip='Text labels on the price panel: LONG when the Chaikin oscillator crosses zero up (volume turns into accumulation), SELL when it crosses zero down (distribution).')
+showTrades = input.bool(true, 'Signal markers', group=gCh, tooltip='Markers on the price panel: below the candle (long) when the Chaikin oscillator crosses zero up (volume turns into accumulation), above the candle (sell) when it crosses zero down (distribution). Shape and size in the Appearance group.')
+
+gA = 'Appearance'
+shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
+sizeName  = input.string('Small', 'Marker size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gA)
+
+// Markers as labels - the shape is picked from an input, which plotshape() cannot do (its style must be a constant).
+upStyle    = shapeName == 'Arrow' ? label.style_arrowup : shapeName == 'Label arrow' ? label.style_label_up : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangleup
+downStyle  = shapeName == 'Arrow' ? label.style_arrowdown : shapeName == 'Label arrow' ? label.style_label_down : shapeName == 'Circle' ? label.style_circle : shapeName == 'Diamond' ? label.style_diamond : label.style_triangledown
+markerSize = sizeName == 'Tiny' ? size.tiny : sizeName == 'Normal' ? size.normal : sizeName == 'Large' ? size.large : size.small
 
 ad = ta.accdist
 signal = ta.ema(ad, len)
@@ -27,11 +36,11 @@ chaikin = ta.ema(ad, chFastLen) - ta.ema(ad, chSlowLen)
 plot(ad, 'Accumulation / Distribution', color=adColor, linewidth=2)
 plot(showSignal ? signal : na, 'Signal (EMA)', color=color.rgb(215, 107, 52), linewidth=1, linestyle=plot.linestyle_dotted)
 
-// --- LONG / SELL trade labels on the price panel (Chaikin oscillator zero cross) ---
+// --- Signal markers on the price panel (Chaikin oscillator zero cross) ---
 longTrade = ta.crossover(chaikin, 0)
 sellTrade = ta.crossunder(chaikin, 0)
 
 if showTrades and longTrade
-    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(color.green, 20), textcolor=color.white, size=size.small, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 if showTrades and sellTrade
-    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small, force_overlay=true)
+    label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)

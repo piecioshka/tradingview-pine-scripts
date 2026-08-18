@@ -27,6 +27,15 @@ In plain words:
 
 An optional **EMA signal line** (default 21) smooths the A/D line for trend reading.
 
+### Signal markers (Chaikin oscillator)
+
+The script also computes the **Chaikin oscillator** = fast EMA (default 3) - slow EMA (default 10) **of the A/D line** and draws standardized signal markers on the price panel at its zero crosses:
+
+- 🟢 marker **below** the candle (long) - the oscillator crosses zero **up** → volume turns into accumulation,
+- 🔴 marker **above** the candle (sell) - it crosses zero **down** → distribution.
+
+The marker **shape** (Triangle, Arrow, Label arrow, Circle, Diamond) and **size** come from the _Appearance_ group - the same standard as in [Accumulation / Distribution Density](./accumulation-distribution-density.md).
+
 ---
 
 ## 📈 How to read it
@@ -52,6 +61,10 @@ An optional **EMA signal line** (default 21) smooths the A/D line for trend read
 
 - **Average length (signal)** _(default 21)_ - EMA period of the signal line.
 - **Show signal line** _(default on)_.
+- **Chaikin oscillator (signals)**:
+  - _Fast EMA_ (default 3) / _Slow EMA_ (default 10) - the oscillator windows,
+  - _Signal markers_ (default on) - markers at the oscillator's zero crosses.
+- **Appearance**: _Marker shape_ (default Triangle) and _Marker size_ (default Small).
 
 ---
 

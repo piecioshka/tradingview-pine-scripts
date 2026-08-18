@@ -26,9 +26,8 @@ sigType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA
 
 gView = 'Display'
 showHist    = input.bool(true,  'Histogram',                     group=gView, tooltip='Columns of the MACD − signal difference.')
-showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Markers on the price panel when MACD crosses the signal line.')
+showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Markers on the price panel when MACD crosses the signal line: green below the candle on a cross up, red above the candle on a cross down. Shape and size in the Appearance group.')
 showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers',  group=gView, tooltip='Markers on the MACD panel at crossings. Off by default.')
-showTrades  = input.bool(true,  'LONG / SELL labels',            group=gView, tooltip='Text labels on the price panel: LONG when the histogram crosses zero up (MACD above the signal line), SELL when it crosses zero down.')
 showTable   = input.bool(true,  'Status table',                  group=gView, tooltip='Small corner panel with values and trend.')
 
 gA = 'Appearance'
@@ -69,11 +68,6 @@ if showSignals and crossUp
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cUp, size=markerSize, force_overlay=true)
 if showSignals and crossDn
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cDn, size=markerSize, force_overlay=true)
-// LONG / SELL trade labels on the price panel (histogram zero cross = MACD vs signal line cross)
-if showTrades and crossUp
-    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(cUp, 20), textcolor=color.white, size=size.small, force_overlay=true)
-if showTrades and crossDn
-    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(cDn, 20), textcolor=color.white, size=size.small, force_overlay=true)
 // Markers on the MACD panel (off by default)
 if showLabels and crossUp
     label.new(bar_index, macd, '', style=upStyle, color=cUp, size=markerSize)
