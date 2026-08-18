@@ -1,0 +1,75 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+// Draws a horizontal line at the session open price — from the first to the
+// last bar of the session. On the last bar of the session, above the end of
+// the line, a single label appears with the percent price change during the
+// session (close vs session open). Line and label colors depend on the sign
+// of the change. Works on intraday timeframes — on D and above every bar is
+// its own session, so the indicator only shows a hint.
+indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500)
+
+GRP = 'Appearance'
+upColor = input.color(#26A69A, 'Up color', group = GRP)
+downColor = input.color(#EF5350, 'Down color', group = GRP)
+lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP)
+lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
+textSizeName = input.string('Small', 'Text size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP)
+showLive = input.bool(false, 'Show percent during session', group = 'General', tooltip = 'On: the label follows the last bar and shows the current change. Off: a single value appears only on the last bar of the session.')
+
+lineStyle = switch lineStyleName
+    'Dashed' => line.style_dashed
+    'Dotted' => line.style_dotted
+    => line.style_solid
+
+textSize = switch textSizeName
+    'Tiny' => size.tiny
+    'Normal' => size.normal
+    'Large' => size.large
+    => size.small
+
+fmtPct(float pct) =>
+    (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '%'
+
+newLabel(int x, float y, float pct, string sizeName) =>
+    // label_lower_right: anchor at the bottom-right corner — the text sits
+    // above the line, right-aligned, so it does not stick out past the
+    // session end.
+    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = label.style_label_lower_right, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
+
+// time('D') changes on the first bar of the trading day, so it also works
+// for sessions crossing midnight (e.g. futures).
+newSession = timeframe.change('D')
+
+var line ln = na
+var label lb = na
+var float sessionOpen = na
+
+if timeframe.isintraday
+    if newSession or barstate.isfirst
+        // The session ended but no label was created (session.islastbar did
+        // not mark the last bar, e.g. on a shortened session) — add the
+        // result now.
+        if not na(sessionOpen) and na(lb)
+            newLabel(bar_index - 1, sessionOpen, (close[1] - sessionOpen) / sessionOpen * 100, textSize)
+        sessionOpen := open
+        ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
+        lb := na
+
+    if not na(ln)
+        pct = (close - sessionOpen) / sessionOpen * 100
+        col = pct >= 0 ? upColor : downColor
+        line.set_x2(ln, bar_index)
+        line.set_color(ln, col)
+        if showLive or session.islastbar
+            if na(lb)
+                lb := newLabel(bar_index, sessionOpen, pct, textSize)
+            else
+                label.set_x(lb, bar_index)
+                label.set_text(lb, fmtPct(pct))
+                label.set_textcolor(lb, col)
+else
+    if barstate.islast
+        var table hint = table.new(position.top_right, 1, 1)
+        table.cell(hint, 0, 0, 'Session Open Line: the indicator works on intraday timeframes', text_color = color.gray, text_size = size.small)

@@ -16,7 +16,7 @@
     - [GMMA](#gmma)
     - [Złoty / Śmierci Krzyż](#złoty--śmierci-krzyż)
     - [Pionowe linie godzinowe](#pionowe-linie-godzinowe)
-    - [Linia otwarcia sesji](#linia-otwarcia-sesji)
+    - [Session Open Line](#session-open-line)
   - [Sezonowość](#sezonowość)
     - [Sezonowość miesięczna](#sezonowość-miesięczna)
     - [Sezonowość dzienna](#sezonowość-dzienna)
@@ -88,7 +88,7 @@ Golden Cross i Death Cross — przecięcia szybkiej i wolnej średniej (klasyczn
 
 Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własnym włącznikiem, godziną, kolorem, stylem i grubością (jedna linijka ustawień na slot). Domyślnie włączone 10:30, 15:00, 20:00 i 23:00 jako jasnofioletowa linia przerywana z przezroczystością 70%. Strefa czasowa do wyboru (domyślnie Warszawa, opcjonalnie giełdy, UTC lub własna IANA) — musi zgadzać się ze strefą osi czasu wykresu, inaczej linie wypadną przesunięte.
 
-#### [Linia otwarcia sesji](indicators/overlays/linia-otwarcia-sesji.pine)
+#### [Session Open Line](indicators/overlays/session-open-line.pine)
 
 Pozioma linia na cenie otwarcia sesji, ciągnięta od pierwszego do ostatniego bara sesji. Na ostatnim barze sesji, nad końcem linii, pojawia się jedna etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs otwarcie); opcjonalnie procent może być pokazywany na żywo w trakcie sesji. Kolor linii i etykiety zależy od znaku zmiany. Działa na interwałach intraday — na D i wyższych każdy bar to osobna sesja, więc wskaźnik pokazuje tylko podpowiedź.
 
