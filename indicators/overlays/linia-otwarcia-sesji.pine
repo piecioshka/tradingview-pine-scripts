@@ -29,9 +29,8 @@ textSize = switch textSizeName
     'Duży' => size.large
     => size.small
 
-// Spacja na końcu odsuwa tekst o kilka pikseli od prawego końca linii.
 fmtPct(float pct) =>
-    (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '% '
+    (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '%'
 
 newLabel(int x, float y, float pct, string sizeName) =>
     // label_lower_right: kotwica w prawym dolnym rogu — tekst leży nad linią
