@@ -27,6 +27,7 @@ bSeries = switch bType
     => na
 
 showLabels = input.bool(true, 'Show labels (length and type)', group='Labels')
+showTrades = input.bool(true, 'LONG / SELL labels', group='Labels', tooltip='Text labels at crosses: LONG when the short MA crosses the long one up (golden cross), SELL when it crosses down (death cross).')
 
 gA = 'Appearance'
 shapeName = input.string('Triangle', 'Marker shape', options=['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group=gA, tooltip='Triangle - solid triangle.\nArrow - small thin arrow.\nLabel arrow - arrow-shaped label bubble.\nCircle / Diamond - neutral dot markers.')
@@ -55,10 +56,19 @@ if showLabels and barstate.islast
     aLabel := updateLabel(aLabel, aSeries, str.tostring(aLen) + ' ' + aType, aColor)
     bLabel := updateLabel(bLabel, bSeries, str.tostring(bLen) + ' ' + bType, bColor)
 
+crossUp = ta.crossover(aSeries, bSeries)
+crossDn = ta.crossunder(aSeries, bSeries)
+
 // BUY OPEN - marker below the candle (as in Accumulation / Distribution Density)
-if (ta.crossover(aSeries, bSeries))
+if (crossUp)
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 
 // BUY CLOSE - marker above the candle
-if (ta.crossunder(aSeries, bSeries))
+if (crossDn)
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)
+
+// LONG / SELL trade labels (golden cross = open long, death cross = close long)
+if showTrades and crossUp
+    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(color.green, 20), textcolor=color.white, size=size.small, force_overlay=true)
+if showTrades and crossDn
+    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small, force_overlay=true)

@@ -40,6 +40,7 @@ gView = 'Display'
 showZones   = input.bool(true, 'Zone gradient',                 group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between the RSI line and the threshold).')
 showSignals = input.bool(false, 'Signals (markers on price)',   group=gView, tooltip='Markers on the price panel when the overbought/oversold thresholds are crossed. Off by default.')
 showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN markers', group=gView, tooltip='Markers on the RSI panel where the threshold is crossed. Off by default.')
+showTrades  = input.bool(true, 'LONG / SELL labels',            group=gView, tooltip='Text labels on the price panel: LONG when the RSI drops below the oversold level, SELL when it rises above the overbought level (mean reversion).')
 showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with the current RSI value and state.')
 
 gA = 'Appearance'
@@ -99,6 +100,12 @@ if showSignals and crossOb
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=cOb, size=markerSize, force_overlay=true)
 if showSignals and crossOs
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=cOs, size=markerSize, force_overlay=true)
+
+// LONG / SELL trade labels on the price panel (mean reversion: LONG below the oversold level, SELL above the overbought level)
+if showTrades and crossOs
+    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(cOs, 20), textcolor=color.white, size=size.small, force_overlay=true)
+if showTrades and crossOb
+    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(cOb, 20), textcolor=color.white, size=size.small, force_overlay=true)
 
 // Markers on the RSI panel where the threshold is crossed (BUY CLOSE above, BUY OPEN below)
 if showLabels and crossOb

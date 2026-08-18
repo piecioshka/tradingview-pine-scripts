@@ -2,10 +2,11 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('ROC = Rate of Change', overlay=false)
+indicator('ROC = Rate of Change', overlay=false, max_labels_count=500)
 
 aLen = input.int(9, 'Length')
 src = input.source(close, 'Source')
+showTrades = input.bool(true, 'LONG / SELL labels', tooltip='Text labels on the price panel: LONG when the ROC crosses zero up (momentum turns positive), SELL when it crosses zero down.')
 
 roc = (src - src[aLen]) / src[aLen] * 100
 
@@ -13,3 +14,12 @@ rocColor = roc >= 0 ? color.new(color.green, 50) : color.new(color.red, 50)
 
 plot(roc, 'ROC', color=rocColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
+
+// --- LONG / SELL trade labels on the price panel (zero cross) ---
+longTrade = ta.crossover(roc, 0)
+sellTrade = ta.crossunder(roc, 0)
+
+if showTrades and longTrade
+    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(color.green, 20), textcolor=color.white, size=size.small, force_overlay=true)
+if showTrades and sellTrade
+    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small, force_overlay=true)

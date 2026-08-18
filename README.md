@@ -48,7 +48,7 @@ A single moving average - SMA / EMA / WMA / VWMA / RMA (default 50 EMA). Optiona
 
 #### [2x MA](indicators/overlays/2x-ma.pine)
 
-Two moving averages, each with a configurable type (default SMA 50 and 200). Optional labels with the length and type at the line ends.
+Two moving averages, each with a configurable type (default SMA 50 and 200). Optional labels with the length and type at the line ends, plus LONG / SELL labels at the crosses (golden / death cross).
 
 ![2x MA](screenshots/indicators/2x-ma.png)
 
@@ -66,7 +66,7 @@ Envelopes around a moving average - upper and lower percentage deviation (defaul
 
 #### [Bollinger Bands](indicators/overlays/bollinger-bands.pine)
 
-Bollinger Bands - SMA (default 20) ± 2 standard deviations.
+Bollinger Bands - SMA (default 20) ± a configurable number of standard deviations (default 2). Optional LONG / SELL mean-reversion labels when close crosses the lower / upper band.
 
 ![Bollinger Bands](screenshots/indicators/bollinger-bands.png)
 
@@ -124,7 +124,7 @@ Chart background colored by hour - a daily gradient (night → dawn → day → 
 
 #### [MACD](indicators/oscillators/macd.pine)
 
-Moving Average Convergence Divergence - the difference of a fast and a slow average (default EMA 12/26, types configurable) with a signal line (default EMA 9). Histogram of the MACD minus signal difference, optional markers on the price panel at crossings, a status table, and built-in alerts.
+Moving Average Convergence Divergence - the difference of a fast and a slow average (default EMA 12/26, types configurable) with a signal line (default EMA 9). Histogram of the MACD minus signal difference, optional markers and LONG / SELL labels on the price panel at crossings, a status table, and built-in alerts.
 
 ![MACD](screenshots/indicators/macd.png)
 
@@ -136,19 +136,19 @@ A histogram showing the distance between two moving averages (short minus long),
 
 #### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator.pine)
 
-Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default 80/20), a zone gradient, optional markers on the price panel when %K crosses %D inside an extreme zone, a status table, and built-in alerts.
+Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default 80/20), a zone gradient, optional markers and LONG / SELL labels on the price panel when %K crosses %D coming out of an extreme zone, a status table, and built-in alerts.
 
 ![Stochastic Oscillator](screenshots/indicators/stochastic-oscillator.png)
 
 #### [RSI](indicators/oscillators/rsi.pine)
 
-Relative Strength Index with configurable overbought/oversold levels (default 70/30) and a zone gradient. Optional smoothing MA (also with Bollinger Bands), regular bull/bear divergences, markers on the price panel, a status table, and built-in alerts.
+Relative Strength Index with configurable overbought/oversold levels (default 70/30) and a zone gradient. Optional smoothing MA (also with Bollinger Bands), regular bull/bear divergences, markers and LONG / SELL mean-reversion labels on the price panel, a status table, and built-in alerts.
 
 ![RSI](screenshots/indicators/rsi.png)
 
 #### [ROC](indicators/oscillators/roc.pine)
 
-Rate of Change - the percentage price change over a given period.
+Rate of Change - the percentage price change over a given period. Optional LONG / SELL labels on the price panel at zero crosses.
 
 ![ROC](screenshots/indicators/roc.png)
 
@@ -156,7 +156,7 @@ Rate of Change - the percentage price change over a given period.
 
 #### [Accumulation / Distribution](indicators/volume/accumulation-distribution.pine)
 
-The A/D line by Marc Chaikin - combines price with volume, measuring buying and selling pressure. Optional EMA signal line (default 21).
+The A/D line by Marc Chaikin - combines price with volume, measuring buying and selling pressure. Optional EMA signal line (default 21) and LONG / SELL labels on the price panel when the Chaikin oscillator (EMA 3 - EMA 10 of the A/D line) crosses zero.
 
 ![Accumulation / Distribution](screenshots/indicators/accumulation-distribution.png)
 

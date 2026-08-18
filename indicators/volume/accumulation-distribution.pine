@@ -2,9 +2,9 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Accumulation / Distribution', overlay=false)
+indicator('Accumulation / Distribution', overlay=false, max_labels_count=500)
 
-// Accumulation / Distribution (A/D) line — Marc Chaikin.
+// Accumulation / Distribution (A/D) line - Marc Chaikin.
 // Combines price with volume, measuring buying (accumulation) and selling (distribution) pressure.
 // Money flow multiplier:  ((close - low) - (high - close)) / (high - low)
 // The A/D value rises during accumulation and falls during distribution.
@@ -15,8 +15,23 @@ adColor = color.rgb(56, 104, 174)
 len = input.int(21, 'Average length (signal)', minval=1)
 showSignal = input.bool(true, 'Show signal line')
 
+gCh = 'Chaikin oscillator (signals)'
+chFastLen = input.int(3, 'Fast EMA', minval=1, group=gCh, tooltip='Chaikin oscillator = fast EMA - slow EMA of the A/D line.')
+chSlowLen = input.int(10, 'Slow EMA', minval=1, group=gCh)
+showTrades = input.bool(true, 'LONG / SELL labels', group=gCh, tooltip='Text labels on the price panel: LONG when the Chaikin oscillator crosses zero up (volume turns into accumulation), SELL when it crosses zero down (distribution).')
+
 ad = ta.accdist
 signal = ta.ema(ad, len)
+chaikin = ta.ema(ad, chFastLen) - ta.ema(ad, chSlowLen)
 
 plot(ad, 'Accumulation / Distribution', color=adColor, linewidth=2)
 plot(showSignal ? signal : na, 'Signal (EMA)', color=color.rgb(215, 107, 52), linewidth=1, linestyle=plot.linestyle_dotted)
+
+// --- LONG / SELL trade labels on the price panel (Chaikin oscillator zero cross) ---
+longTrade = ta.crossover(chaikin, 0)
+sellTrade = ta.crossunder(chaikin, 0)
+
+if showTrades and longTrade
+    label.new(bar_index, na, 'LONG', yloc=yloc.belowbar, style=label.style_label_up, color=color.new(color.green, 20), textcolor=color.white, size=size.small, force_overlay=true)
+if showTrades and sellTrade
+    label.new(bar_index, na, 'SELL', yloc=yloc.abovebar, style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small, force_overlay=true)
