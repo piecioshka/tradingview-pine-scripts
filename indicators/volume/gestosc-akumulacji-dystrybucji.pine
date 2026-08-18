@@ -16,13 +16,13 @@ cBuy  = color.rgb(38, 166, 154)  // akumulacja — domyślna zieleń świecy #26
 cSell = color.rgb(239, 83, 80)   // dystrybucja — domyślna czerwień świecy #EF5350
 
 g = 'Parametry'
-lenExtreme    = input.int(10, 'Max./Min. z (świec)', minval=1, group=g, tooltip='Liczba wcześniejszych świec, względem których świeca sygnałowa musi wyznaczać nowy dołek (akumulacja) lub nowy szczyt (dystrybucja).')
-lenSpread     = input.int(10, 'Średni Spread z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej amplitudy (high − low).')
-lenDensity    = input.int(10, 'Średnia Gęstość z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej gęstości (wolumen / amplituda).')
+lenExtreme    = input.int(5, 'Max./Min. z (świec)', minval=1, group=g, tooltip='Liczba wcześniejszych świec, względem których świeca sygnałowa musi wyznaczać nowy dołek (akumulacja) lub nowy szczyt (dystrybucja).')
+lenSpread     = input.int(5, 'Średni Spread z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej amplitudy (high − low).')
+lenDensity    = input.int(5, 'Średnia Gęstość z (świec)', minval=1, group=g, tooltip='Liczba świec do średniej gęstości (wolumen / amplituda).')
 useSpread     = input.bool(true, 'Warunek spreadu', group=g, tooltip='Wymagaj, by amplituda świecy sygnałowej nie przekraczała Współczynnik Spreadu × średnia amplituda (świeca nie może być za duża — gęstość to duży obrót przy MAŁYM ruchu).')
-spreadFactor  = input.float(2.0, 'Współczynnik Spreadu', minval=0.1, step=0.1, group=g, tooltip='O ile większa może być amplituda świecy sygnałowej od średniej, by sygnał się pojawił.')
-densityFactor = input.float(1.5, 'Współczynnik Gęstości', minval=1.0, step=0.1, group=g, tooltip='O ile gęstość świecy sygnałowej musi przewyższać średnią gęstość.')
-closePct      = input.int(50, 'Zamknięcie bara (%)', minval=0, maxval=100, group=g, tooltip='Filtr pozycji zamknięcia w amplitudzie świecy: dla akumulacji zamknięcie co najmniej X% od dołu świecy, dla dystrybucji co najmniej X% od góry. 0 wyłącza filtr.')
+spreadFactor  = input.float(1.4, 'Współczynnik Spreadu', minval=0.1, step=0.1, group=g, tooltip='O ile większa może być amplituda świecy sygnałowej od średniej, by sygnał się pojawił.')
+densityFactor = input.float(2, 'Współczynnik Gęstości', minval=1.0, step=0.1, group=g, tooltip='O ile gęstość świecy sygnałowej musi przewyższać średnią gęstość.')
+closePct      = input.int(0, 'Zamknięcie bara (%)', minval=0, maxval=100, group=g, tooltip='Filtr pozycji zamknięcia w amplitudzie świecy: dla akumulacji zamknięcie co najmniej X% od dołu świecy, dla dystrybucji co najmniej X% od góry. 0 wyłącza filtr.')
 
 spread  = high - low
 density = volume / math.max(spread, syminfo.mintick)   // wolumen na jednostkę ruchu; doji z zerową amplitudą → wolumen na 1 tick
