@@ -86,13 +86,19 @@ Golden Cross and Death Cross - crossings of a fast and a slow average (classical
 
 Vertical lines at the given hours - 10 independent slots, each with its own toggle, hour, color, style, and width (one settings row per slot). Enabled by default: 10:30, 15:00, 20:00, and 23:00 as a light-purple dashed line with 70% transparency. Selectable time zone (Warsaw by default; optionally exchanges, UTC, or a custom IANA zone) - it must match the chart's time-axis zone, otherwise the lines land shifted.
 
+![Vertical Hour Lines](screenshots/indicators/vertical-hour-lines.png)
+
 #### [Session Open Line](indicators/overlays/session-open-line.pine)
 
 A horizontal line at the session open price, drawn from the first to the last bar of the session. Completed sessions keep a single label above the end of the line with the percent price change during the session (close vs open). Optionally the ongoing session shows the percent live - at the open price level, to the right of the line end, as if continuing the line - and the label moves to the standard place above the line once the session completes. The line and label colors depend on the sign of the change. Works on intraday timeframes - on D and above every bar is its own session, so the indicator only shows a hint.
 
+![Session Open Line](screenshots/indicators/session-open-line.png)
+
 #### [Last Time at Price](indicators/overlays/last-time-at-price.pine)
 
 A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
+
+![Last Time at Price](screenshots/indicators/last-time-at-price.png)
 
 ### Seasonality
 
@@ -187,6 +193,8 @@ A standalone footprint **status table** (buy / sell / delta + % / **stacked imba
 #### [Delta Footprint Imbalance](indicators/volume/delta-footprint-imbalance.pine)
 
 Detects **footprint imbalances** (diagonal: one side ≥ _ratio_ × the diagonally opposite one, classically 3:1) and their **stacked** runs (N+ levels in the same direction). Every stacked imbalance becomes a **persistent support/resistance zone** (a box extending to the right) with **automatic mitigation** - once tested by price, the zone fades or disappears, so only live levels remain on the chart (order-block behavior). Run strength is mapped to **color intensity**. A mini-dashboard counts active bull/bear zones and points to the nearest one above/below price. Full description: [delta-footprint-imbalance.md](indicators/volume/delta-footprint-imbalance.md).
+
+![Delta Footprint Imbalance](screenshots/indicators/delta-footprint-imbalance.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe. Makes sense on low timeframes (1-15 m).
 
