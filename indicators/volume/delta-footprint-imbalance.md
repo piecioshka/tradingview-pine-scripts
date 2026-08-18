@@ -1,147 +1,147 @@
 # Delta Footprint Imbalance
 
-Wskaźnik order flow dla TradingView (Pine Script v6). Wykrywa **imbalanse footprintu** (diagonalne i ułożone), zamienia je w **trwałe strefy wsparcia/oporu** z automatyczną mitygacją i podsumowuje sytuację w mini‑dashboardzie.
+An order flow indicator for TradingView (Pine Script v6). It detects **footprint imbalances** (diagonal and stacked), turns them into **persistent support/resistance zones** with automatic mitigation, and summarizes the situation in a mini-dashboard.
 
-Plik: [`delta-footprint-imbalance.pine`](./delta-footprint-imbalance.pine)
-
----
-
-## ⚠️ Wymagania
-
-- Konto TradingView **Premium** lub **Ultimate** — bez tego skrypt **się nie skompiluje** (`request.footprint` jest dostępny tylko na tych planach).
-- Dane footprint dla instrumentu (większość futures/forex/indeksów; część krypto ich nie ma → wskaźnik nic nie rysuje).
-- Działa tylko dla **bieżącego interwału** wykresu. Sensowny na niskich interwałach (1–15 m), gdzie order flow ma znaczenie. Na 1D nie ma sensu.
+File: [`delta-footprint-imbalance.pine`](./delta-footprint-imbalance.pine)
 
 ---
 
-## 🧠 Co to mierzy
+## ⚠️ Requirements
 
-Footprint dzieli każdą świecę na poziomy cenowe i zna wolumen **agresorów**:
-
-- **kupna (ask)** — ktoś brał po cenie sprzedaży,
-- **sprzedaży (bid)** — ktoś walił w cenę kupna.
-
-### Imbalans diagonalny
-
-Na danym poziomie jedna strona jest miażdżąco silniejsza od drugiej, porównując **po przekątnej**:
-
-- **Imbalans kupna** — wolumen kupna na poziomie `P` ≥ _mnożnik_ × wolumen sprzedaży o poziom **niżej** (`P-1`).
-- **Imbalans sprzedaży** — wolumen sprzedaży na poziomie `P` ≥ _mnożnik_ × wolumen kupna o poziom **wyżej** (`P+1`).
-
-Domyślny mnożnik to **3:1**. To ślad agresji, a nie spokojnej realizacji zleceń.
-
-### Imbalans ułożony (stacked)
-
-**N+ kolejnych poziomów** z imbalansem w tym samym kierunku (domyślnie ≥ 3). Dopiero to jest sygnał — pokazuje, że agresor faktycznie przeparł cenę:
-
-- **Ułożone kupno** 🟢 → agresywna akumulacja → potencjalne **wsparcie**.
-- **Ułożona sprzedaż** 🔴 → agresywna dystrybucja → potencjalny **opór**.
+- A TradingView **Premium** or **Ultimate** account — without it the script **does not compile** (`request.footprint` is available only on those plans).
+- Footprint data for the instrument (most futures/forex/indices; some crypto lack it → the indicator draws nothing).
+- Works only for the **current** chart timeframe. Makes sense on low timeframes (1–15 m), where order flow matters. Pointless on 1D.
 
 ---
 
-## 🟩 Strefy S/R z mitygacją (sedno wskaźnika)
+## 🧠 What it measures
 
-Każdy ułożony imbalans staje się **strefą** rysowaną jako prostokąt, który **ciągnie się w prawo, dopóki cena go nie przetestuje**:
+The footprint splits every candle into price levels and knows the **aggressor** volume:
 
-1. **Powstanie** — na zamkniętej świecy wykryto ułożony imbalans → strefa startuje od tej świecy.
-2. **Uzbrojenie** — gdy cena całkowicie opuści strefę, test mitygacji zostaje „uzbrojony".
-3. **Mitygacja (test)** — gdy cena **wraca** do strefy, jest ona oznaczana jako przetestowana: blednie i przechodzi na linię przerywaną (albo znika, jeśli włączysz „Ukryj strefy po teście").
+- **buy (ask)** — someone lifted the offer,
+- **sell (bid)** — someone hit the bid.
 
-Dzięki temu na wykresie zostają **tylko żywe, jeszcze niewykorzystane strefy** — dokładnie to, czego szuka trader (zachowanie order‑blocków).
+### Diagonal imbalance
 
-**Siła w kolorze:** im dłuższy ciąg (więcej ułożonych poziomów), tym mocniejszy (mniej przezroczysty) kolor strefy. Od razu widać, które strefy są istotne.
+At a given level one side is overwhelmingly stronger than the other, compared **diagonally**:
 
----
+- **Buy imbalance** — buy volume at level `P` ≥ _ratio_ × sell volume one level **lower** (`P-1`).
+- **Sell imbalance** — sell volume at level `P` ≥ _ratio_ × buy volume one level **higher** (`P+1`).
 
-## 📋 Mini‑dashboard
+The default ratio is **3:1**. This is a trace of aggression, not calm order execution.
 
-Tabelka w rogu pokazuje:
+### Stacked imbalance
 
-| Wiersz               | Znaczenie                                                 |
-| -------------------- | --------------------------------------------------------- |
-| **Strefy ▲ byk**     | liczba aktywnych (niezmitygowanych) stref kupna           |
-| **Strefy ▼ niedźw.** | liczba aktywnych stref sprzedaży                          |
-| **Najbliższa nad**   | cena najbliższej aktywnej strefy powyżej ceny + odległość |
-| **Najbliższa pod**   | cena najbliższej aktywnej strefy poniżej ceny + odległość |
+**N+ consecutive levels** with an imbalance in the same direction (default ≥ 3). Only this counts as a signal — it shows the aggressor actually pushed the price through:
 
-Kolor wartości „najbliższa" zdradza typ strefy (zielony = kupna, czerwony = sprzedaży).
+- **Stacked buying** 🟢 → aggressive accumulation → potential **support**.
+- **Stacked selling** 🔴 → aggressive distribution → potential **resistance**.
 
 ---
 
-## 🛠️ Ustawienia
+## 🟩 S/R zones with mitigation (the core of the indicator)
+
+Every stacked imbalance becomes a **zone** drawn as a rectangle that **extends to the right until price tests it**:
+
+1. **Formation** — a stacked imbalance is detected on a closed candle → the zone starts at that candle.
+2. **Arming** — once price fully leaves the zone, the mitigation test is "armed".
+3. **Mitigation (test)** — when price **returns** to the zone, it is marked as tested: it fades and switches to a dashed border (or disappears if "Hide zones after a test" is enabled).
+
+This keeps **only live, not-yet-used zones** on the chart — exactly what a trader looks for (order-block behavior).
+
+**Strength as color:** the longer the run (more stacked levels), the stronger (less transparent) the zone color. You immediately see which zones matter.
+
+---
+
+## 📋 Mini-dashboard
+
+A table in the corner shows:
+
+| Row               | Meaning                                                 |
+| ----------------- | ------------------------------------------------------- |
+| **Zones ▲ bull**  | number of active (unmitigated) buy zones                |
+| **Zones ▼ bear**  | number of active sell zones                             |
+| **Nearest above** | price of the nearest active zone above price + distance |
+| **Nearest below** | price of the nearest active zone below price + distance |
+
+The color of the "nearest" value reveals the zone type (green = buy, red = sell).
+
+---
+
+## 🛠️ Settings
 
 ### Footprint
 
-- **Ticki na wiersz** — rozdzielczość poziomów. Mniej = drobniejsze poziomy, czulsze wykrywanie (ale więcej obliczeń). Dobierz do instrumentu.
+- **Ticks per row** — level resolution. Fewer = finer levels, more sensitive detection (but more computation). Tune per instrument.
 
-### Imbalans
+### Imbalance
 
-- **Mnożnik imbalansu (X:1)** — próg dominacji jednej strony (domyślnie 3:1). Wyżej = mniej, ale „twardszych" sygnałów.
-- **Min. wolumen poziomu** — odsiewa szum na mało płynnych poziomach. `0` = bez filtra.
-- **Min. ułożonych poziomów** — ile poziomów z rzędu tworzy strefę (domyślnie 3). Wyżej = tylko bardzo silne strefy.
+- **Imbalance ratio (X:1)** — the dominance threshold of one side (default 3:1). Higher = fewer but "harder" signals.
+- **Min. level volume** — filters out noise on thin levels. `0` = no filter.
+- **Min. stacked levels** — how many levels in a row form a zone (default 3). Higher = only very strong zones.
 
-### Strefy S/R
+### S/R zones
 
-- **Pokaż strefy ułożone** — włącza/wyłącza strefy.
-- **Mitygacja wg zamknięcia** — strefa testowana dopiero, gdy _zamknięcie_ wejdzie w strefę (wyłączone = liczy się knot `high`/`low`, czulsze).
-- **Ukryj strefy po teście** — usuwa strefę po mitygacji (zamiast jej blaknięcia).
-- **Przezroczystość po teście** — jak mocno zblednąć przetestowaną strefę.
-- **Maks. liczba stref** — ile ostatnich stref trzymać (ochrona przed limitem obiektów wykresu).
+- **Show stacked zones** — toggles the zones.
+- **Mitigation by close** — a zone is tested only when the _close_ enters it (off = the `high`/`low` wick counts, more sensitive).
+- **Hide zones after a test** — removes a zone after mitigation (instead of fading it).
+- **Transparency after a test** — how much to fade a tested zone.
+- **Max. number of zones** — how many recent zones to keep (protection against the chart object limit).
 
-### Siła w kolorze
+### Strength as color
 
-- **Przezroczystość — słaba / mocna strefa** — krańce skali intensywności (siła = długość ciągu, od `min` do `min+6`).
+- **Transparency — weak / strong zone** — the ends of the intensity scale (strength = run length, from `min` to `min+6`).
 
-### Wyświetlanie
+### Display
 
-- **Liczba poziomów w strefie** — etykieta z siłą strefy.
-- **Pokaż pojedyncze imbalansy** — pionowe marki na każdym pojedynczym poziomie z imbalansem (domyślnie wył.).
-- **Grubość pojedynczych marek (px)** / **Przezroczystość pojedynczych** — wygląd powyższych.
+- **Level count in zone** — a label with the zone's strength.
+- **Show single imbalances** — vertical marks on every single level with an imbalance (off by default).
+- **Single mark width (px)** / **Single mark transparency** — appearance of the above.
 
-### Mini‑dashboard / Kolory
+### Mini-dashboard / Colors
 
-- Włącznik i pozycja tabelki; kolory imbalansu kupna / sprzedaży.
-
----
-
-## 📈 Jak tego używać w praktyce
-
-To **nie** jest wskaźnik „kup/sprzedaj". To **mapa miejsc, gdzie był agresor**. Trzy główne zastosowania:
-
-1. **Strefy wsparcia/oporu.** Aktywna (niezmitygowana) strefa = poziom, którego rynek może bronić. Gdy cena do niej wraca, obserwuj reakcję (odbicie = strefa działa; przebicie z impetem = zmiana układu sił).
-2. **Potwierdzenie zwrotu / wyczerpania.**
-   - Zielone strefy **na dołku** ruchu spadkowego → kupujący weszli agresywnie → możliwe odwrócenie w górę.
-   - Czerwone strefy **na szczycie** → sprzedający przejęli → możliwy zwrot w dół.
-   - Strefy **w kierunku trendu w środku ruchu** → kontynuacja (paliwo).
-3. **Strefy jako magnesy.** Świeża, nietknięta strefa często zostaje „przetestowana" — cena ma tendencję do powrotu.
-
-**Sygnał jest mocniejszy, gdy zgadza się z resztą:** kierunkiem delty/CVD (wskaźniki _Delta Footprint Table_ / _Histogram_), wolumenem i kluczowymi poziomami z wykresu.
+- Toggle and position of the table; buy / sell imbalance colors.
 
 ---
 
-## 🔔 Alerty
+## 📈 How to use it in practice
 
-- **Ułożony imbalans kupna** — powstała nowa strefa kupna (akumulacja / wsparcie).
-- **Ułożony imbalans sprzedaży** — powstała nowa strefa sprzedaży (dystrybucja / opór).
+This is **not** a "buy/sell" indicator. It is **a map of the places where the aggressor was**. Three main uses:
 
----
+1. **Support/resistance zones.** An active (unmitigated) zone = a level the market may defend. When price returns to it, watch the reaction (a bounce = the zone works; a momentum break = the balance of power changed).
+2. **Confirming a reversal / exhaustion.**
+   - Green zones **at the bottom** of a downswing → buyers stepped in aggressively → a possible reversal up.
+   - Red zones **at the top** → sellers took over → a possible turn down.
+   - Zones **in the trend direction mid-move** → continuation (fuel).
+3. **Zones as magnets.** A fresh, untouched zone often gets "tested" — price tends to come back to it.
 
-## ⛔ Ograniczenia i uwagi
-
-- Strefy powstają **tylko na zamkniętych świecach** (brak repaintu) — świeca w budowie czeka na zamknięcie.
-- Trzymane są ostatnie _N_ stref (`Maks. liczba stref`) — bardzo stare są usuwane.
-- W TradingView **nie da się** wyśrodkować na świecy prostokąta o szerokości jednej świecy (krawędzie boxa lądują na granicach świec). Dlatego pojedyncze marki to grube **pionowe linie** w osi świecy, a strefy to poziome prostokąty ciągnące się w prawo (tu problem nie występuje).
-
----
-
-## 👨‍👩‍👧 Rodzina Delta Footprint
-
-Wskaźnik najlepiej działa obok pozostałych:
-
-- **Delta Footprint Bubble** — delta + bąble POC + Value Area + CVD.
-- **Delta Footprint Histogram** — delta w osobnym panelu.
-- **Delta Footprint Table** — tabela: kupno/sprzedaż/delta%/POC/CVD (+ licznik ułożonych imbalansów).
+**The signal is stronger when it agrees with the rest:** the delta/CVD direction (the _Delta Footprint Table_ / _Histogram_ indicators), volume, and the chart's key levels.
 
 ---
 
-© Piotr Kowalski „piecioshka". Licencja: Mozilla Public License 2.0.
+## 🔔 Alerts
+
+- **Stacked buy imbalance** — a new buy zone formed (accumulation / support).
+- **Stacked sell imbalance** — a new sell zone formed (distribution / resistance).
+
+---
+
+## ⛔ Limitations and notes
+
+- Zones form **only on closed candles** (no repaint) — a forming candle waits for its close.
+- Only the last _N_ zones are kept (`Max. number of zones`) — very old ones are removed.
+- In TradingView it is **impossible** to center a one-candle-wide rectangle on a candle (box edges land on candle boundaries). That is why single marks are thick **vertical lines** on the candle axis, while zones are horizontal rectangles extending to the right (where the problem does not occur).
+
+---
+
+## 👨‍👩‍👧 The Delta Footprint family
+
+The indicator works best alongside the others:
+
+- **Delta Footprint Bubble** — delta + POC bubbles + Value Area + CVD.
+- **Delta Footprint Histogram** — delta in a separate panel.
+- **Delta Footprint Table** — table: buy/sell/delta%/POC/CVD (+ stacked imbalance counter).
+
+---
+
+© Piotr Kowalski "piecioshka". License: Mozilla Public License 2.0.

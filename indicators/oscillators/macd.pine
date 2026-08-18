@@ -1,0 +1,79 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('MACD = Moving Average Convergence Divergence', overlay=false, max_lines_count=100, max_labels_count=100)
+
+// --- Color palette (single place for the theme) ---
+cMacd   = color.rgb(56, 104, 174)   // MACD line
+cSignal = color.rgb(215, 107, 52)   // signal line
+cUp     = color.green               // rise / buy signal
+cDn     = color.red                 // fall / sell signal
+cMid    = color.gray                // zero line and neutral elements
+
+// --- Inputs ---
+gFast = 'Fast EMA (shorter)'
+fastLen  = input.int(12, 'Length', minval=1, group=gFast, tooltip='Window of the faster average.')
+fastType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gFast)
+
+gSlow = 'Slow EMA (longer)'
+slowLen  = input.int(26, 'Length', minval=1, group=gSlow, tooltip='Window of the slower average.')
+slowType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gSlow)
+
+gSig = 'Signal line'
+sigLen  = input.int(9, 'Length', minval=1, group=gSig, tooltip='Smoothing of the MACD line = signal line.')
+sigType = input.string('EMA', 'Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], group=gSig)
+
+gView = 'Display'
+showHist    = input.bool(true,  'Histogram',                     group=gView, tooltip='Columns of the MACD − signal difference.')
+showSignals = input.bool(true,  'Signals (markers on price)',    group=gView, tooltip='Triangles on the price panel when MACD crosses the signal line.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN labels',   group=gView, tooltip='Text flags on the MACD panel at crossings. Off by default.')
+showTable   = input.bool(true,  'Status table',                  group=gView, tooltip='Small corner panel with values and trend.')
+
+// --- Calculations ---
+maOf(src, len, kind) =>
+    switch kind
+        'SMA'  => ta.sma(src, len)
+        'EMA'  => ta.ema(src, len)
+        'WMA'  => ta.wma(src, len)
+        'VWMA' => ta.vwma(src, len)
+        'RMA'  => ta.rma(src, len)
+        => ta.ema(src, len)
+
+macd      = maOf(close, fastLen, fastType) - maOf(close, slowLen, slowType)
+signal    = maOf(macd, sigLen, sigType)
+histogram = macd - signal
+crossUp   = ta.crossover(macd, signal)    // MACD crosses the signal line up -> bullish impulse
+crossDn   = ta.crossunder(macd, signal)   // MACD crosses the signal line down -> bearish impulse
+
+// --- Drawing (histogram below the lines) ---
+histColor = histogram >= 0 ? (histogram > histogram[1] ? color.new(cUp, 50) : color.new(cUp, 80)) : (histogram < histogram[1] ? color.new(cDn, 50) : color.new(cDn, 80))
+plot(showHist ? histogram : na, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
+plot(macd,   'MACD',   color=cMacd,   linewidth=2)
+plot(signal, 'Signal', color=cSignal, linewidth=2, linestyle=plot.linestyle_dotted)
+hline(0, 'Zero', color=cMid, linestyle=hline.style_dotted)
+
+// --- Signals (compact markers + optional labels) ---
+// Triangles on the price panel: bullish cross = green below the candle, bearish = red above
+plotshape(showSignals and crossUp, title='Bullish signal (price)', style=shape.triangleup,   location=location.belowbar, color=cUp, size=size.tiny, force_overlay=true)
+plotshape(showSignals and crossDn, title='Bearish signal (price)', style=shape.triangledown, location=location.abovebar, color=cDn, size=size.tiny, force_overlay=true)
+// Labels on the MACD panel (off by default)
+plotshape(showLabels and crossUp ? macd   : na, title='BUY OPEN label',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cUp, 30), size=size.small)
+plotshape(showLabels and crossDn ? signal : na, title='BUY CLOSE label', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cDn, 30), size=size.small)
+
+// --- Alerts ---
+alertcondition(crossUp, 'MACD: cross up',   'MACD crossed the signal line up (bullish impulse)')
+alertcondition(crossDn, 'MACD: cross down', 'MACD crossed the signal line down (bearish impulse)')
+
+// --- Status table (top-right corner) ---
+trend      = macd > signal ? 'Bullish' : macd < signal ? 'Bearish' : 'Neutral'
+trendColor = macd > signal ? cUp : macd < signal ? cDn : cMid
+
+var table infoTable = table.new(position.top_right, 2, 3, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, 'MACD',   text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(macd, '#.###'),   text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, 'Signal', text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 1, str.tostring(signal, '#.###'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 2, 'Trend',  text_color=cMid,       text_size=size.small)
+    table.cell(infoTable, 1, 2, trend,    text_color=trendColor, text_size=size.small)

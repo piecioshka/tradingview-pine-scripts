@@ -1,0 +1,147 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('RSI = Relative Strength Index', overlay=false, precision=2, max_lines_count=100, max_labels_count=100, timeframe='', timeframe_gaps=true)
+
+// --- Color palette (single place for the theme) ---
+cRsi = color.rgb(255, 245, 157)  // RSI line
+cOb  = color.red                 // overbought / upper zone
+cOs  = color.green               // oversold / lower zone
+cMid = color.gray                // midline and neutral elements
+cMa  = color.yellow              // smoothing MA
+cBb  = color.green               // Bollinger Bands
+
+// --- Inputs ---
+gCalc = 'Calculation'
+rsiSource = input.source(close, 'Source', group=gCalc, tooltip='Price the RSI is calculated from (candle close by default).')
+rsiLength = input.int(14, 'Length', minval=1, group=gCalc, tooltip='Number of candles in the RSI window. Fewer = more sensitive, more = smoother.')
+
+gLevels = 'Levels'
+obLevel  = input.int(70, 'Overbought', minval=50, maxval=100, group=gLevels, tooltip='Above this level the market is considered overbought.')
+osLevel  = input.int(30, 'Oversold',   minval=0,  maxval=50,  group=gLevels, tooltip='Below this level the market is considered oversold.')
+midLevel = 50  // deliberately NOT an input - 50 is the RSI's definitional axis of symmetry
+
+gSmooth = 'Smoothing'
+TT_BB = 'Applies only to the "SMA + Bollinger Bands" variant. Sets the distance of the bands from the SMA.'
+maTypeInput = input.string('SMA', 'Type', options=['None', 'SMA', 'SMA + Bollinger Bands', 'EMA', 'SMMA (RMA)', 'WMA', 'VWMA'], group=gSmooth, display=display.none, tooltip='Moving average calculated from the RSI. "None" disables smoothing.')
+var isBB = maTypeInput == 'SMA + Bollinger Bands'
+maLengthInput = input.int(14, 'Length', minval=1, group=gSmooth, display=display.none, active=maTypeInput != 'None')
+bbMultInput = input.float(2.0, 'BB StdDev', minval=0.001, maxval=50, step=0.5, tooltip=TT_BB, group=gSmooth, display=display.none, active=isBB)
+var enableMA = maTypeInput != 'None'
+
+gDiv = 'Divergences'
+calculateDivergence = input.bool(false, 'Calculate divergences', group=gDiv, display=display.none, tooltip='Regular bull/bear divergences (RSI pivots vs price). Required for divergence alerts to work.')
+
+gView = 'Display'
+showZones   = input.bool(true, 'Zone gradient',                 group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between the RSI line and the threshold).')
+showSignals = input.bool(false, 'Signals (markers on price)',   group=gView, tooltip='Triangles on the price panel when the overbought/oversold thresholds are crossed. Off by default.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN labels',  group=gView, tooltip='Text flags on the RSI panel where the threshold is crossed. Off by default.')
+showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with the current RSI value and state.')
+
+// --- Calculations ---
+rsi     = ta.rsi(rsiSource, rsiLength)
+crossOb = ta.crossover(rsi, obLevel)    // entering the overbought zone
+crossOs = ta.crossunder(rsi, osLevel)   // entering the oversold zone
+
+// --- RSI line and hidden thresholds (fill boundaries) ---
+rsiPlot = plot(rsi, 'RSI', color=cRsi, linewidth=1)
+pOb = plot(obLevel, 'Overbought threshold', color=na, display=display.none, editable=false)
+pOs = plot(osLevel, 'Oversold threshold',   color=na, display=display.none, editable=false)
+
+// --- Reference levels ---
+hline(obLevel,  'Overbought', color=cOb,  linestyle=hline.style_dotted)
+hline(osLevel,  'Oversold',   color=cOs,  linestyle=hline.style_dotted)
+hline(midLevel, 'Midline',    color=cMid, linestyle=hline.style_dotted)
+
+// --- Vertical zone gradient (bottom->top), only while RSI is in the zone ---
+// Red: pale at the overbought threshold, strong toward 100
+fill(rsiPlot, pOb, top_value=100, bottom_value=obLevel, top_color = showZones and rsi > obLevel ? color.new(cOb, 20) : na, bottom_color = showZones and rsi > obLevel ? color.new(cOb, 90) : na, title='Overbought zone')
+// Green: pale at the oversold threshold, strong toward 0
+fill(rsiPlot, pOs, top_value=osLevel, bottom_value=0, top_color = showZones and rsi < osLevel ? color.new(cOs, 90) : na, bottom_color = showZones and rsi < osLevel ? color.new(cOs, 20) : na, title='Oversold zone')
+
+// --- Smoothing (MA of the RSI, optionally Bollinger Bands) ---
+ma(source, length, MAtype) =>
+    switch MAtype
+        'SMA'                   => ta.sma(source, length)
+        'SMA + Bollinger Bands' => ta.sma(source, length)
+        'EMA'                   => ta.ema(source, length)
+        'SMMA (RMA)'            => ta.rma(source, length)
+        'WMA'                   => ta.wma(source, length)
+        'VWMA'                  => ta.vwma(source, length)
+
+smoothingMA    = enableMA ? ma(rsi, maLengthInput, maTypeInput) : na
+smoothingStDev = isBB ? ta.stdev(rsi, maLengthInput) * bbMultInput : na
+plot(smoothingMA, 'RSI-based MA', color=cMa, display = enableMA ? display.all : display.none, editable=enableMA)
+bbUpperBand = plot(smoothingMA + smoothingStDev, 'Upper Bollinger Band', color=cBb, display = isBB ? display.all : display.none, editable=isBB)
+bbLowerBand = plot(smoothingMA - smoothingStDev, 'Lower Bollinger Band', color=cBb, display = isBB ? display.all : display.none, editable=isBB)
+fill(bbUpperBand, bbLowerBand, color = isBB ? color.new(cBb, 90) : na, title='Bollinger Bands background', display = isBB ? display.all : display.none, editable=isBB)
+
+// --- Signals (uniformly via plotshape - no object accumulation) ---
+// Label positions clipped to the 0..100 scale so they stay inside the panel at RSI extremes
+obLabelY = math.min(rsi + 5, 100)
+osLabelY = math.max(rsi - 5, 0)
+
+// Markers on the price panel (force_overlay): overbought = red triangle above the candle, oversold = green below
+plotshape(showSignals and crossOb, title='Overbought signal (price)', style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
+plotshape(showSignals and crossOs, title='Oversold signal (price)',   style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
+
+// Labels on the RSI panel where the threshold is crossed
+plotshape(showLabels and crossOb ? obLabelY : na, title='Overbought label', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cOb, 30), size=size.small)
+plotshape(showLabels and crossOs ? osLabelY : na, title='Oversold label',   text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cOs, 30), size=size.small)
+
+// --- Divergences (regular, on RSI pivots vs price) ---
+lookbackRight = 5
+lookbackLeft  = 5
+rangeUpper    = 60
+rangeLower    = 5
+noneColor     = color.new(color.white, 100)
+
+_inRange(bool cond) =>
+    bars = ta.barssince(cond)
+    rangeLower <= bars and bars <= rangeUpper
+
+plFound  = false
+phFound  = false
+bullCond = false
+bearCond = false
+
+rsiLBR = rsi[lookbackRight]
+
+if calculateDivergence
+    // Bull: RSI makes a higher low, price a lower low
+    plFound := not na(ta.pivotlow(rsi, lookbackLeft, lookbackRight))
+    rsiHL   = rsiLBR > ta.valuewhen(plFound, rsiLBR, 1) and _inRange(plFound[1])
+    lowLBR  = low[lookbackRight]
+    priceLL = lowLBR < ta.valuewhen(plFound, lowLBR, 1)
+    bullCond := priceLL and rsiHL and plFound
+
+    // Bear: RSI makes a lower high, price a higher high
+    phFound := not na(ta.pivothigh(rsi, lookbackLeft, lookbackRight))
+    rsiLH   = rsiLBR < ta.valuewhen(phFound, rsiLBR, 1) and _inRange(phFound[1])
+    highLBR = high[lookbackRight]
+    priceHH = highLBR > ta.valuewhen(phFound, highLBR, 1)
+    bearCond := priceHH and rsiLH and phFound
+
+plot(plFound ? rsiLBR : na, offset=-lookbackRight, title='Bullish divergence', linewidth=2, color = bullCond ? cOs : noneColor, display=display.pane, editable=calculateDivergence)
+plotshape(bullCond ? rsiLBR : na, offset=-lookbackRight, title='Bullish divergence label', text=' Bull ', style=shape.labelup, location=location.absolute, color=cOs, textcolor=color.white, display=display.pane, editable=calculateDivergence)
+
+plot(phFound ? rsiLBR : na, offset=-lookbackRight, title='Bearish divergence', linewidth=2, color = bearCond ? cOb : noneColor, display=display.pane, editable=calculateDivergence)
+plotshape(bearCond ? rsiLBR : na, offset=-lookbackRight, title='Bearish divergence label', text=' Bear ', style=shape.labeldown, location=location.absolute, color=cOb, textcolor=color.white, display=display.pane, editable=calculateDivergence)
+
+// --- Alerts ---
+alertcondition(crossOb, 'RSI: Overbought', 'RSI crossed the overbought threshold up')
+alertcondition(crossOs, 'RSI: Oversold',   'RSI crossed the oversold threshold down')
+alertcondition(bullCond, 'RSI: Bullish divergence', 'Regular bullish divergence - "Pivot Lookback Right" candles to the left of the current candle')
+alertcondition(bearCond, 'RSI: Bearish divergence', 'Regular bearish divergence - "Pivot Lookback Right" candles to the left of the current candle')
+
+// --- Status table (top-right corner) ---
+status      = rsi >= obLevel ? 'Overbought' : rsi <= osLevel ? 'Oversold' : 'Neutral'
+statusColor = rsi >= obLevel ? cOb : rsi <= osLevel ? cOs : cMid
+
+var table infoTable = table.new(position.top_right, 2, 2, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, 'RSI',    text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(rsi, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, 'Status', text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 1, status,   text_color=statusColor, text_size=size.small)

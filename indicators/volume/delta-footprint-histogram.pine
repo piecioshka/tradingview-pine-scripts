@@ -4,35 +4,35 @@
 //@version=6
 indicator('Delta Footprint Histogram', overlay=false, max_labels_count=500)
 
-// Histogram delty z footprintu w osobnym panelu, przypięty do podstawy (0).
-// Słupek = |delta| (kupno − sprzedaż), kolor wg znaku: zielony = przewaga kupna, czerwony = sprzedaży.
-// Wysokość jest znormalizowana i ograniczona do zadanego % panelu; realne wartości delty widać
-// jako liczby na słupkach oraz w oknie danych.
-// Wymaga Premium/Ultimate; brak danych footprint (np. część krypto) → nic nie pokazuje.
+// Footprint delta histogram in a separate panel, anchored to the base (0).
+// Column = |delta| (buy − sell), colored by sign: green = buy dominance, red = sell.
+// The height is normalized and capped at a given % of the panel; real delta values are
+// visible as numbers on the columns and in the data window.
+// Requires Premium/Ultimate; no footprint data (e.g. some crypto) → shows nothing.
 
-gDelta = 'Kolory słupków'
-cBuy  = input.color(color.new(color.rgb(38, 166, 154), 50), 'Kolor delty dodatniej (kupno)', group=gDelta)
-cSell = input.color(color.new(color.rgb(239, 83, 80), 50), 'Kolor delty ujemnej (sprzedaż)', group=gDelta)
+gDelta = 'Column colors'
+cBuy  = input.color(color.new(color.rgb(38, 166, 154), 50), 'Positive delta color (buy)', group=gDelta)
+cSell = input.color(color.new(color.rgb(239, 83, 80), 50), 'Negative delta color (sell)', group=gDelta)
 
-gView = 'Wyświetlanie'
-diverge    = input.bool(true, 'Czerwone słupki rosną w dół', tooltip='Gdy włączone, słupki delty ujemnej (sprzedaż) rosną w dół od linii zera, a dodatniej (kupno) w górę — układ rozbieżny.', group=gView)
-showLabels = input.bool(true, 'Pokaż liczby delty', tooltip='Liczba delty wypisana przy każdym słupku.', group=gView)
-txtUp    = input.color(color.new(color.rgb(38, 166, 154), 0), 'Kolor liczby — delta rosnąca', group=gView, tooltip='Kolor liczby przy delcie dodatniej. Domyślnie taki jak kolor słupka wzrostowego.')
-txtDown  = input.color(color.new(color.rgb(239, 83, 80), 0),  'Kolor liczby — delta ujemna',  group=gView, tooltip='Kolor liczby przy delcie ujemnej. Domyślnie taki jak kolor słupka spadkowego.')
-fontSize = input.string('Mała', 'Wielkość liczb', options=['Drobna', 'Mała', 'Normalna', 'Duża'], group=gView)
-numPos   = input.string('Nad słupkiem', 'Pozycja liczb', options=['Nad słupkiem', 'Na dole'], tooltip='„Nad słupkiem" = lekko nad słupkiem. „Na dole" = przy podstawie panelu.', group=gView)
-numGap   = input.float(0.5, 'Odstęp liczby nad słupkiem (% panelu)', minval=0, maxval=20, step=0.5, tooltip='Pionowy odstęp między liczbą a czubkiem słupka, jako % wysokości panelu (dotyczy „Nad słupkiem").', group=gView)
+gView = 'Display'
+diverge    = input.bool(true, 'Red columns grow downward', tooltip='When enabled, negative-delta (sell) columns grow downward from the zero line and positive (buy) ones upward — a diverging layout.', group=gView)
+showLabels = input.bool(true, 'Show delta numbers', tooltip='Delta number printed next to each column.', group=gView)
+txtUp    = input.color(color.new(color.rgb(38, 166, 154), 0), 'Number color — positive delta', group=gView, tooltip='Number color for positive delta. Defaults to the up-column color.')
+txtDown  = input.color(color.new(color.rgb(239, 83, 80), 0),  'Number color — negative delta', group=gView, tooltip='Number color for negative delta. Defaults to the down-column color.')
+fontSize = input.string('Small', 'Number size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gView)
+numPos   = input.string('Above column', 'Number position', options=['Above column', 'At the bottom'], tooltip='"Above column" = slightly above the column. "At the bottom" = at the panel base.', group=gView)
+numGap   = input.float(0.5, 'Number gap above column (% of panel)', minval=0, maxval=20, step=0.5, tooltip='Vertical gap between the number and the column tip, as a % of panel height (applies to "Above column").', group=gView)
 
-gNorm = 'Normalizacja słupków'
-normPow  = input.float(0.5, 'Normalizacja wysokości', minval=0.1, maxval=1, step=0.05, tooltip='Potęga skalująca wysokość słupka: 1 = liniowo (bez normalizacji), 0.5 = pierwiastek, niżej = mocniejsza kompresja skoków. Odniesienie: max z ~500 świec.', group=gNorm)
-fillPct  = input.float(100, 'Maks. wysokość słupków (% panelu)', minval=5, maxval=100, step=5, tooltip='Najwyższy słupek zajmuje maks. ten % wysokości panelu (reszta zostaje pusta). 100 = wypełnia panel.', group=gNorm) / 100.0
+gNorm = 'Column normalization'
+normPow  = input.float(0.5, 'Height normalization', minval=0.1, maxval=1, step=0.05, tooltip='Power scaling the column height: 1 = linear (no normalization), 0.5 = square root, lower = stronger compression of spikes. Reference: max of ~500 candles.', group=gNorm)
+fillPct  = input.float(100, 'Max column height (% of panel)', minval=5, maxval=100, step=5, tooltip='The tallest column takes up at most this % of panel height (the rest stays empty). 100 = fills the panel.', group=gNorm) / 100.0
 
-// --- Skrót K/M/B; poniżej 1000 liczba całkowita (bez „.00") ---
+// --- K/M/B abbreviation; below 1000 an integer (no ".00") ---
 f_abbr(float x) =>
     a = math.abs(x)
     a >= 1e9 ? str.tostring(x / 1e9, '#.##') + 'B' : a >= 1e6 ? str.tostring(x / 1e6, '#.##') + 'M' : a >= 1e3 ? str.tostring(x / 1e3, '#.#') + 'K' : str.tostring(x, '#')
 
-fp = request.footprint(1)        // ticks_per_row nieistotne dla sumy delty
+fp = request.footprint(1)        // ticks_per_row irrelevant for the delta total
 hasData = not na(fp)
 float delta   = na
 float buyVol  = na
@@ -43,41 +43,41 @@ if hasData
     sellVol := fp.sell_volume()
 
 totalVol = hasData ? buyVol + sellVol : na
-hasDelta = hasData and not na(totalVol) and totalVol > 0   // brak realnych transakcji → nic nie pokazujemy
+hasDelta = hasData and not na(totalVol) and totalVol > 0   // no real trades → show nothing
 if not hasDelta
     delta   := na
     buyVol  := na
     sellVol := na
 
 mag        = na(delta) ? na : math.abs(delta)
-magN       = na(mag) ? na : math.pow(mag, normPow)   // znormalizowana WYSOKOŚĆ (potęga < 1 kompresuje skoki)
-maxN       = ta.highest(nz(magN), 500)               // max z ~500 świec → odniesienie dla „sufitu"
+magN       = na(mag) ? na : math.pow(mag, normPow)   // normalized HEIGHT (power < 1 compresses spikes)
+maxN       = ta.highest(nz(magN), 500)               // max of ~500 candles → reference for the "ceiling"
 deltaColor = not hasDelta ? na : delta >= 0 ? cBuy : cSell
 
-// Słupek (baza 0) + niewidzialny „sufit" ograniczający wysokość: najwyższy słupek ≈ fillPct panelu.
-// Słupek i „sufit" tylko w panelu — ich wartości NIE mają pokazywać się przy kursorze (wysokość jest znormalizowana).
-isDown = diverge and not na(delta) and delta < 0   // słupek sprzedaży rysowany w dół (układ rozbieżny)
+// Column (base 0) + an invisible "ceiling" capping the height: the tallest column ≈ fillPct of the panel.
+// The column and the "ceiling" live only in the panel — their values must NOT show at the cursor (the height is normalized).
+isDown = diverge and not na(delta) and delta < 0   // sell column drawn downward (diverging layout)
 barN   = na(magN) ? na : (isDown ? -magN : magN)
-plot(barN, 'Delta (znorm.)', color=deltaColor, style=plot.style_columns, histbase=0, display=display.pane)
-plot(maxN > 0 ? maxN / fillPct : na, 'Sufit', color=color.new(color.gray, 100), editable=false, display=display.pane)
-plot(diverge and maxN > 0 ? -maxN / fillPct : na, 'Podłoga', color=color.new(color.gray, 100), editable=false, display=display.pane)
-// REALNA delta przy kursorze (status line) + okno danych; kupno/sprzedaż w oknie danych
-plot(delta,   'Delta',          color=deltaColor, format=format.volume, display=display.status_line + display.data_window)
-plot(buyVol,  'Kupno (ask)',    color=cBuy,       format=format.volume, display=display.data_window)
-plot(sellVol, 'Sprzedaż (bid)', color=cSell,      format=format.volume, display=display.data_window)
+plot(barN, 'Delta (norm.)', color=deltaColor, style=plot.style_columns, histbase=0, display=display.pane)
+plot(maxN > 0 ? maxN / fillPct : na, 'Ceiling', color=color.new(color.gray, 100), editable=false, display=display.pane)
+plot(diverge and maxN > 0 ? -maxN / fillPct : na, 'Floor', color=color.new(color.gray, 100), editable=false, display=display.pane)
+// REAL delta at the cursor (status line) + data window; buy/sell in the data window
+plot(delta,   'Delta',      color=deltaColor, format=format.volume, display=display.status_line + display.data_window)
+plot(buyVol,  'Buy (ask)',  color=cBuy,       format=format.volume, display=display.data_window)
+plot(sellVol, 'Sell (bid)', color=cSell,      format=format.volume, display=display.data_window)
 
-// Liczby (delta ze znakiem) — nad słupkiem albo przy podstawie
-szLbl  = fontSize == 'Drobna' ? size.tiny : fontSize == 'Mała' ? size.small : fontSize == 'Normalna' ? size.normal : size.large
-lblGap = maxN / fillPct * (numGap / 100)   // odstęp nad słupkiem (% wysokości panelu, konfigurowalny)
-// Etykiety na każdej świecy z danymi — TradingView trzyma ostatnie 500 (auto-trim przy skrolowaniu)
-// Kolor liczby wg znaku delty — osobne kolory dla rosnącej/ujemnej (domyślnie jak słupki)
+// Numbers (signed delta) — above the column or at the base
+szLbl  = fontSize == 'Tiny' ? size.tiny : fontSize == 'Small' ? size.small : fontSize == 'Normal' ? size.normal : size.large
+lblGap = maxN / fillPct * (numGap / 100)   // gap above the column (% of panel height, configurable)
+// Labels on every candle with data — TradingView keeps the last 500 (auto-trim when scrolling)
+// Number color by delta sign — separate colors for positive/negative (defaults match the columns)
 if showLabels and not na(delta)
     lblColor = delta >= 0 ? txtUp : txtDown
-    tip      = isDown ? -magN : magN                                   // czubek słupka (uwzględnia kierunek)
-    // „Nad słupkiem" = przy czubku; „Na dole" = przy linii zera (czerwone nad opadającym słupkiem)
-    anchor   = numPos == 'Nad słupkiem' ? tip : 0
-    below    = numPos == 'Nad słupkiem' ? isDown : (diverge ? not isDown : false)  // czy tekst ma iść pod kotwicę
-    // Styl kierunkowy z przezroczystym tłem: odsuwa CAŁY tekst poza kotwicę (bez nachodzenia na słupek)
+    tip      = isDown ? -magN : magN                                   // column tip (accounts for direction)
+    // "Above column" = at the tip; "At the bottom" = at the zero line (red ones above the downward column)
+    anchor   = numPos == 'Above column' ? tip : 0
+    below    = numPos == 'Above column' ? isDown : (diverge ? not isDown : false)  // should the text go below the anchor
+    // Directional style with a transparent background: pushes the WHOLE text past the anchor (no overlap with the column)
     lblStyle = below ? label.style_label_up : label.style_label_down
     lblY     = anchor + (below ? -lblGap : lblGap)
     label.new(bar_index, lblY, text=f_abbr(delta), yloc=yloc.price, style=lblStyle, color=color.new(color.white, 100), textcolor=lblColor, size=szLbl)

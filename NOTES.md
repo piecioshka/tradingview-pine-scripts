@@ -1,6 +1,6 @@
 # Notes
 
-Notatki techniczne, cheatsheety i pokrewne zasoby dla Pine Script® / TradingView.
+Technical notes, cheatsheets, and related resources for Pine Script® / TradingView.
 
 ## Related
 

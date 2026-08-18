@@ -4,9 +4,9 @@
 //@version=6
 indicator('1x MA = Moving Average', overlay = true)
 
-aLen = input(50, 'Długość')
-aType = input.string(title='Typ', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], defval='EMA')
-aColor = input.color(color.white, 'Kolor')
+aLen = input(50, 'Length')
+aType = input.string(title='Type', options=['SMA', 'EMA', 'WMA', 'VWMA', 'RMA'], defval='EMA')
+aColor = input.color(color.white, 'Color')
 
 aSeries = switch aType
     'SMA' => ta.sma(close, aLen)
@@ -16,7 +16,7 @@ aSeries = switch aType
     'RMA' => ta.rma(close, aLen)
     => na
 
-showLabels = input.bool(true, 'Pokaż etykietę (długość i typ)', group='Etykiety')
+showLabels = input.bool(true, 'Show label (length and type)', group='Labels')
 
 plot(aSeries, 'MA', color=color.new(aColor, 30), linewidth=2, force_overlay=true)
 

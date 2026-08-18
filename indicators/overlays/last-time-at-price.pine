@@ -1,0 +1,59 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+// @version=6
+// Shows, next to the current price line, the date and time when the market
+// was last at this level. "Last time" = the nearest bar back whose
+// [low, high] range covered the current price.
+indicator('Last Time at Price', overlay = true, max_bars_back = 5000)
+
+priceSource = input.source(close, title = 'Reference price')
+maxLookback = input.int(5000, title = 'Max lookback (bars)', minval = 1, maxval = 5000)
+ignoreLast = input.int(0, title = 'Ignore last X bars', minval = 0)
+tzMode = input.string('Exchange', title = 'Time zone', options = ['Exchange', 'UTC'])
+fmt = input.string('yyyy-MM-dd HH:mm', title = 'Date format')
+template = input.text_area('Last here: {date}', title = 'Label template (use {date}, {bars})')
+offsetRight = input.int(3, title = 'Label offset to the right (bars)', minval = 0)
+sizeMode = input.string('Normal', title = 'Text size', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge', 'Auto'])
+boxColor = input.color(color.new(color.blue, 0), title = 'Label color', group = 'When price found')
+txtColor = input.color(color.white, title = 'Text color', group = 'When price found')
+noMatchColor = input.color(color.new(color.gray, 0), title = 'Label color', group = 'When no match')
+noMatchTxtColor = input.color(color.white, title = 'Text color', group = 'When no match')
+
+tz = tzMode == 'UTC' ? 'UTC' : syminfo.timezone
+
+txtSize = switch sizeMode
+    'Tiny' => size.tiny
+    'Small' => size.small
+    'Large' => size.large
+    'Huge' => size.huge
+    'Auto' => size.auto
+    => size.normal
+
+var label lbl = na
+
+if barstate.islast
+    price = priceSource
+
+    // look for the nearest bar back whose range covered the current price
+    int foundTime = na
+    int foundOffset = na
+    limit = math.min(maxLookback, bar_index)
+    startFrom = ignoreLast + 1
+    if limit >= startFrom
+        for i = startFrom to limit
+            if low[i] <= price and high[i] >= price
+                foundTime := time[i]
+                foundOffset := i
+                break
+
+    txt = na(foundTime) ? 'No such price\nLookback: ' + str.tostring(limit) + ' bars' : str.replace_all(str.replace_all(template, '{date}', str.format_time(foundTime, fmt, tz)), '{bars}', str.tostring(foundOffset))
+
+    // label.new has no padding — simulate a horizontal margin with spaces around each line
+    padded = ' ' + str.replace_all(txt, '\n', ' \n ') + ' '
+
+    if not na(lbl)
+        label.delete(lbl)
+    bg = na(foundTime) ? noMatchColor : boxColor
+    fg = na(foundTime) ? noMatchTxtColor : txtColor
+    lbl := label.new(bar_index + offsetRight, price, padded, xloc = xloc.bar_index, yloc = yloc.price, style = label.style_label_left, color = bg, textcolor = fg, size = txtSize)

@@ -5,17 +5,17 @@
 indicator('GMMA = Guppy Multiple Moving Average', overlay=true)
 
 // GMMA (Guppy Multiple Moving Average) — Daryl Guppy.
-// Dwie grupy wykładniczych średnich kroczących:
-// - krótkoterminowe (3, 5, 8, 10, 12, 15) — zachowanie traderów/spekulantów
-// - długoterminowe (30, 35, 40, 45, 50, 60) — zachowanie inwestorów
-// Rozejście się grup = siła trendu, zbieżność = możliwy zwrot.
+// Two groups of exponential moving averages:
+// - short-term (3, 5, 8, 10, 12, 15) — behavior of traders/speculators
+// - long-term (30, 35, 40, 45, 50, 60) — behavior of investors
+// Groups spreading apart = trend strength, converging = possible reversal.
 
-shortColor = color.rgb(56, 104, 174)   // niebieski — grupa krótkoterminowa
-longColor = color.rgb(215, 107, 52)    // pomarańczowy — grupa długoterminowa
+shortColor = color.rgb(56, 104, 174)   // blue — short-term group
+longColor = color.rgb(215, 107, 52)    // orange — long-term group
 
-src = input.source(close, 'Źródło')
+src = input.source(close, 'Source')
 
-// --- Grupa krótkoterminowa ---
+// --- Short-term group ---
 s1 = ta.ema(src, 3)
 s2 = ta.ema(src, 5)
 s3 = ta.ema(src, 8)
@@ -30,7 +30,7 @@ plot(s4, 'EMA 10', color=shortColor)
 plot(s5, 'EMA 12', color=shortColor)
 plot(s6, 'EMA 15', color=shortColor)
 
-// --- Grupa długoterminowa ---
+// --- Long-term group ---
 l1 = ta.ema(src, 30)
 l2 = ta.ema(src, 35)
 l3 = ta.ema(src, 40)

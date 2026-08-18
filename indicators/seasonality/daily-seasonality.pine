@@ -1,0 +1,76 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('Daily Seasonality', overlay = true)
+
+// Colors the chart background differently depending on the day of the week.
+// Works best on intraday and daily charts - the recurring weekly pattern
+// becomes visible (e.g. low volatility on Friday vs movement on Monday).
+// Time zone: the exchange default (same as dayofweek() without a timezone argument).
+// Colors: a rainbow across the week (Monday=red → Sunday=violet).
+
+transp         = input.int(title='Transparency (0-100)', defval=80, minval=0, maxval=100, step=5)
+showLegend     = input.bool(title='Show legend', defval=true)
+legendPosition = input.string(title='Legend position', defval='Top right', options=['Top left', 'Top right', 'Bottom left', 'Bottom right'])
+
+// Enable/disable individual days of the week.
+// Useful e.g. for markets without a weekend - Saturday and Sunday can be turned off.
+gDays = 'Days of the week'
+useMon = input.bool(title='Monday',    defval=true, group=gDays)
+useTue = input.bool(title='Tuesday',   defval=true, group=gDays)
+useWed = input.bool(title='Wednesday', defval=true, group=gDays)
+useThu = input.bool(title='Thursday',  defval=true, group=gDays)
+useFri = input.bool(title='Friday',    defval=true, group=gDays)
+useSat = input.bool(title='Saturday',  defval=true, group=gDays)
+useSun = input.bool(title='Sunday',    defval=true, group=gDays)
+
+// 7 colors - a rainbow across the week
+colMon = color.rgb(230, 80, 80)    // Monday - red
+colTue = color.rgb(240, 150, 60)   // Tuesday - orange
+colWed = color.rgb(240, 215, 60)   // Wednesday - yellow
+colThu = color.rgb(100, 200, 80)   // Thursday - green
+colFri = color.rgb(70, 200, 200)   // Friday - turquoise
+colSat = color.rgb(80, 130, 230)   // Saturday - blue
+colSun = color.rgb(180, 90, 200)   // Sunday - violet
+
+d = dayofweek(time)
+
+bgCol = switch d
+    dayofweek.monday    => useMon ? color.new(colMon, transp) : na
+    dayofweek.tuesday   => useTue ? color.new(colTue, transp) : na
+    dayofweek.wednesday => useWed ? color.new(colWed, transp) : na
+    dayofweek.thursday  => useThu ? color.new(colThu, transp) : na
+    dayofweek.friday    => useFri ? color.new(colFri, transp) : na
+    dayofweek.saturday  => useSat ? color.new(colSat, transp) : na
+    dayofweek.sunday    => useSun ? color.new(colSun, transp) : na
+    => na
+
+bgcolor(bgCol)
+
+// Legend - a table showing which days have which color
+if showLegend and barstate.islast
+    pos = switch legendPosition
+        'Top left'     => position.top_left
+        'Top right'    => position.top_right
+        'Bottom left'  => position.bottom_left
+        'Bottom right' => position.bottom_right
+        =>                position.top_right
+
+    days    = array.from('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+    colors  = array.from(colMon, colTue, colWed, colThu, colFri, colSat, colSun)
+    enabled = array.from(useMon, useTue, useWed, useThu, useFri, useSat, useSun)
+
+    activeCount = 0
+    for i = 0 to 6
+        if array.get(enabled, i)
+            activeCount += 1
+
+    if activeCount > 0
+        legend = table.new(position = pos, columns = 2, rows = activeCount, border_width = 1)
+        row = 0
+        for i = 0 to 6
+            if array.get(enabled, i)
+                table.cell(legend, 0, row, '    ', bgcolor = array.get(colors, i))
+                table.cell(legend, 1, row, array.get(days, i), text_color = color.white, bgcolor = color.new(color.black, 30))
+                row += 1

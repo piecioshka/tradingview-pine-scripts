@@ -1,0 +1,76 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('Stochastic Oscillator', overlay=false, precision=2, max_lines_count=100, max_labels_count=100)
+
+// --- Color palette (single place for the theme) ---
+cK   = color.blue                // %K line (oscillator)
+cD   = color.orange              // %D line (signal)
+cOb  = color.red                 // overbought / upper zone
+cOs  = color.green               // oversold / lower zone
+cMid = color.gray                // midline and neutral elements
+
+// --- Inputs ---
+gCalc = 'Calculation'
+kLen    = input.int(14, '%K Length',             minval=1, group=gCalc, tooltip='Window of the base Stochastic.')
+kSmooth = input.int(3,  '%K Smoothing',          minval=1, group=gCalc, tooltip='Smoothing of the raw %K.')
+dLen    = input.int(3,  '%D Length (SMA of %K)', minval=1, group=gCalc, tooltip='Average of %K = the %D signal line.')
+
+gLevels = 'Levels'
+obLevel  = input.int(80, 'Overbought', minval=50, maxval=100, group=gLevels, tooltip='Above this level the market is considered overbought.')
+osLevel  = input.int(20, 'Oversold',   minval=0,  maxval=50,  group=gLevels, tooltip='Below this level the market is considered oversold.')
+midLevel = 50  // deliberately NOT an input — 50 is the oscillator's axis of symmetry
+
+gView = 'Display'
+showZones   = input.bool(true,  'Zone gradient',                group=gView, tooltip='Vertical gradient in the overbought/oversold zone (between %K and the threshold).')
+showSignals = input.bool(true,  'Signals (markers on price)',   group=gView, tooltip='Triangles on the price panel when %K crosses %D inside an extreme zone.')
+showLabels  = input.bool(false, 'BUY CLOSE / BUY OPEN labels',  group=gView, tooltip='Text flags on the oscillator panel. Off by default.')
+showTable   = input.bool(true,  'Status table',                 group=gView, tooltip='Small corner panel with %K/%D values and state.')
+
+// --- Calculations ---
+k = ta.sma(ta.stoch(close, high, low, kLen), kSmooth)
+d = ta.sma(k, dLen)
+// Signals: conventional %K/%D cross inside an extreme zone
+buyOpen  = ta.crossover(k, d)  and k < osLevel   // %K crosses %D UP while oversold -> buy
+buyClose = ta.crossunder(k, d) and k > obLevel   // %K crosses %D DOWN while overbought -> sell/close
+
+// --- Oscillator lines and hidden thresholds (fill boundaries) ---
+kPlot = plot(k, '%K (Oscillator)', color=cK, linewidth=2)
+dPlot = plot(d, '%D (Signal)',     color=cD, linewidth=2, linestyle=plot.linestyle_dotted)
+pOb = plot(obLevel, 'Overbought threshold', color=na, display=display.none, editable=false)
+pOs = plot(osLevel, 'Oversold threshold',   color=na, display=display.none, editable=false)
+
+// --- Reference levels ---
+hline(obLevel,  'Overbought', color=cOb,  linestyle=hline.style_dotted)
+hline(osLevel,  'Oversold',   color=cOs,  linestyle=hline.style_dotted)
+hline(midLevel, 'Midline',    color=cMid, linestyle=hline.style_dotted)
+
+// --- Vertical zone gradient (bottom->top), only while %K is in the zone ---
+fill(kPlot, pOb, top_value=100, bottom_value=obLevel, top_color = showZones and k > obLevel ? color.new(cOb, 20) : na, bottom_color = showZones and k > obLevel ? color.new(cOb, 90) : na, title='Overbought zone')
+fill(kPlot, pOs, top_value=osLevel, bottom_value=0, top_color = showZones and k < osLevel ? color.new(cOs, 90) : na, bottom_color = showZones and k < osLevel ? color.new(cOs, 20) : na, title='Oversold zone')
+
+// --- Signals (compact markers + optional labels) ---
+obLabelY = math.min(k + 8, 100)
+osLabelY = math.max(k - 8, 0)
+plotshape(showSignals and buyClose, title='Overbought signal (price)', style=shape.triangledown, location=location.abovebar, color=cOb, size=size.tiny, force_overlay=true)
+plotshape(showSignals and buyOpen,  title='Oversold signal (price)',   style=shape.triangleup,   location=location.belowbar, color=cOs, size=size.tiny, force_overlay=true)
+plotshape(showLabels and buyClose ? obLabelY : na, title='BUY CLOSE label', text='BUY CLOSE', textcolor=color.white, style=shape.labeldown, location=location.absolute, color=color.new(cOb, 30), size=size.small)
+plotshape(showLabels and buyOpen  ? osLabelY : na, title='BUY OPEN label',  text='BUY OPEN',  textcolor=color.white, style=shape.labelup,   location=location.absolute, color=color.new(cOs, 30), size=size.small)
+
+// --- Alerts ---
+alertcondition(buyClose, 'SO: Overbought signal', 'Stochastic: %K crossed %D down in the overbought zone')
+alertcondition(buyOpen,  'SO: Oversold signal',   'Stochastic: %K crossed %D up in the oversold zone')
+
+// --- Status table (top-right corner) ---
+status      = k >= obLevel ? 'Overbought' : k <= osLevel ? 'Oversold' : 'Neutral'
+statusColor = k >= obLevel ? cOb : k <= osLevel ? cOs : cMid
+
+var table infoTable = table.new(position.top_right, 2, 3, border_width=1, border_color=color.new(cMid, 70))
+if showTable and barstate.islast
+    table.cell(infoTable, 0, 0, '%K',     text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 0, str.tostring(k, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 1, '%D',     text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 1, str.tostring(d, '#.##'), text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 2, 'Status', text_color=cMid,        text_size=size.small)
+    table.cell(infoTable, 1, 2, status,   text_color=statusColor, text_size=size.small)

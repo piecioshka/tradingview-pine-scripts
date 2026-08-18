@@ -1,0 +1,91 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+indicator('Monthly Seasonality', overlay = true)
+
+// Colors the chart background differently depending on the month.
+// Designed for the monthly timeframe (1M) - every candle = one month.
+// Colors follow a gradient around the HSV color wheel (winter → spring → summer → autumn → winter),
+// which makes recurring seasonal patterns easy to spot (e.g. Lean Hogs).
+
+transp = input.int(title='Transparency (0-100)', defval=80, minval=0, maxval=100, step=5)
+showLegend = input.bool(title='Show legend', defval=true)
+legendPosition = input.string(title='Legend position', defval='Top right', options=['Top left', 'Top right', 'Bottom left', 'Bottom right'])
+
+// Enable/disable individual months.
+// Useful for contracts not available in all months
+// (e.g. Lean Hogs / HE - only 8 months: G, J, K, M, N, Q, V, Z).
+gMonths = 'Months'
+useJan = input.bool(title='January (F)',   defval=true, group=gMonths)
+useFeb = input.bool(title='February (G)',  defval=true, group=gMonths)
+useMar = input.bool(title='March (H)',     defval=true, group=gMonths)
+useApr = input.bool(title='April (J)',     defval=true, group=gMonths)
+useMay = input.bool(title='May (K)',       defval=true, group=gMonths)
+useJun = input.bool(title='June (M)',      defval=true, group=gMonths)
+useJul = input.bool(title='July (N)',      defval=true, group=gMonths)
+useAug = input.bool(title='August (Q)',    defval=true, group=gMonths)
+useSep = input.bool(title='September (U)', defval=true, group=gMonths)
+useOct = input.bool(title='October (V)',   defval=true, group=gMonths)
+useNov = input.bool(title='November (X)',  defval=true, group=gMonths)
+useDec = input.bool(title='December (Z)',  defval=true, group=gMonths)
+
+// 12 colors - a gradient around the HSV color wheel
+colJan = color.rgb(30, 60, 200)     // January - navy (deep winter)
+colFeb = color.rgb(0, 140, 220)     // February - blue
+colMar = color.rgb(0, 180, 170)     // March - turquoise (early spring)
+colApr = color.rgb(60, 180, 60)     // April - green (spring)
+colMay = color.rgb(160, 200, 50)    // May - lime
+colJun = color.rgb(230, 220, 0)     // June - yellow (early summer)
+colJul = color.rgb(240, 160, 0)     // July - orange (high summer)
+colAug = color.rgb(230, 100, 30)    // August - red-orange
+colSep = color.rgb(220, 50, 50)     // September - red (autumn)
+colOct = color.rgb(200, 50, 140)    // October - magenta
+colNov = color.rgb(160, 60, 190)    // November - violet
+colDec = color.rgb(90, 60, 200)     // December - dark violet (back to winter)
+
+m = month(time)
+
+bgCol = switch m
+    1  => useJan ? color.new(colJan, transp) : na
+    2  => useFeb ? color.new(colFeb, transp) : na
+    3  => useMar ? color.new(colMar, transp) : na
+    4  => useApr ? color.new(colApr, transp) : na
+    5  => useMay ? color.new(colMay, transp) : na
+    6  => useJun ? color.new(colJun, transp) : na
+    7  => useJul ? color.new(colJul, transp) : na
+    8  => useAug ? color.new(colAug, transp) : na
+    9  => useSep ? color.new(colSep, transp) : na
+    10 => useOct ? color.new(colOct, transp) : na
+    11 => useNov ? color.new(colNov, transp) : na
+    12 => useDec ? color.new(colDec, transp) : na
+    => na
+
+bgcolor(bgCol)
+
+// Legend - a table showing which months have which color
+if showLegend and barstate.islast
+    pos = switch legendPosition
+        'Top left'     => position.top_left
+        'Top right'    => position.top_right
+        'Bottom left'  => position.bottom_left
+        'Bottom right' => position.bottom_right
+        =>                position.top_right
+
+    months = array.from('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+    colors = array.from(colJan, colFeb, colMar, colApr, colMay, colJun, colJul, colAug, colSep, colOct, colNov, colDec)
+    enabled = array.from(useJan, useFeb, useMar, useApr, useMay, useJun, useJul, useAug, useSep, useOct, useNov, useDec)
+
+    activeCount = 0
+    for i = 0 to 11
+        if array.get(enabled, i)
+            activeCount += 1
+
+    if activeCount > 0
+        legend = table.new(position = pos, columns = 2, rows = activeCount, border_width = 1)
+        row = 0
+        for i = 0 to 11
+            if array.get(enabled, i)
+                table.cell(legend, 0, row, '    ', bgcolor = array.get(colors, i))
+                table.cell(legend, 1, row, array.get(months, i), text_color = color.white, bgcolor = color.new(color.black, 30))
+                row += 1

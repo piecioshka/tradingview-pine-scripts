@@ -1,200 +1,200 @@
 # tradingview-pine-scripts
 
-📊 Wskaźniki i strategie w Pine Script® dla TradingView.
+📊 Indicators and strategies in Pine Script® for TradingView.
 
-> 📝 Notatki techniczne i cheatsheet Pine Script: [NOTES.md](NOTES.md)
+> 📝 Technical notes and Pine Script cheatsheet: [NOTES.md](NOTES.md)
 
-## Spis treści
+## Table of contents
 
-- [Wskaźniki](#wskaźniki)
-  - [Nakładki (overlays)](#nakładki-overlays)
+- [Indicators](#indicators)
+  - [Overlays](#overlays)
     - [1x MA](#1x-ma)
     - [2x MA](#2x-ma)
     - [3x MA](#3x-ma)
-    - [Koperty](#koperty)
-    - [Wstęgi Bollingera](#wstęgi-bollingera)
+    - [Envelopes](#envelopes)
+    - [Bollinger Bands](#bollinger-bands)
     - [GMMA](#gmma)
-    - [Złoty / Śmierci Krzyż](#złoty--śmierci-krzyż)
-    - [Pionowe linie godzinowe](#pionowe-linie-godzinowe)
+    - [Golden / Death Cross](#golden--death-cross)
+    - [Vertical Hour Lines](#vertical-hour-lines)
     - [Session Open Line](#session-open-line)
-  - [Sezonowość](#sezonowość)
-    - [Sezonowość miesięczna](#sezonowość-miesięczna)
-    - [Sezonowość dzienna](#sezonowość-dzienna)
-    - [Sezonowość godzinowa](#sezonowość-godzinowa)
-  - [Histogramy](#histogramy)
-    - [Histogram Rozpiętości MA](#histogram-rozpiętości-ma)
-  - [Oscylatory](#oscylatory)
+  - [Seasonality](#seasonality)
+    - [Monthly Seasonality](#monthly-seasonality)
+    - [Daily Seasonality](#daily-seasonality)
+    - [Hourly Seasonality](#hourly-seasonality)
+  - [Histograms](#histograms)
+    - [MA Spread Histogram](#ma-spread-histogram)
+  - [Oscillators](#oscillators)
     - [MACD](#macd)
-    - [Oscylator Stochastyczny](#oscylator-stochastyczny)
+    - [Stochastic Oscillator](#stochastic-oscillator)
     - [RSI](#rsi)
     - [ROC](#roc)
-  - [Wolumen](#wolumen)
-    - [Akumulacja / Dystrybucja](#akumulacja--dystrybucja)
+  - [Volume](#volume)
+    - [Accumulation / Distribution](#accumulation--distribution)
     - [Accumulation / Distribution Density](#accumulation--distribution-density)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Delta Footprint Table](#delta-footprint-table)
     - [Delta Footprint Imbalance](#delta-footprint-imbalance)
-- [Strategie](#strategie)
+- [Strategies](#strategies)
   - [Cross 2x SMA](#cross-2x-sma)
 
-## Wskaźniki
+## Indicators
 
-### Nakładki (overlays)
+### Overlays
 
 #### [1x MA](indicators/overlays/1x-ma.pine)
 
-Pojedyncza średnia krocząca — SMA / EMA / WMA / VWMA / RMA. Opcjonalna etykieta z długością i typem (np. „200 EMA") przy końcu linii.
+A single moving average — SMA / EMA / WMA / VWMA / RMA. Optional label with the length and type (e.g. "200 EMA") at the end of the line.
 
 ![1x MA](screenshots/indicators/1x-ma.png)
 
 #### [2x MA](indicators/overlays/2x-ma.pine)
 
-Dwie średnie kroczące z konfigurowalnym typem każdej z nich. Opcjonalne etykiety z długością i typem przy końcach linii.
+Two moving averages, each with a configurable type. Optional labels with the length and type at the line ends.
 
 ![2x MA](screenshots/indicators/2x-ma.png)
 
 #### [3x MA](indicators/overlays/3x-ma.pine)
 
-Trzy średnie kroczące. Opcjonalne etykiety z długością i typem przy końcach linii.
+Three moving averages. Optional labels with the length and type at the line ends.
 
 ![3x MA](screenshots/indicators/3x-ma.png)
 
-#### [Koperty](indicators/overlays/koperty.pine)
+#### [Envelopes](indicators/overlays/envelopes.pine)
 
-Envelopes wokół średniej kroczącej — górne i dolne odchylenie procentowe.
+Envelopes around a moving average — upper and lower percentage deviation.
 
-![Koperty](screenshots/indicators/koperty.png)
+![Envelopes](screenshots/indicators/envelopes.png)
 
-#### [Wstęgi Bollingera](indicators/overlays/wstegi-bollingera.pine)
+#### [Bollinger Bands](indicators/overlays/bollinger-bands.pine)
 
-Bollinger Bands — SMA ± odchylenie standardowe.
+Bollinger Bands — SMA ± standard deviation.
 
-![Wstęgi Bollingera](screenshots/indicators/wstegi-bollingera.png)
+![Bollinger Bands](screenshots/indicators/bollinger-bands.png)
 
 #### [GMMA](indicators/overlays/gmma.pine)
 
-Guppy Multiple Moving Average — dwie grupy EMA: krótkoterminowe (spekulanci) i długoterminowe (inwestorzy).
+Guppy Multiple Moving Average — two EMA groups: short-term (speculators) and long-term (investors).
 
 ![GMMA](screenshots/indicators/gmma.png)
 
-#### [Złoty / Śmierci Krzyż](indicators/overlays/zloty-smierci-krzyz.pine)
+#### [Golden / Death Cross](indicators/overlays/golden-death-cross.pine)
 
-Golden Cross i Death Cross — przecięcia szybkiej i wolnej średniej (klasycznie SMA 50 vs SMA 200).
+Golden Cross and Death Cross — crossings of a fast and a slow average (classically SMA 50 vs SMA 200).
 
-![Złoty / Śmierci Krzyż](screenshots/indicators/zloty-smierci-krzyz.png)
+![Golden / Death Cross](screenshots/indicators/golden-death-cross.png)
 
-#### [Pionowe linie godzinowe](indicators/overlays/pionowe-linie-godzinowe.pine)
+#### [Vertical Hour Lines](indicators/overlays/vertical-hour-lines.pine)
 
-Pionowe linie o zadanych godzinach — 10 niezależnych slotów, każdy z własnym włącznikiem, godziną, kolorem, stylem i grubością (jedna linijka ustawień na slot). Domyślnie włączone 10:30, 15:00, 20:00 i 23:00 jako jasnofioletowa linia przerywana z przezroczystością 70%. Strefa czasowa do wyboru (domyślnie Warszawa, opcjonalnie giełdy, UTC lub własna IANA) — musi zgadzać się ze strefą osi czasu wykresu, inaczej linie wypadną przesunięte.
+Vertical lines at the given hours — 10 independent slots, each with its own toggle, hour, color, style, and width (one settings row per slot). Enabled by default: 10:30, 15:00, 20:00, and 23:00 as a light-purple dashed line with 70% transparency. Selectable time zone (Warsaw by default; optionally exchanges, UTC, or a custom IANA zone) — it must match the chart's time-axis zone, otherwise the lines land shifted.
 
 #### [Session Open Line](indicators/overlays/session-open-line.pine)
 
-Pozioma linia na cenie otwarcia sesji, ciągnięta od pierwszego do ostatniego bara sesji. Na ostatnim barze sesji, nad końcem linii, pojawia się jedna etykieta z procentową zmianą ceny podczas sesji (zamknięcie vs otwarcie); opcjonalnie procent może być pokazywany na żywo w trakcie sesji. Kolor linii i etykiety zależy od znaku zmiany. Działa na interwałach intraday — na D i wyższych każdy bar to osobna sesja, więc wskaźnik pokazuje tylko podpowiedź.
+A horizontal line at the session open price, drawn from the first to the last bar of the session. On the last bar of the session, above the end of the line, a single label appears with the percent price change during the session (close vs open); optionally the percent can be shown live during the session. The line and label colors depend on the sign of the change. Works on intraday timeframes — on D and above every bar is its own session, so the indicator only shows a hint.
 
-### Sezonowość
+### Seasonality
 
-#### [Sezonowość miesięczna](indicators/sezonowosc/sezonowosc-miesieczna.pine)
+#### [Monthly Seasonality](indicators/seasonality/monthly-seasonality.pine)
 
-Tło wykresu kolorowane wg miesiąca — widoczne sezonowe układy (np. Lean Hogs). Każdy z 12 miesięcy można włączać/wyłączać; nazwy zawierają kody kontraktów futures (F, G, H, …).
+Chart background colored by month — seasonal patterns become visible (e.g. Lean Hogs). Each of the 12 months can be toggled; the names include futures contract codes (F, G, H, …).
 
-![Sezonowość miesięczna](screenshots/indicators/sezonowosc-miesieczna.png)
+![Monthly Seasonality](screenshots/indicators/monthly-seasonality.png)
 
-#### [Sezonowość dzienna](indicators/sezonowosc/sezonowosc-dzienna.pine)
+#### [Daily Seasonality](indicators/seasonality/daily-seasonality.pine)
 
-Tło wykresu kolorowane wg dnia tygodnia — tęcza przez tydzień (poniedziałek → niedziela), z możliwością wyłączania wybranych dni.
+Chart background colored by day of the week — a rainbow across the week (Monday → Sunday), with the option to disable selected days.
 
-![Sezonowość dzienna](screenshots/indicators/sezonowosc-dzienna.png)
+![Daily Seasonality](screenshots/indicators/daily-seasonality.png)
 
-#### [Sezonowość godzinowa](indicators/sezonowosc/sezonowosc-godzinowa.pine)
+#### [Hourly Seasonality](indicators/seasonality/hourly-seasonality.pine)
 
-Tło wykresu kolorowane wg godziny — gradient dobowy (noc → świt → dzień → zmierzch). Wybór aktywnych godzin polem tekstowym, np. `"9-16,18,22"`.
+Chart background colored by hour — a daily gradient (night → dawn → day → dusk). Active hours selected with a text field, e.g. `"9-16,18,22"`.
 
-![Sezonowość godzinowa](screenshots/indicators/sezonowosc-godzinowa.png)
+![Hourly Seasonality](screenshots/indicators/hourly-seasonality.png)
 
-### Histogramy
+### Histograms
 
-#### [Histogram Rozpiętości MA](indicators/histograms/histogram-rozpietosci-ma.pine)
+#### [MA Spread Histogram](indicators/histograms/ma-spread-histogram.pine)
 
-Histogram pokazujący odległość ceny od średniej kroczącej.
+A histogram showing the distance between price and a moving average.
 
-![Histogram Rozpiętości MA](screenshots/indicators/histogram-rozpietosci-ma.png)
+![MA Spread Histogram](screenshots/indicators/ma-spread-histogram.png)
 
-### Oscylatory
+### Oscillators
 
-#### [MACD](indicators/oscylators/macd.pine)
+#### [MACD](indicators/oscillators/macd.pine)
 
-Moving Average Convergence Divergence — różnica dwóch średnich z linią sygnałową.
+Moving Average Convergence Divergence — the difference of two averages with a signal line.
 
 ![MACD](screenshots/indicators/macd.png)
 
-#### [Oscylator Stochastyczny](indicators/oscylators/oscylator-stochastyczny.pine)
+#### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator.pine)
 
-Stochastic Oscillator — linie %K i %D z poziomami wykupienia/wyprzedania.
+Stochastic Oscillator — %K and %D lines with overbought/oversold levels.
 
-![Oscylator Stochastyczny](screenshots/indicators/oscylator-stochastyczny.png)
+![Stochastic Oscillator](screenshots/indicators/stochastic-oscillator.png)
 
-#### [RSI](indicators/oscylators/rsi.pine)
+#### [RSI](indicators/oscillators/rsi.pine)
 
-Relative Strength Index z poziomami 30 / 70.
+Relative Strength Index with the 30 / 70 levels.
 
 ![RSI](screenshots/indicators/rsi.png)
 
 #### [ROC](indicators/roc.pine)
 
-Rate of Change — procentowa zmiana ceny w zadanym okresie.
+Rate of Change — the percentage price change over a given period.
 
 ![ROC](screenshots/indicators/roc.png)
 
-### Wolumen
+### Volume
 
-#### [Akumulacja / Dystrybucja](indicators/volume/akumulacja-dystrybucja.pine)
+#### [Accumulation / Distribution](indicators/volume/accumulation-distribution.pine)
 
-Linia A/D wg Marca Chaikina — łączy cenę z wolumenem, mierząc presję kupna i sprzedaży.
+The A/D line by Marc Chaikin — combines price with volume, measuring buying and selling pressure.
 
-![Akumulacja / Dystrybucja](screenshots/indicators/akumulacja-dystrybucja.png)
+![Accumulation / Distribution](screenshots/indicators/accumulation-distribution.png)
 
 #### [Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density.pine)
 
-Gęstość akumulacji / dystrybucji (VD) — wzorowany na wskaźniku Mieczysława Siudka z xStation (XTB). Szuka świec, w których stosunek wolumenu do ruchu ceny (**gęstość** = wolumen na jednostkę amplitudy) jest nieproporcjonalnie zawyżony i które wyznaczają lokalne ekstremum — duży obrót przy małym ruchu na dołku/szczycie sugeruje akumulację/dystrybucję pozycji i potencjalny punkt zwrotny. **▲ zielony trójkąt** pod świecą = gęstość akumulacji (potencjalny sygnał wzrostowy), **▼ czerwony trójkąt** nad świecą = gęstość dystrybucji (potencjalny sygnał spadkowy). Parametry jak w xStation: Max./Min. z, Średni Spread z, Średnia Gęstość z, Współczynnik Spreadu (z włącznikiem), Współczynnik Gęstości i filtr Zamknięcie bara %. Wbudowane `alertcondition` dla obu sygnałów. Wymaga instrumentu z danymi wolumenu (CFD od TVC ich nie mają — użyj np. kontraktów futures).
+Accumulation / distribution density (VD) — modeled after Mieczyslaw Siudek's indicator from xStation (XTB). Looks for candles whose volume-to-price-movement ratio (**density** = volume per unit of range) is disproportionately high and which set a local extreme — heavy turnover with little movement at a low/high suggests position accumulation/distribution and a potential turning point. **▲ marker** below a candle = accumulation density (potential bullish signal), **▼ marker** above a candle = distribution density (potential bearish signal); the marker shape (triangle, arrow, label arrow, circle, diamond), size, and colors are configurable. Parameters as in xStation: Max/Min of, Average Spread of, Average Density of, Spread Factor (with a toggle), Density Factor, and the Bar close % filter. Built-in `alertcondition` for both signals. Requires an instrument with volume data (TVC CFDs lack it — use e.g. futures contracts).
 
 ![Accumulation / Distribution Density](screenshots/indicators/accumulation-distribution-density.png)
 
 #### [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble.pine)
 
-Delta wolumenu z prawdziwych danych footprint (`request.footprint()`, dostępne od stycznia 2026) — różnica między wolumenem agresywnego kupna (po ask) a sprzedaży (po bid) w obrębie świecy. Wartość jako **liczba przy każdej świecy** (zielona = przewaga kupna, czerwona = sprzedaży; nad/pod świecą lub nad/pod bąblem POC, z konfigurowalnym odstępem). POC każdej świecy jako **opcjonalny bąbel w stylu Bookmap** (wielkość ∝ wolumen, ta sama normalizacja potęgowa co w histogramie), z opcjonalnym **śladem POC** (linia łącząca bąble — odcinkowa łamana lub gładka, zaokrąglona krzywa). Dodatkowo **Value Area (VAH/VAL)**. Gdy kierunek świecy przeczy delcie (rośnie przy ujemnej delcie lub spada przy dodatniej) — liczba delty zostaje **pogrubiona**.
+Volume delta from real footprint data (`request.footprint()`, available since January 2026) — the difference between aggressive buy volume (at the ask) and sell volume (at the bid) within a candle. The value shown as a **number next to each candle** (green = buy dominance, red = sell; above/below the candle or above/below the POC bubble, with a configurable gap). Each candle's POC as an **optional Bookmap-style bubble** (size ∝ volume, the same power normalization as in the histogram), with an optional **POC trail** (a line connecting the bubbles — a segmented polyline or a smooth, rounded curve). Additionally **Value Area (VAH/VAL)**. When the candle direction contradicts the delta (rising with negative delta or falling with positive) — the delta number is shown **in bold**.
 
 ![Delta Footprint Bubble](screenshots/indicators/delta-footprint-bubble.png)
 
-> ⚠️ Wymaga konta TradingView **Premium** lub **Ultimate** — bez tego skrypt się nie skompiluje. `request.footprint()` działa tylko dla **bieżącego interwału** wykresu.
+> ⚠️ Requires a TradingView **Premium** or **Ultimate** account — without it the script does not compile. `request.footprint()` works only for the chart's **current timeframe**.
 
 #### [Delta Footprint Histogram](indicators/volume/delta-footprint-histogram.pine)
 
-Delta footprintu jako **histogram w osobnym panelu** (zachowuje się jak wbudowany wskaźnik Volume): słupek = |delta| świecy, zielony przy przewadze kupna, czerwony przy sprzedaży. Realna delta jako **liczba na słupku** oraz w oknie danych; przy kursorze w legendzie widać prawdziwą wartość (nie znormalizowaną wysokość). Wysokość **znormalizowana potęgą** (regulowana siła) i ograniczona do zadanego % panelu.
+The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
 
 ![Delta Footprint Histogram](screenshots/indicators/delta-footprint-histogram.png)
 
-> ⚠️ Wymaga konta **Premium / Ultimate**; `request.footprint()` tylko dla bieżącego interwału.
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 
 #### [Delta Footprint Table](indicators/volume/delta-footprint-table.pine)
 
-Samodzielna **tabela statusu** footprintu (kupno / sprzedaż / delta + % / **imbalans ułożony** / POC / Value Area / CVD) w rogu wykresu — wydzielona z „Bubble", liczy własne metryki, więc działa niezależnie. Dodaj ją obok „Delta Footprint Bubble" lub „Delta Footprint Histogram". Wiersz **Imbalans** podsumowuje ułożone (stacked) imbalansy diagonalne bieżącej świecy (▲ poziomy kupna, ▼ poziomy sprzedaży). Pasek nagłówka pokazuje **bieżący interwał** („Ostatnia świeca · 1m") i przypomina, że kupno/sprzedaż/delta/POC dotyczą **tylko ostatniej świecy** (CVD liczy się narastająco w sesji).
+A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner — extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session).
 
 ![Delta Footprint Table](screenshots/indicators/delta-footprint-table.png)
 
-> ⚠️ Wymaga konta **Premium / Ultimate**; `request.footprint()` tylko dla bieżącego interwału.
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 
 #### [Delta Footprint Imbalance](indicators/volume/delta-footprint-imbalance.pine)
 
-Wykrywa **imbalanse footprintu** (diagonalne: jedna strona ≥ _mnożnik_ × przeciwna po przekątnej, klasycznie 3:1) i ich **ułożone (stacked)** ciągi (N+ poziomów w tym samym kierunku). Każdy ułożony imbalans staje się **trwałą strefą wsparcia/oporu** (box ciągnący się w prawo) z **automatyczną mitygacją** — po przetestowaniu przez cenę strefa blednie lub znika, więc na wykresie zostają tylko żywe poziomy (zachowanie order‑blocków). Siła ciągu odwzorowana **intensywnością koloru**. Mini‑dashboard zlicza aktywne strefy bycze/niedźwiedzie i wskazuje najbliższą nad/pod ceną. Pełny opis: [delta-footprint-imbalance.md](indicators/volume/delta-footprint-imbalance.md).
+Detects **footprint imbalances** (diagonal: one side ≥ _ratio_ × the diagonally opposite one, classically 3:1) and their **stacked** runs (N+ levels in the same direction). Every stacked imbalance becomes a **persistent support/resistance zone** (a box extending to the right) with **automatic mitigation** — once tested by price, the zone fades or disappears, so only live levels remain on the chart (order-block behavior). Run strength is mapped to **color intensity**. A mini-dashboard counts active bull/bear zones and points to the nearest one above/below price. Full description: [delta-footprint-imbalance.md](indicators/volume/delta-footprint-imbalance.md).
 
-> ⚠️ Wymaga konta **Premium / Ultimate**; `request.footprint()` tylko dla bieżącego interwału. Sensowny na niskich interwałach (1–15 m).
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe. Makes sense on low timeframes (1–15 m).
 
-## Strategie
+## Strategies
 
 #### [Cross 2x SMA](strategies/cross-2x-sma.pine)
 
-Strategia oparta na przecięciu dwóch średnich kroczących (krótkiej i długiej).
+A strategy based on the crossing of two moving averages (short and long).
 
 ![Cross 2x SMA](screenshots/strategies/cross-2x-sma.png)
 
