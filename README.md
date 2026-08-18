@@ -21,10 +21,9 @@
     - [Monthly Seasonality](#monthly-seasonality)
     - [Daily Seasonality](#daily-seasonality)
     - [Hourly Seasonality](#hourly-seasonality)
-  - [Histograms](#histograms)
-    - [MA Spread Histogram](#ma-spread-histogram)
   - [Oscillators](#oscillators)
     - [MACD](#macd)
+    - [MA Spread Histogram](#ma-spread-histogram)
     - [Stochastic Oscillator](#stochastic-oscillator)
     - [RSI](#rsi)
     - [ROC](#roc)
@@ -110,14 +109,6 @@ Chart background colored by hour — a daily gradient (night → dawn → day �
 
 ![Hourly Seasonality](screenshots/indicators/hourly-seasonality.png)
 
-### Histograms
-
-#### [MA Spread Histogram](indicators/histograms/ma-spread-histogram.pine)
-
-A histogram showing the distance between price and a moving average.
-
-![MA Spread Histogram](screenshots/indicators/ma-spread-histogram.png)
-
 ### Oscillators
 
 #### [MACD](indicators/oscillators/macd.pine)
@@ -125,6 +116,12 @@ A histogram showing the distance between price and a moving average.
 Moving Average Convergence Divergence — the difference of two averages with a signal line.
 
 ![MACD](screenshots/indicators/macd.png)
+
+#### [MA Spread Histogram](indicators/oscillators/ma-spread-histogram.pine)
+
+A histogram showing the distance between two moving averages (short minus long), with markers on their crossovers.
+
+![MA Spread Histogram](screenshots/indicators/ma-spread-histogram.png)
 
 #### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator.pine)
 
@@ -138,7 +135,7 @@ Relative Strength Index with the 30 / 70 levels.
 
 ![RSI](screenshots/indicators/rsi.png)
 
-#### [ROC](indicators/roc.pine)
+#### [ROC](indicators/oscillators/roc.pine)
 
 Rate of Change — the percentage price change over a given period.
 
