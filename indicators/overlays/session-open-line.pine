@@ -5,11 +5,12 @@
 // Draws a horizontal line at the session open price — from the first to the
 // last bar of the session. For completed sessions a single label above the
 // end of the line shows the percent price change during the session (close
-// vs session open). For the ongoing (last) session the label sits in the
-// same place - above the current end of the line, at the open price level -
-// and updates live with the current change. Line and label colors depend on
-// the sign of the change. Works on intraday timeframes — on D and above
-// every bar is its own session, so the indicator only shows a hint.
+// vs session open). Optionally the ongoing (last) session shows the percent
+// live - at the open price level, to the right of the line end, as if
+// continuing the line - and the label moves to the standard place above the
+// line once the session completes. Line and label colors depend on the sign
+// of the change. Works on intraday timeframes — on D and above every bar is
+// its own session, so the indicator only shows a hint.
 indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500)
 
 GRP = 'Appearance'
@@ -18,6 +19,7 @@ downColor = input.color(#EF5350, 'Down color', group = GRP)
 lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP)
 lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
 textSizeName = input.string('Small', 'Text size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP)
+showLive = input.bool(true, 'Show percent during session', group = 'General', tooltip = 'On: during the ongoing session the label follows the end of the line, at the open price level, to the right of the line. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
     'Dashed' => line.style_dashed
@@ -33,11 +35,13 @@ textSize = switch textSizeName
 fmtPct(float pct) =>
     (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '%'
 
-newLabel(int x, float y, float pct, string sizeName) =>
-    // label_lower_right: anchor at the bottom-right corner — the text sits
-    // above the line, right-aligned, so it does not stick out past the
-    // session end.
-    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = label.style_label_lower_right, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
+// Completed session: label_lower_right - anchor at the bottom-right corner,
+// the text sits above the line and does not stick out past the session end.
+// Ongoing session: label_left - anchor on the left edge, the text sits at
+// the open price level, to the right of the line end, as if continuing the
+// line.
+newLabel(int x, float y, float pct, string sizeName, string labelStyle) =>
+    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = labelStyle, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
 
 // time('D') changes on the first bar of the trading day, so it also works
 // for sessions crossing midnight (e.g. futures).
@@ -49,11 +53,16 @@ var float sessionOpen = na
 
 if timeframe.isintraday
     if newSession or barstate.isfirst
+        // The previous session's label may still sit in the live position
+        // (at the line level, right of the line) - move it to the standard
+        // place for completed sessions.
+        if not na(lb)
+            label.set_style(lb, label.style_label_lower_right)
         // The session ended but no label was created (session.islastbar did
         // not mark the last bar, e.g. on a shortened session) — add the
         // result now.
         if not na(sessionOpen) and na(lb)
-            newLabel(bar_index - 1, sessionOpen, (close[1] - sessionOpen) / sessionOpen * 100, textSize)
+            newLabel(bar_index - 1, sessionOpen, (close[1] - sessionOpen) / sessionOpen * 100, textSize, label.style_label_lower_right)
         sessionOpen := open
         ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
         lb := na
@@ -63,16 +72,19 @@ if timeframe.isintraday
         col = pct >= 0 ? upColor : downColor
         line.set_x2(ln, bar_index)
         line.set_color(ln, col)
-        // session.islastbar: the final label of a completed session.
-        // barstate.islast: the ongoing session - the label follows the end
-        // of the line and shows the current change.
-        if session.islastbar or barstate.islast
+        if showLive or session.islastbar
+            // The live label keeps the position to the right of the line
+            // until the last bar of the session closes, then it switches to
+            // the final style above the line.
+            sessionDone = session.islastbar and barstate.isconfirmed
+            labelStyle = showLive and not sessionDone ? label.style_label_left : label.style_label_lower_right
             if na(lb)
-                lb := newLabel(bar_index, sessionOpen, pct, textSize)
+                lb := newLabel(bar_index, sessionOpen, pct, textSize, labelStyle)
             else
                 label.set_x(lb, bar_index)
                 label.set_text(lb, fmtPct(pct))
                 label.set_textcolor(lb, col)
+                label.set_style(lb, labelStyle)
 else
     if barstate.islast
         var table hint = table.new(position.top_right, 1, 1)
