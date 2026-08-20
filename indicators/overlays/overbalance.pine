@@ -37,9 +37,11 @@ rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tool
 
 minCorrection = input.float(1, 'Noise filter', minval = 0, step = 0.1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the overbalance. Read together with the unit below: the default 1 ATR adapts to any instrument, while the method itself is calibrated as 40 POINTS on DAX - switch the unit to Points and set 40 to reproduce it exactly. Set 0 to measure every correction.')
 noiseUnitName = input.string('ATR', 'Noise filter unit', options = ['ATR', 'Points', 'Percent'], group = GRP_LOGIC, tooltip = 'ATR: multiple of ATR(14) - adapts to the volatility of any instrument, which is why it is the default. Points: absolute price distance, the unit the method is written in (40 on DAX) - a value calibrated for one instrument draws nothing on another. Percent: share of the price.')
+referenceName = input.string('First correction', 'Reference correction', options = ['First correction', 'Largest so far', 'Last correction'], group = GRP_LOGIC, tooltip = 'Which correction the rectangle is built from. First correction: the first 3-wave structure of the trend, which the sources name as the one that "conducts the trend" - it stays put, so the geometry does not drift. Largest so far: the literal reading of "the largest correction in the trend" - true to the wording, but the rectangle keeps growing and on a long trend it swells to the size of the whole range. Last correction: always the freshest structure. The method is not formalized on this point, so the choice is yours; First is the default because it is the only one anchored in the sources that also stays readable.')
+
 tolerancePct = input.float(33, 'Break tolerance (%)', minval = 0, maxval = 100, step = 1, group = GRP_LOGIC, tooltip = 'How far past the rectangle price must travel before the trend counts as permanently broken, as a share of the overbalance range. The method names 13%, 20% and 33% - the tighter the value, the more often you are stopped out and the better the reward to risk. 0 breaks the trend the moment price touches the edge.')
 useCloseForBreak = input.bool(false, 'Break on close only', group = GRP_LOGIC, tooltip = 'On: only a bar CLOSING beyond the tolerance breaks the trend - a wick through it is ignored. Off: any trade through the level counts, which is what a resting stop order would do.')
-flipOnBreak = input.bool(true, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'On: a broken trend immediately becomes a trend in the opposite direction. Off: the trend goes undefined and waits for a fresh swing sequence - closer to the method, which says to close the position and only then look for a setup the other way.')
+flipOnBreak = input.bool(false, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'Off (default): after a break the trend goes undefined and the indicator waits for a fresh swing sequence to build a new setup - this is what the method describes, close the position and only then look for a signal the other way, and it stops price from falling straight back into the old rectangle and breaking it again and again. On: the broken trend immediately becomes a trend in the opposite direction, which reacts faster but cascades into repeated breaks around one level.')
 
 showRect = input.bool(true, 'Show the rectangle', group = GRP_RECT, tooltip = 'The magic rectangle - the largest correction of the running trend, extended to the right as the live zone the method trades.')
 rectUpColor = input.color(color.new(#26A69A, 88), 'Uptrend fill', group = GRP_RECT)
@@ -116,6 +118,11 @@ var int trend = 0
 // Diagnostics: what the measurement rejected and why. The largest rejected
 // correction is the single most telling number - when it sits just under the
 // filter, the filter is calibrated for a different instrument.
+// After a break the indicator must see a genuinely new structure before it
+// defines a trend again - otherwise the very leg that broke the setup defines
+// the next one, rebuilding it in the same place and breaking it again.
+var int swingsSinceBreak = 99
+
 var int swingCount = 0
 var int rejectedCount = 0
 var float largestRejected = na
@@ -143,6 +150,7 @@ for pass = 0 to 1
         swingBar = bar_index - rightBars
 
         swingCount := swingCount + 1
+        swingsSinceBreak := swingsSinceBreak + 1
 
         if not na(lastSwingPrice)
             if showZigzag
@@ -163,16 +171,25 @@ for pass = 0 to 1
                     largestRejected := legRange
 
             if trend == 0
-                if legRange >= noiseFloor
+                // Two fresh swings must land before a direction is accepted,
+                // so the breaking leg itself cannot seed the next trend.
+                if legRange >= noiseFloor and swingsSinceBreak >= 2
                     trend := swingIsHigh ? 1 : -1
                     trendExtreme := swingPrice
                     trendExtremeBar := swingBar
             else if isCorrection and legRange >= noiseFloor
-                // A correction worth measuring. It becomes the overbalance
-                // when it is the largest of this trend so far.
+                // A correction worth measuring. Whether it replaces the
+                // current rectangle depends on the reference mode: the first
+                // correction is kept for the life of the trend, the largest
+                // one is replaced only by a bigger one, the last one always
+                // wins.
                 currentOb = na(obNear) or na(obFar) ? na : math.abs(obNear - obFar)
+                takeIt = switch referenceName
+                    'First correction' => na(currentOb)
+                    'Last correction' => true
+                    => na(currentOb) or legRange > currentOb
 
-                if na(currentOb) or legRange > currentOb
+                if takeIt
                     obUpdates := obUpdates + 1
                     obNear := lastSwingPrice
                     obFar := swingPrice
@@ -246,6 +263,8 @@ if broken
     obFar := na
     obStartBar := na
 
+    swingsSinceBreak := 0
+
     if flipOnBreak
         trend := -trend
         trendExtreme := trend == 1 ? high : low
@@ -313,8 +332,8 @@ panelPosition = switch panelPositionName
 panelWanted = panelModeName == 'Always' or (panelModeName == 'When empty' and na(obNear))
 
 if barstate.islast and panelWanted
-    var table panel = table.new(panelPosition, 2, 9, border_width = 1)
-    table.clear(panel, 0, 0, 1, 8)
+    var table panel = table.new(panelPosition, 2, 10, border_width = 1)
+    table.clear(panel, 0, 0, 1, 9)
 
     trendText = trend == 1 ? 'up' : trend == -1 ? 'down' : 'undefined'
     obText = na(obNear) or na(obFar) ? '-' : str.tostring(math.abs(obNear - obFar), format.mintick)
@@ -327,20 +346,22 @@ if barstate.islast and panelWanted
     table.cell(panel, 1, 0, 'diagnostics', text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
     table.cell(panel, 0, 1, 'Trend', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
     table.cell(panel, 1, 1, trendText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 2, 'Filter', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 2, str.tostring(noiseFloor, format.mintick) + '  [' + str.tostring(minCorrection) + ' ' + noiseUnitName + ']', text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 3, 'Swings seen', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 3, str.tostring(swingCount), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 4, 'Legs rejected', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 4, rejectedText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 5, 'Overbalance', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 5, obText + (obUpdates > 0 ? '  (' + str.tostring(obUpdates) + '×)' : ''), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 6, 'Entry / Stop', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 6, entryText + ' / ' + stopText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
-    table.cell(panel, 0, 7, 'Breaks / Target', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.cell(panel, 1, 7, str.tostring(breakCount) + ' / ' + targetText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 2, 'Reference', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 2, referenceName, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 3, 'Filter', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 3, str.tostring(noiseFloor, format.mintick) + '  [' + str.tostring(minCorrection) + ' ' + noiseUnitName + ']', text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 4, 'Swings seen', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 4, str.tostring(swingCount), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 5, 'Legs rejected', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 5, rejectedText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 6, 'Overbalance', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 6, obText + (obUpdates > 0 ? '  (' + str.tostring(obUpdates) + '×)' : ''), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 7, 'Entry / Stop', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 7, entryText + ' / ' + stopText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 8, 'Breaks / Target', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 8, str.tostring(breakCount) + ' / ' + targetText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
 
     // The bottom row carries the verdict - what to do about an empty chart.
-    verdict = not na(obNear) ? 'measuring' : swingCount < 2 ? 'not enough swings yet - widen the chart history' : rejectedCount > 0 and not na(largestRejected) ? 'filter too large - largest leg was ' + str.tostring(largestRejected, format.mintick) : trend == 0 ? 'no trend defined yet' : 'no correction has qualified yet'
-    table.cell(panel, 0, 8, verdict, text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
-    table.merge_cells(panel, 0, 8, 1, 8)
+    verdict = not na(obNear) ? 'measuring' : swingCount < 2 ? 'not enough swings yet - widen the chart history' : swingsSinceBreak < 2 ? 'waiting for a fresh structure after the last break' : breakCount > 20 ? 'breaking far too often - raise the filter or move to a higher timeframe' : rejectedCount > 0 and not na(largestRejected) ? 'filter too large - largest leg was ' + str.tostring(largestRejected, format.mintick) : trend == 0 ? 'no trend defined yet' : 'no correction has qualified yet'
+    table.cell(panel, 0, 9, verdict, text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.merge_cells(panel, 0, 9, 1, 9)
