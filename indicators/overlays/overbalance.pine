@@ -2,83 +2,67 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-// Overbalance - market geometry popularized by Łukasz Stefanik. The largest
-// correction of the running trend becomes the reference: while every new
-// correction stays below it, the trend is healthy; the moment price travels
-// further than the reference away from the trend extreme, the trend is broken.
+// Overbalance - market geometry described by Bryce Gilmore and popularized in
+// Poland by Łukasz Stefanik. One sentence carries the whole method: the trend
+// lasts as long as the largest correction of that trend is not permanently
+// broken.
 //
-// Corrections are measured between confirmed swings (ta.pivothigh /
-// ta.pivotlow) and anything below the noise filter is skipped - the method
-// treats moves under 40 points on DAX as noise. The reference is always the
-// LARGEST correction of the trend, never the last one, and the threshold line
-// sits one reference away from the trend extreme, which is where the method
-// puts the stop loss. The break is detected intrabar, on the very bar that
-// crosses the level, not on the next confirmed swing.
+// The largest correction becomes the "magic rectangle" - measured high to low
+// (uptrend) between two confirmed swings, then extended to the right as a live
+// zone. The method trades that rectangle: join the trend at its far edge, aim
+// for the top of the setup, and treat the trend as broken only once price
+// leaves the rectangle by a tolerance of the overbalance range. That tolerance
+// is what "permanently" means - 13% is the tightest reading, 33% the safest,
+// and the choice trades win rate against reward to risk.
 //
-// The geometry itself is a grid of rectangles, each exactly one reference
-// overbalance tall, stacked from the trend extreme in the direction a break
-// would travel. The first one is the break zone; the one currently holding
-// price is highlighted, which reads off how many whole overbalances the market
-// has travelled away from the extreme.
+// Corrections are compared to corrections, never to impulses, and anything
+// below the noise filter is skipped - the method treats moves under 40 points
+// on DAX as noise. Higher timeframes (H4, D1) are where the setups live.
 indicator('Overbalance', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 GRP_SWING = 'Swings'
 GRP_LOGIC = 'Overbalance'
+GRP_RECT = 'Overbalance rectangle'
+GRP_LEVELS = 'Trade levels'
 GRP_ZIGZAG = 'Zigzag'
-GRP_THRESHOLD = 'Threshold level'
-GRP_BOXES = 'Correction boxes'
-GRP_GRID = 'Overbalance grid'
 GRP_SIGNAL = 'Signal'
 
 leftBars = input.int(5, 'Pivot left bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the left of a pivot that must be lower (for a high) or higher (for a low).')
-rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed this many bars after it happened, so corrections enter the measurement with that delay. The break itself is detected intrabar and is not delayed.')
+rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed this many bars after it happened, so a correction enters the measurement with that delay. The break itself is detected intrabar and is not delayed.')
 
-minCorrection = input.float(40, 'Noise filter', minval = 0, step = 1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the reference. The method uses 40 points on DAX - recalibrate for any other instrument. Set 0 to measure every correction.')
+minCorrection = input.float(40, 'Noise filter', minval = 0, step = 1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the overbalance. The method uses 40 points on DAX - recalibrate for any other instrument. Set 0 to measure every correction.')
 noiseUnitName = input.string('Points', 'Noise filter unit', options = ['Points', 'Percent', 'ATR'], group = GRP_LOGIC, tooltip = 'Points: absolute price distance (DAX points). Percent: share of the price. ATR: multiple of ATR(14), which adapts the filter to the volatility of any instrument.')
-modeName = input.string('Price', 'Mode', options = ['Price', 'Price + Time'], group = GRP_LOGIC, tooltip = 'Price: the method as described - only the size of the correction counts. Price + Time (Gann): a correction must also last longer than the reference one to replace it.')
-flipOnBreak = input.bool(true, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'On: a broken trend immediately becomes a trend in the opposite direction. Off: the trend goes undefined and waits for a fresh swing sequence - closer to the method, which says to close the position and only then look for a signal the other way.')
+tolerancePct = input.float(33, 'Break tolerance (%)', minval = 0, maxval = 100, step = 1, group = GRP_LOGIC, tooltip = 'How far past the rectangle price must travel before the trend counts as permanently broken, as a share of the overbalance range. The method names 13%, 20% and 33% - the tighter the value, the more often you are stopped out and the better the reward to risk. 0 breaks the trend the moment price touches the edge.')
+useCloseForBreak = input.bool(false, 'Break on close only', group = GRP_LOGIC, tooltip = 'On: only a bar CLOSING beyond the tolerance breaks the trend - a wick through it is ignored. Off: any trade through the level counts, which is what a resting stop order would do.')
+flipOnBreak = input.bool(true, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'On: a broken trend immediately becomes a trend in the opposite direction. Off: the trend goes undefined and waits for a fresh swing sequence - closer to the method, which says to close the position and only then look for a setup the other way.')
 
-showZigzag = input.bool(true, 'Show zigzag', group = GRP_ZIGZAG)
-zigzagUpColor = input.color(#26A69A, 'Up leg color', group = GRP_ZIGZAG)
-zigzagDownColor = input.color(#EF5350, 'Down leg color', group = GRP_ZIGZAG)
-zigzagWidth = input.int(2, 'Line width', minval = 1, maxval = 4, group = GRP_ZIGZAG)
+showRect = input.bool(true, 'Show the rectangle', group = GRP_RECT, tooltip = 'The magic rectangle - the largest correction of the running trend, extended to the right as the live zone the method trades.')
+rectUpColor = input.color(color.new(#26A69A, 88), 'Uptrend fill', group = GRP_RECT)
+rectDownColor = input.color(color.new(#EF5350, 88), 'Downtrend fill', group = GRP_RECT)
+rectBorderColor = input.color(#FF9800, 'Border color', group = GRP_RECT)
+rectExtend = input.int(30, 'Extend right (bars)', minval = 0, group = GRP_RECT, tooltip = 'How far past the current bar the live rectangle reaches.')
+showHistory = input.bool(true, 'Keep broken rectangles', group = GRP_RECT, tooltip = 'Leave every overbalance rectangle on the chart after its trend ends, so past setups stay readable.')
 
-showThreshold = input.bool(true, 'Show threshold line', group = GRP_THRESHOLD, tooltip = 'A horizontal line one reference correction away from the trend extreme - the level that breaks the trend, and where the method puts the stop loss.')
-thresholdColor = input.color(#FF9800, 'Line color', group = GRP_THRESHOLD)
-thresholdStyleName = input.string('Dashed', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP_THRESHOLD)
-thresholdWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP_THRESHOLD)
-showThresholdLabel = input.bool(true, 'Show threshold value', group = GRP_THRESHOLD)
-showBrokenLevels = input.bool(true, 'Keep broken levels', group = GRP_THRESHOLD, tooltip = 'Leave the threshold line on the chart at the point where price broke it, instead of removing it together with the trend that owned it.')
+showEntry = input.bool(true, 'Entry level', group = GRP_LEVELS, tooltip = 'The far edge of the rectangle - where the method joins the trend after a correction that stayed inside the overbalance.')
+showStop = input.bool(true, 'Stop loss level', group = GRP_LEVELS, tooltip = 'The tolerance level past the rectangle - the price that permanently breaks the setup.')
+showTarget = input.bool(true, 'Target level', group = GRP_LEVELS, tooltip = 'The trend extreme - the minimum target the method names for a position taken at the entry level.')
+entryColor = input.color(#2962FF, 'Entry color', group = GRP_LEVELS)
+stopColor = input.color(#EF5350, 'Stop color', group = GRP_LEVELS)
+targetColor = input.color(#26A69A, 'Target color', group = GRP_LEVELS)
+showRR = input.bool(true, 'Show reward to risk', group = GRP_LEVELS, tooltip = 'Label the entry with the ratio between the distance to the target and the distance to the stop.')
+levelExtend = input.int(30, 'Extend right (bars)', minval = 0, group = GRP_LEVELS)
 
-showBoxes = input.bool(true, 'Show correction boxes', group = GRP_BOXES, tooltip = 'A rectangle over every measured correction - its height is the size, its width the duration. Corrections filtered out as noise get no box.')
-boxUpColor = input.color(color.new(#26A69A, 85), 'Up correction color', group = GRP_BOXES, tooltip = 'Correction inside a downtrend - a bounce up.')
-boxDownColor = input.color(color.new(#EF5350, 85), 'Down correction color', group = GRP_BOXES, tooltip = 'Correction inside an uptrend - a pullback down.')
-boxBorderColor = input.color(color.new(color.gray, 60), 'Border color', group = GRP_BOXES)
-highlightReference = input.bool(true, 'Highlight the reference', group = GRP_BOXES, tooltip = 'Give the largest correction of the trend - the one acting as the reference - a solid, thicker border.')
+showZigzag = input.bool(false, 'Show zigzag', group = GRP_ZIGZAG, tooltip = 'The swing skeleton the corrections are measured on. Off by default - it is scaffolding, not part of the method.')
+zigzagUpColor = input.color(color.new(#26A69A, 40), 'Up leg color', group = GRP_ZIGZAG)
+zigzagDownColor = input.color(color.new(#EF5350, 40), 'Down leg color', group = GRP_ZIGZAG)
+zigzagWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP_ZIGZAG)
 
-showGrid = input.bool(true, 'Show grid', group = GRP_GRID, tooltip = 'A stack of rectangles, each exactly one reference overbalance tall, laid out from the trend extreme in the direction a break would travel. The first one is the break zone - price leaving it invalidates the trend.')
-gridCount = input.int(4, 'Rectangles', minval = 1, maxval = 20, group = GRP_GRID, tooltip = 'How many rectangles to stack away from the trend extreme.')
-gridExtend = input.int(20, 'Width (bars)', minval = 1, group = GRP_GRID, tooltip = 'How far to the right of the current bar the grid reaches.')
-gridColor = input.color(color.new(#FF9800, 92), 'Fill color', group = GRP_GRID)
-gridBorderColor = input.color(color.new(#FF9800, 55), 'Border color', group = GRP_GRID)
-showGridLabels = input.bool(true, 'Number the rectangles', group = GRP_GRID, tooltip = 'Label each rectangle with its distance from the trend extreme, counted in whole overbalances.')
-highlightPriceCell = input.bool(true, 'Highlight the cell holding price', group = GRP_GRID, tooltip = 'Give the rectangle that currently contains price a stronger fill and a solid border - it shows which step away from the extreme the market sits in.')
-priceCellColor = input.color(color.new(#FF9800, 75), 'Price cell fill', group = GRP_GRID)
-priceCellBorderColor = input.color(#FF9800, 'Price cell border', group = GRP_GRID)
-
-showSignal = input.bool(true, 'Show signal markers', group = GRP_SIGNAL)
-signalShapeName = input.string('Triangle', 'Marker shape', options = ['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group = GRP_SIGNAL)
-signalSizeName = input.string('Small', 'Marker size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
-signalUpColor = input.color(#26A69A, 'Bullish signal color', group = GRP_SIGNAL, tooltip = 'A downtrend broken to the upside.')
-signalDownColor = input.color(#EF5350, 'Bearish signal color', group = GRP_SIGNAL, tooltip = 'An uptrend broken to the downside.')
-showSignalLabel = input.bool(true, 'Show signal label', group = GRP_SIGNAL, tooltip = 'A label with the size of the reference correction that price broke through.')
+showSignal = input.bool(true, 'Show break markers', group = GRP_SIGNAL)
+signalUpColor = input.color(#26A69A, 'Bullish break color', group = GRP_SIGNAL, tooltip = 'A downtrend broken to the upside.')
+signalDownColor = input.color(#EF5350, 'Bearish break color', group = GRP_SIGNAL, tooltip = 'An uptrend broken to the downside.')
+showSignalLabel = input.bool(true, 'Label the break', group = GRP_SIGNAL)
 labelUnitName = input.string('Points', 'Label unit', options = ['Points', 'Percent'], group = GRP_SIGNAL)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
-
-thresholdStyle = switch thresholdStyleName
-    'Dashed' => line.style_dashed
-    'Dotted' => line.style_dotted
-    => line.style_solid
 
 textSize = switch textSizeName
     'Auto' => size.auto
@@ -86,14 +70,6 @@ textSize = switch textSizeName
     'Normal' => size.normal
     'Large' => size.large
     => size.small
-
-signalSize = switch signalSizeName
-    'Tiny' => size.tiny
-    'Normal' => size.normal
-    'Large' => size.large
-    => size.small
-
-useTime = modeName == 'Price + Time'
 
 // The noise filter in price units. ATR keeps it proportional to the volatility
 // of whatever instrument the script runs on.
@@ -108,35 +84,29 @@ noiseFloor = switch noiseUnitName
 pivotHigh = ta.pivothigh(high, leftBars, rightBars)
 pivotLow = ta.pivotlow(low, leftBars, rightBars)
 
-// Last confirmed swing - its price, bar and whether it was a high.
+// Last confirmed swing.
 var float lastSwingPrice = na
 var int lastSwingBar = na
-// Guarded by trend != 0 everywhere it is read - `na` here would make Pine
-// infer a "const bool" type that cannot be reassigned.
-var bool lastSwingIsHigh = false
 
-// The reference: the largest correction of the running trend, never the last
-// one. refBars carries its duration for the Price + Time mode.
-var float refRange = na
-var int refBars = na
-var box refBox = na
+// The overbalance itself - the largest correction of the running trend. Its
+// two edges are the rectangle, and the range between them drives everything:
+// the entry, the tolerance, the stop.
+var float obNear = na
+var float obFar = na
+var int obStartBar = na
+var box obBox = na
 
-// The extreme of the running trend - the high of an uptrend, the low of a
-// downtrend. The threshold is measured from here, so it has to track price
-// beyond the last confirmed swing.
+// The extreme of the running trend - the target the method aims at.
 var float trendExtreme = na
 var int trendExtremeBar = na
 
-// Trend direction implied by the swing sequence: 1 up, -1 down, 0 unknown.
+// Trend direction: 1 up, -1 down, 0 unknown.
 var int trend = 0
 
-var line thresholdLine = na
-var label thresholdLabel = na
-
-// The grid is redrawn on every last-bar tick, so its objects are kept in
-// arrays and cleared before each redraw.
-var box[] gridBoxes = array.new<box>()
-var label[] gridLabels = array.new<label>()
+var line entryLine = na
+var line stopLine = na
+var line targetLine = na
+var label entryLabel = na
 
 fmtSize(float priceRange, float basePrice) =>
     labelUnitName == 'Percent' and basePrice != 0 ? str.tostring(priceRange / basePrice * 100, '0.00') + '%' : str.tostring(priceRange, format.mintick)
@@ -158,40 +128,37 @@ for pass = 0 to 1
                 line.new(lastSwingBar, lastSwingPrice, swingBar, swingPrice, xloc = xloc.bar_index, color = swingIsHigh ? zigzagUpColor : zigzagDownColor, width = zigzagWidth)
 
             legRange = math.abs(swingPrice - lastSwingPrice)
-            legBars = swingBar - lastSwingBar
 
             // A correction runs against the trend: inside an uptrend the
-            // high -> low leg, inside a downtrend the low -> high one.
+            // high -> low leg, inside a downtrend the low -> high one. Only
+            // corrections are ever compared - never an impulse to a correction.
             isCorrection = (trend == 1 and not swingIsHigh) or (trend == -1 and swingIsHigh)
 
             if trend == 0
-                // No trend yet - the first leg clearing the noise filter sets
-                // the direction and seeds the extreme.
                 if legRange >= noiseFloor
                     trend := swingIsHigh ? 1 : -1
                     trendExtreme := swingPrice
                     trendExtremeBar := swingBar
             else if isCorrection and legRange >= noiseFloor
-                // A correction worth measuring. It cannot break the trend here
-                // - that is detected intrabar below - so the only job left is
-                // promoting it to the reference when it is the largest so far.
-                newBox = showBoxes ? box.new(lastSwingBar, math.max(lastSwingPrice, swingPrice), swingBar, math.min(lastSwingPrice, swingPrice), xloc = xloc.bar_index, bgcolor = swingIsHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor, border_style = line.style_dotted) : na
+                // A correction worth measuring. It becomes the overbalance
+                // when it is the largest of this trend so far.
+                currentOb = na(obNear) or na(obFar) ? na : math.abs(obNear - obFar)
 
-                priceLarger = na(refRange) or legRange > refRange
-                timeLarger = na(refBars) or legBars > refBars
-                larger = useTime ? priceLarger and timeLarger : priceLarger
+                if na(currentOb) or legRange > currentOb
+                    obNear := lastSwingPrice
+                    obFar := swingPrice
+                    obStartBar := lastSwingBar
 
-                if larger
-                    refRange := legRange
-                    refBars := legBars
-                    if highlightReference
-                        if not na(refBox)
-                            box.set_border_style(refBox, line.style_dotted)
-                            box.set_border_width(refBox, 1)
-                        if not na(newBox)
-                            box.set_border_style(newBox, line.style_solid)
-                            box.set_border_width(newBox, 2)
-                    refBox := newBox
+                    // A fresh rectangle replaces the previous one; the old
+                    // rectangle is either frozen where it stood or removed.
+                    if not na(obBox)
+                        if showHistory
+                            box.set_right(obBox, swingBar)
+                            box.set_bgcolor(obBox, color.new(color.gray, 92))
+                            box.set_border_color(obBox, color.new(color.gray, 70))
+                        else
+                            box.delete(obBox)
+                    obBox := showRect ? box.new(lastSwingBar, math.max(lastSwingPrice, swingPrice), swingBar, math.min(lastSwingPrice, swingPrice), xloc = xloc.bar_index, bgcolor = trend == 1 ? rectUpColor : rectDownColor, border_color = rectBorderColor, border_width = 2) : na
             else if not isCorrection
                 // An impulse leg - it may push the trend extreme further out.
                 if trend == 1 and swingIsHigh and (na(trendExtreme) or swingPrice > trendExtreme)
@@ -203,10 +170,9 @@ for pass = 0 to 1
 
         lastSwingPrice := swingPrice
         lastSwingBar := swingBar
-        lastSwingIsHigh := swingIsHigh
 
-// Price runs ahead of the confirmed swings, so the trend extreme tracks it bar
-// by bar - otherwise the threshold would trail a stale high.
+// Price runs ahead of the confirmed swings, so the trend extreme - the target -
+// tracks it bar by bar.
 if trend == 1 and not na(trendExtreme) and high > trendExtreme
     trendExtreme := high
     trendExtremeBar := bar_index
@@ -214,96 +180,85 @@ if trend == -1 and not na(trendExtreme) and low < trendExtreme
     trendExtreme := low
     trendExtremeBar := bar_index
 
-// The level that breaks the trend: one reference correction away from the
-// trend extreme. This is where the method puts the stop loss.
-level = na(refRange) or na(trendExtreme) or trend == 0 ? na : trend == 1 ? trendExtreme - refRange : trendExtreme + refRange
+// The trade levels. Entry sits at the far edge of the rectangle - the price
+// the method joins the trend at. Stop sits one tolerance past it, and that is
+// also the level that permanently breaks the trend.
+obRange = na(obNear) or na(obFar) ? na : math.abs(obNear - obFar)
+entry = na(obRange) or trend == 0 ? na : obFar
+stop = na(entry) ? na : trend == 1 ? entry - obRange * tolerancePct / 100 : entry + obRange * tolerancePct / 100
 
-// The break, checked on every bar - so the signal lands where the stop would
-// actually be hit, not on the next confirmed swing.
-broken = not na(level) and (trend == 1 ? low <= level : high >= level)
+// The break. A wick through the stop is enough by default, matching a resting
+// stop order; 'Break on close only' waits for the bar to close beyond it.
+breakPrice = useCloseForBreak ? close : trend == 1 ? low : high
+broken = not na(stop) and (trend == 1 ? breakPrice <= stop : breakPrice >= stop)
 
 if broken
     bullish = trend == -1
     col = bullish ? signalUpColor : signalDownColor
 
     if showSignal
-        labelStyle = switch signalShapeName
-            'Arrow' => bullish ? label.style_arrowup : label.style_arrowdown
-            'Label arrow' => bullish ? label.style_label_up : label.style_label_down
-            'Circle' => label.style_circle
-            'Diamond' => label.style_diamond
-            => bullish ? label.style_triangleup : label.style_triangledown
-        label.new(bar_index, level, '', xloc = xloc.bar_index, style = labelStyle, color = col, size = signalSize)
+        label.new(bar_index, stop, '', xloc = xloc.bar_index, style = bullish ? label.style_triangleup : label.style_triangledown, color = col, size = size.small)
 
     if showSignalLabel
-        label.new(bar_index, level, (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(refRange, level), xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
+        label.new(bar_index, stop, (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(obRange, stop), xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
 
-    // Freeze the broken level on the chart before the state resets.
-    if showBrokenLevels and not na(thresholdLine)
-        line.set_x2(thresholdLine, bar_index)
-        thresholdLine := na
-    if not na(thresholdLabel)
-        label.delete(thresholdLabel)
-        thresholdLabel := na
+    // Freeze the rectangle of the trend that just died.
+    if not na(obBox)
+        if showHistory
+            box.set_right(obBox, bar_index)
+            box.set_bgcolor(obBox, color.new(color.gray, 92))
+            box.set_border_color(obBox, color.new(color.gray, 70))
+        else
+            box.delete(obBox)
+        obBox := na
 
-    // The reference belonged to the trend that just died.
-    refRange := na
-    refBars := na
-    refBox := na
+    obNear := na
+    obFar := na
+    obStartBar := na
 
     if flipOnBreak
-        // The new trend runs the way the breaking move went, and the level it
-        // broke through is its first extreme.
         trend := -trend
         trendExtreme := trend == 1 ? high : low
         trendExtremeBar := bar_index
     else
-        // Undefined until a fresh swing sequence sets a direction.
         trend := 0
         trendExtreme := na
         trendExtremeBar := na
 
-alertcondition(broken, 'Overbalance broken', 'Overbalance level broken - the trend is no longer valid')
+alertcondition(broken, 'Overbalance broken', 'Overbalance permanently broken - the trend is no longer valid')
 
-// The live threshold - redrawn on the last bar so it always sits one reference
-// correction away from the current trend extreme.
+// The live picture, redrawn on the last bar: the rectangle stretched to the
+// right plus the three trade levels it implies.
 if barstate.islast
-    if not na(thresholdLine)
-        line.delete(thresholdLine)
-    if not na(thresholdLabel)
-        label.delete(thresholdLabel)
-    thresholdLine := na
-    thresholdLabel := na
+    if not na(obBox) and not na(obStartBar)
+        box.set_right(obBox, bar_index + rectExtend)
 
-    if showThreshold and not na(level)
-        thresholdLine := line.new(trendExtremeBar, level, bar_index + 10, level, xloc = xloc.bar_index, color = thresholdColor, style = thresholdStyle, width = thresholdWidth)
-        if showThresholdLabel
-            txt = 'Overbalance ' + fmtSize(refRange, level) + (useTime and not na(refBars) ? ' / ' + str.tostring(refBars) + ' bars' : '')
-            thresholdLabel := label.new(bar_index + 10, level, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = thresholdColor, size = textSize)
+    if not na(entryLine)
+        line.delete(entryLine)
+    if not na(stopLine)
+        line.delete(stopLine)
+    if not na(targetLine)
+        line.delete(targetLine)
+    if not na(entryLabel)
+        label.delete(entryLabel)
+    entryLine := na
+    stopLine := na
+    targetLine := na
+    entryLabel := na
 
-    // The grid: rectangles one reference overbalance tall, stacked from the
-    // trend extreme in the direction a break would travel. Step 1 is the break
-    // zone - its far edge is the threshold line above.
-    while array.size(gridBoxes) > 0
-        box.delete(array.pop(gridBoxes))
-    while array.size(gridLabels) > 0
-        label.delete(array.pop(gridLabels))
+    if not na(entry) and not na(obStartBar)
+        right = bar_index + levelExtend
 
-    if showGrid and not na(refRange) and not na(trendExtreme) and trend != 0 and refRange > 0
-        // Which step away from the extreme price sits in - step 1 is the one
-        // touching the extreme. Price beyond the drawn grid highlights nothing.
-        travelled = trend == 1 ? trendExtreme - close : close - trendExtreme
-        priceStep = math.max(1, math.ceil(travelled / refRange))
+        if showEntry
+            entryLine := line.new(obStartBar, entry, right, entry, xloc = xloc.bar_index, color = entryColor, style = line.style_solid, width = 2)
+        if showStop
+            stopLine := line.new(obStartBar, stop, right, stop, xloc = xloc.bar_index, color = stopColor, style = line.style_dashed)
+        if showTarget and not na(trendExtreme)
+            targetLine := line.new(obStartBar, trendExtreme, right, trendExtreme, xloc = xloc.bar_index, color = targetColor, style = line.style_dotted)
 
-        for step = 1 to gridCount
-            // Edges of this step, measured against the trend direction.
-            near = trend == 1 ? trendExtreme - refRange * (step - 1) : trendExtreme + refRange * (step - 1)
-            far = trend == 1 ? near - refRange : near + refRange
-            isPriceCell = highlightPriceCell and step == priceStep
-
-            array.push(gridBoxes, box.new(trendExtremeBar, math.max(near, far), bar_index + gridExtend, math.min(near, far), xloc = xloc.bar_index, bgcolor = isPriceCell ? priceCellColor : gridColor, border_color = isPriceCell ? priceCellBorderColor : gridBorderColor, border_style = isPriceCell ? line.style_solid : line.style_dotted, border_width = isPriceCell ? 2 : 1))
-
-            if showGridLabels
-                // The label sits at the far edge - the price that completes
-                // this many whole overbalances away from the extreme.
-                array.push(gridLabels, label.new(bar_index + gridExtend, far, str.tostring(step) + '× OB', xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = isPriceCell ? priceCellBorderColor : gridBorderColor, size = textSize))
+        if showRR and showEntry and not na(trendExtreme)
+            risk = math.abs(entry - stop)
+            reward = math.abs(trendExtreme - entry)
+            rr = risk > 0 ? reward / risk : na
+            txt = 'Entry ' + str.tostring(entry, format.mintick) + (na(rr) ? '' : '  R:R 1:' + str.tostring(rr, '0.0'))
+            entryLabel := label.new(right, entry, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = entryColor, size = textSize)
