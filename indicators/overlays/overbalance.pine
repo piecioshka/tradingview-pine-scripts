@@ -97,11 +97,6 @@ var label thresholdLabel = na
 fmtSize(float priceRange, float basePrice) =>
     labelUnitName == 'Percent' and basePrice != 0 ? str.tostring(priceRange / basePrice * 100, '0.00') + '%' : str.tostring(priceRange, format.mintick)
 
-// A correction is the leg running against the trend: inside an uptrend it is
-// the high -> low leg, inside a downtrend the low -> high one.
-isCorrectionLeg(bool endsAtHigh) =>
-    (trend == 1 and not endsAtHigh) or (trend == -1 and endsAtHigh)
-
 drawSignal(int barIdx, float price, bool bullish, float priceRange) =>
     col = bullish ? signalUpColor : signalDownColor
     if showSignal
@@ -118,54 +113,61 @@ drawSignal(int barIdx, float price, bool bullish, float priceRange) =>
         txt = (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(priceRange, price)
         label.new(barIdx, price, txt, xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
 
-// Registers one confirmed swing: draws the zigzag leg, measures the leg that
-// just closed and - when that leg was a correction - compares it with the
-// reference one.
-handleSwing(float price, bool isHigh) =>
-    swingBar = bar_index - rightBars
+// Registering a confirmed swing has to happen in global scope - Pine forbids
+// assigning to global variables inside a user-defined function, and every step
+// below moves the trend state forward. Both pivots can confirm on the same bar,
+// so the block runs once per pivot type, in sequence.
+//
+// swingPrice / swingIsHigh hold the swing being processed in this pass.
+float swingPrice = na
+bool swingIsHigh = false
+for pass = 0 to 1
+    swingPrice := pass == 0 ? pivotHigh : pivotLow
+    swingIsHigh := pass == 0
 
-    if not na(lastSwingPrice)
-        if showZigzag
-            line.new(lastSwingBar, lastSwingPrice, swingBar, price, xloc = xloc.bar_index, color = isHigh ? zigzagUpColor : zigzagDownColor, width = zigzagWidth)
+    if not na(swingPrice)
+        swingBar = bar_index - rightBars
 
-        legRange = math.abs(price - lastSwingPrice)
-        legBars = swingBar - lastSwingBar
+        if not na(lastSwingPrice)
+            if showZigzag
+                line.new(lastSwingBar, lastSwingPrice, swingBar, swingPrice, xloc = xloc.bar_index, color = swingIsHigh ? zigzagUpColor : zigzagDownColor, width = zigzagWidth)
 
-        if trend == 0
-            // First complete leg sets the initial direction.
-            trend := isHigh ? 1 : -1
-        else if isCorrectionLeg(isHigh)
-            if showBoxes
-                box.new(lastSwingBar, math.max(lastSwingPrice, price), swingBar, math.min(lastSwingPrice, price), xloc = xloc.bar_index, bgcolor = isHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor)
+            legRange = math.abs(swingPrice - lastSwingPrice)
+            legBars = swingBar - lastSwingBar
 
-            priceBroken = na(refRange) or legRange > refRange
-            timeBroken = na(refBars) or legBars > refBars
-            broken = useTime ? priceBroken and timeBroken : priceBroken
+            // A correction is the leg running against the trend: inside an
+            // uptrend the high -> low leg, inside a downtrend the low -> high one.
+            isCorrection = (trend == 1 and not swingIsHigh) or (trend == -1 and swingIsHigh)
 
-            if broken and not na(refRange)
-                // The correction outgrew the reference one - the trend flips
-                // and the new direction is the one the correction ran in.
-                drawSignal(swingBar, price, isHigh, legRange)
-                trend := isHigh ? 1 : -1
-                if resetOnBreak
-                    refRange := na
-                    refBars := na
+            if trend == 0
+                // First complete leg sets the initial direction.
+                trend := swingIsHigh ? 1 : -1
+            else if isCorrection
+                if showBoxes
+                    box.new(lastSwingBar, math.max(lastSwingPrice, swingPrice), swingBar, math.min(lastSwingPrice, swingPrice), xloc = xloc.bar_index, bgcolor = swingIsHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor)
+
+                priceBroken = na(refRange) or legRange > refRange
+                timeBroken = na(refBars) or legBars > refBars
+                broken = useTime ? priceBroken and timeBroken : priceBroken
+
+                if broken and not na(refRange)
+                    // The correction outgrew the reference one - the trend flips
+                    // and the new direction is the one the correction ran in.
+                    drawSignal(swingBar, swingPrice, swingIsHigh, legRange)
+                    trend := swingIsHigh ? 1 : -1
+                    if resetOnBreak
+                        refRange := na
+                        refBars := na
+                    else
+                        refRange := legRange
+                        refBars := legBars
                 else
-                    refRange := legRange
-                    refBars := legBars
-            else
-                refRange := useLargest and not na(refRange) ? math.max(refRange, legRange) : legRange
-                refBars := useLargest and not na(refBars) ? math.max(refBars, legBars) : legBars
+                    refRange := useLargest and not na(refRange) ? math.max(refRange, legRange) : legRange
+                    refBars := useLargest and not na(refBars) ? math.max(refBars, legBars) : legBars
 
-    lastSwingPrice := price
-    lastSwingBar := swingBar
-    lastSwingIsHigh := isHigh
-
-if not na(pivotHigh)
-    handleSwing(pivotHigh, true)
-
-if not na(pivotLow)
-    handleSwing(pivotLow, false)
+        lastSwingPrice := swingPrice
+        lastSwingBar := swingBar
+        lastSwingIsHigh := swingIsHigh
 
 // The threshold sits one reference range away from the swing the ongoing
 // correction started at - inside an uptrend below the last high, inside a
