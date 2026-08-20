@@ -20,6 +20,10 @@
 // on DAX as noise. Higher timeframes (H4, D1) are where the setups live.
 indicator('Overbalance', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
+// xloc.bar_index drawings must stay within roughly 10000 bars of the current
+// bar; a margin keeps the clamp safely inside that limit.
+MAX_BARS_BACK = 9000
+
 GRP_SWING = 'Swings'
 GRP_LOGIC = 'Overbalance'
 GRP_RECT = 'Overbalance rectangle'
@@ -250,13 +254,17 @@ if barstate.islast
 
     if not na(entry) and not na(obStartBar)
         right = bar_index + levelExtend
+        // xloc.bar_index reaches at most ~10000 bars back, and an overbalance
+        // that survived a long trend can sit further than that - clamp the
+        // left end instead of letting the drawing fail at runtime (RE10026).
+        left = math.max(obStartBar, bar_index - MAX_BARS_BACK)
 
         if showEntry
-            entryLine := line.new(obStartBar, entry, right, entry, xloc = xloc.bar_index, color = entryColor, style = line.style_solid, width = 2)
+            entryLine := line.new(left, entry, right, entry, xloc = xloc.bar_index, color = entryColor, style = line.style_solid, width = 2)
         if showStop
-            stopLine := line.new(obStartBar, stop, right, stop, xloc = xloc.bar_index, color = stopColor, style = line.style_dashed)
+            stopLine := line.new(left, stop, right, stop, xloc = xloc.bar_index, color = stopColor, style = line.style_dashed)
         if showTarget and not na(trendExtreme)
-            targetLine := line.new(obStartBar, trendExtreme, right, trendExtreme, xloc = xloc.bar_index, color = targetColor, style = line.style_dotted)
+            targetLine := line.new(left, trendExtreme, right, trendExtreme, xloc = xloc.bar_index, color = targetColor, style = line.style_dotted)
 
         if showRR and showEntry and not na(trendExtreme)
             risk = math.abs(entry - stop)
