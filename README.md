@@ -20,6 +20,7 @@
     - [Vertical Hour Lines](#vertical-hour-lines)
     - [Session Open Line](#session-open-line)
     - [Last Time at Price](#last-time-at-price)
+    - [Overbalance](#overbalance)
   - [Seasonality](#seasonality)
     - [Monthly Seasonality](#monthly-seasonality)
     - [Daily Seasonality](#daily-seasonality)
@@ -101,6 +102,10 @@ A horizontal line at the session open price, drawn from the first to the last ba
 A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
 
 ![Last Time at Price](screenshots/indicators/last-time-at-price.png)
+
+#### [Overbalance](indicators/overlays/overbalance.pine)
+
+Overbalance geometry - a trend is treated as broken once the current correction outgrows the reference one. Swings come from `ta.pivothigh` / `ta.pivotlow` (configurable left / right arms), every correction between consecutive swings gets a box (price range by duration), and a dashed threshold line marks the price at which the ongoing correction would match the reference. Two modes: "Price" compares the price range alone, "Price + Time" (Gann) requires the correction to exceed the reference in both range and bar count. The reference is either the largest correction so far in the trend or just the previous one, and the measurement can reset after each signal. Signal markers (shape, size, colors) plus a label with the size of the breaking correction in percent or points.
 
 ### Seasonality
 

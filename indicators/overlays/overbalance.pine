@@ -1,0 +1,189 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+// Draws overbalance geometry - the trend is considered broken when the current
+// correction grows larger than the largest correction seen so far in that
+// trend. Swings come from ta.pivothigh / ta.pivotlow, corrections are measured
+// between consecutive confirmed swings, and the running maximum feeds a
+// horizontal threshold line: the price at which the ongoing correction would
+// equal the largest one so far. Two modes - 'Price' compares the price range
+// only, 'Price + Time' (Gann) requires the correction to exceed the reference
+// one in both price range and bar count.
+indicator('Overbalance', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+
+GRP_SWING = 'Swings'
+GRP_LOGIC = 'Overbalance'
+GRP_ZIGZAG = 'Zigzag'
+GRP_THRESHOLD = 'Threshold level'
+GRP_BOXES = 'Correction boxes'
+GRP_SIGNAL = 'Signal'
+
+leftBars = input.int(5, 'Pivot left bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the left of a pivot that must be lower (for a high) or higher (for a low).')
+rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed only this many bars after it happened, so the whole geometry is delayed by the same amount.')
+
+modeName = input.string('Price', 'Mode', options = ['Price', 'Price + Time'], group = GRP_LOGIC, tooltip = 'Price: overbalance when the current correction exceeds the largest correction so far in price range. Price + Time (Gann): both the price range and the duration in bars must exceed the reference correction.')
+referenceName = input.string('Largest so far', 'Reference correction', options = ['Largest so far', 'Previous one'], group = GRP_LOGIC, tooltip = 'Largest so far: compare against the biggest correction since the trend started. Previous one: compare against the last completed correction only.')
+resetOnBreak = input.bool(true, 'Reset after overbalance', group = GRP_LOGIC, tooltip = 'On: after a signal the measurement starts over for the new trend direction. Off: the running maximum keeps growing across the whole chart.')
+
+showZigzag = input.bool(true, 'Show zigzag', group = GRP_ZIGZAG)
+zigzagUpColor = input.color(#26A69A, 'Up leg color', group = GRP_ZIGZAG)
+zigzagDownColor = input.color(#EF5350, 'Down leg color', group = GRP_ZIGZAG)
+zigzagWidth = input.int(2, 'Line width', minval = 1, maxval = 4, group = GRP_ZIGZAG)
+
+showThreshold = input.bool(true, 'Show threshold line', group = GRP_THRESHOLD, tooltip = 'A horizontal line at the price where the ongoing correction reaches the size of the reference one. Crossing it is the overbalance signal.')
+thresholdColor = input.color(#FF9800, 'Line color', group = GRP_THRESHOLD)
+thresholdStyleName = input.string('Dashed', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP_THRESHOLD)
+thresholdWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP_THRESHOLD)
+showThresholdLabel = input.bool(true, 'Show threshold value', group = GRP_THRESHOLD)
+
+showBoxes = input.bool(true, 'Show correction boxes', group = GRP_BOXES, tooltip = 'A rectangle over every completed correction - its height is the price range, its width the duration in bars.')
+boxUpColor = input.color(color.new(#26A69A, 85), 'Up correction color', group = GRP_BOXES, tooltip = 'Correction inside a downtrend - a bounce up.')
+boxDownColor = input.color(color.new(#EF5350, 85), 'Down correction color', group = GRP_BOXES, tooltip = 'Correction inside an uptrend - a pullback down.')
+boxBorderColor = input.color(color.new(color.gray, 60), 'Border color', group = GRP_BOXES)
+
+showSignal = input.bool(true, 'Show signal markers', group = GRP_SIGNAL)
+signalShapeName = input.string('Triangle', 'Marker shape', options = ['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group = GRP_SIGNAL)
+signalSizeName = input.string('Small', 'Marker size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
+signalUpColor = input.color(#26A69A, 'Bullish signal color', group = GRP_SIGNAL, tooltip = 'A downtrend broken to the upside.')
+signalDownColor = input.color(#EF5350, 'Bearish signal color', group = GRP_SIGNAL, tooltip = 'An uptrend broken to the downside.')
+showSignalLabel = input.bool(true, 'Show signal label', group = GRP_SIGNAL, tooltip = 'A label with the size of the correction that broke the trend.')
+labelUnitName = input.string('Percent', 'Label unit', options = ['Percent', 'Points'], group = GRP_SIGNAL)
+textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
+
+thresholdStyle = switch thresholdStyleName
+    'Dashed' => line.style_dashed
+    'Dotted' => line.style_dotted
+    => line.style_solid
+
+textSize = switch textSizeName
+    'Auto' => size.auto
+    'Tiny' => size.tiny
+    'Normal' => size.normal
+    'Large' => size.large
+    => size.small
+
+signalSize = switch signalSizeName
+    'Tiny' => size.tiny
+    'Normal' => size.normal
+    'Large' => size.large
+    => size.small
+
+useTime = modeName == 'Price + Time'
+useLargest = referenceName == 'Largest so far'
+
+// Confirmed swings. ta.pivothigh returns the pivot price rightBars after the
+// pivot bar, so every swing lands at bar_index - rightBars.
+pivotHigh = ta.pivothigh(high, leftBars, rightBars)
+pivotLow = ta.pivotlow(low, leftBars, rightBars)
+
+// Last confirmed swing - its price, bar and whether it was a high.
+var float lastSwingPrice = na
+var int lastSwingBar = na
+// Guarded by trend != 0 everywhere it is read - `na` here would make Pine
+// infer a "const bool" type that cannot be reassigned.
+var bool lastSwingIsHigh = false
+
+// Reference correction to compare against: price range and duration in bars.
+var float refRange = na
+var int refBars = na
+
+// Trend direction implied by the swing sequence: 1 up, -1 down, 0 unknown.
+var int trend = 0
+
+var line thresholdLine = na
+var label thresholdLabel = na
+
+fmtSize(float priceRange, float basePrice) =>
+    labelUnitName == 'Percent' and basePrice != 0 ? str.tostring(priceRange / basePrice * 100, '0.00') + '%' : str.tostring(priceRange, format.mintick)
+
+// A correction is the leg running against the trend: inside an uptrend it is
+// the high -> low leg, inside a downtrend the low -> high one.
+isCorrectionLeg(bool endsAtHigh) =>
+    (trend == 1 and not endsAtHigh) or (trend == -1 and endsAtHigh)
+
+drawSignal(int barIdx, float price, bool bullish, float priceRange) =>
+    col = bullish ? signalUpColor : signalDownColor
+    if showSignal
+        // label.new stands in for plotshape here - the signal is confirmed
+        // rightBars after the fact, so it cannot be plotted on the current bar.
+        labelStyle = switch signalShapeName
+            'Arrow' => bullish ? label.style_arrowup : label.style_arrowdown
+            'Label arrow' => bullish ? label.style_label_up : label.style_label_down
+            'Circle' => label.style_circle
+            'Diamond' => label.style_diamond
+            => bullish ? label.style_triangleup : label.style_triangledown
+        label.new(barIdx, price, '', xloc = xloc.bar_index, style = labelStyle, color = col, size = signalSize)
+    if showSignalLabel
+        txt = (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(priceRange, price)
+        label.new(barIdx, price, txt, xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
+
+// Registers one confirmed swing: draws the zigzag leg, measures the leg that
+// just closed and - when that leg was a correction - compares it with the
+// reference one.
+handleSwing(float price, bool isHigh) =>
+    swingBar = bar_index - rightBars
+
+    if not na(lastSwingPrice)
+        if showZigzag
+            line.new(lastSwingBar, lastSwingPrice, swingBar, price, xloc = xloc.bar_index, color = isHigh ? zigzagUpColor : zigzagDownColor, width = zigzagWidth)
+
+        legRange = math.abs(price - lastSwingPrice)
+        legBars = swingBar - lastSwingBar
+
+        if trend == 0
+            // First complete leg sets the initial direction.
+            trend := isHigh ? 1 : -1
+        else if isCorrectionLeg(isHigh)
+            if showBoxes
+                box.new(lastSwingBar, math.max(lastSwingPrice, price), swingBar, math.min(lastSwingPrice, price), xloc = xloc.bar_index, bgcolor = isHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor)
+
+            priceBroken = na(refRange) or legRange > refRange
+            timeBroken = na(refBars) or legBars > refBars
+            broken = useTime ? priceBroken and timeBroken : priceBroken
+
+            if broken and not na(refRange)
+                // The correction outgrew the reference one - the trend flips
+                // and the new direction is the one the correction ran in.
+                drawSignal(swingBar, price, isHigh, legRange)
+                trend := isHigh ? 1 : -1
+                if resetOnBreak
+                    refRange := na
+                    refBars := na
+                else
+                    refRange := legRange
+                    refBars := legBars
+            else
+                refRange := useLargest and not na(refRange) ? math.max(refRange, legRange) : legRange
+                refBars := useLargest and not na(refBars) ? math.max(refBars, legBars) : legBars
+
+    lastSwingPrice := price
+    lastSwingBar := swingBar
+    lastSwingIsHigh := isHigh
+
+if not na(pivotHigh)
+    handleSwing(pivotHigh, true)
+
+if not na(pivotLow)
+    handleSwing(pivotLow, false)
+
+// The threshold sits one reference range away from the swing the ongoing
+// correction started at - inside an uptrend below the last high, inside a
+// downtrend above the last low.
+if barstate.islast
+    if not na(thresholdLine)
+        line.delete(thresholdLine)
+    if not na(thresholdLabel)
+        label.delete(thresholdLabel)
+    thresholdLine := na
+    thresholdLabel := na
+
+    if showThreshold and not na(refRange) and not na(lastSwingPrice) and trend != 0
+        // The correction runs from the last swing that closed the impulse:
+        // the last high in an uptrend, the last low in a downtrend.
+        level = trend == 1 ? lastSwingPrice - refRange : lastSwingPrice + refRange
+        if (trend == 1 and lastSwingIsHigh) or (trend == -1 and not lastSwingIsHigh)
+            thresholdLine := line.new(lastSwingBar, level, bar_index + 10, level, xloc = xloc.bar_index, color = thresholdColor, style = thresholdStyle, width = thresholdWidth)
+            if showThresholdLabel
+                txt = 'Overbalance ' + fmtSize(refRange, lastSwingPrice) + (useTime and not na(refBars) ? ' / ' + str.tostring(refBars) + ' bars' : '')
+                thresholdLabel := label.new(bar_index + 10, level, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = thresholdColor, size = textSize)
