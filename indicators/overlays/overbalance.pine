@@ -2,14 +2,18 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-// Draws overbalance geometry - the trend is considered broken when the current
-// correction grows larger than the largest correction seen so far in that
-// trend. Swings come from ta.pivothigh / ta.pivotlow, corrections are measured
-// between consecutive confirmed swings, and the running maximum feeds a
-// horizontal threshold line: the price at which the ongoing correction would
-// equal the largest one so far. Two modes - 'Price' compares the price range
-// only, 'Price + Time' (Gann) requires the correction to exceed the reference
-// one in both price range and bar count.
+// Overbalance - market geometry popularized by Łukasz Stefanik. The largest
+// correction of the running trend becomes the reference: while every new
+// correction stays below it, the trend is healthy; the moment price travels
+// further than the reference away from the trend extreme, the trend is broken.
+//
+// Corrections are measured between confirmed swings (ta.pivothigh /
+// ta.pivotlow) and anything below the noise filter is skipped - the method
+// treats moves under 40 points on DAX as noise. The reference is always the
+// LARGEST correction of the trend, never the last one, and the threshold line
+// sits one reference away from the trend extreme, which is where the method
+// puts the stop loss. The break is detected intrabar, on the very bar that
+// crosses the level, not on the next confirmed swing.
 indicator('Overbalance', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 GRP_SWING = 'Swings'
@@ -20,35 +24,38 @@ GRP_BOXES = 'Correction boxes'
 GRP_SIGNAL = 'Signal'
 
 leftBars = input.int(5, 'Pivot left bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the left of a pivot that must be lower (for a high) or higher (for a low).')
-rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed only this many bars after it happened, so the whole geometry is delayed by the same amount.')
+rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed this many bars after it happened, so corrections enter the measurement with that delay. The break itself is detected intrabar and is not delayed.')
 
-modeName = input.string('Price', 'Mode', options = ['Price', 'Price + Time'], group = GRP_LOGIC, tooltip = 'Price: overbalance when the current correction exceeds the largest correction so far in price range. Price + Time (Gann): both the price range and the duration in bars must exceed the reference correction.')
-referenceName = input.string('Largest so far', 'Reference correction', options = ['Largest so far', 'Previous one'], group = GRP_LOGIC, tooltip = 'Largest so far: compare against the biggest correction since the trend started. Previous one: compare against the last completed correction only.')
-resetOnBreak = input.bool(true, 'Reset after overbalance', group = GRP_LOGIC, tooltip = 'On: after a signal the measurement starts over for the new trend direction. Off: the running maximum keeps growing across the whole chart.')
+minCorrection = input.float(40, 'Noise filter', minval = 0, step = 1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the reference. The method uses 40 points on DAX - recalibrate for any other instrument. Set 0 to measure every correction.')
+noiseUnitName = input.string('Points', 'Noise filter unit', options = ['Points', 'Percent', 'ATR'], group = GRP_LOGIC, tooltip = 'Points: absolute price distance (DAX points). Percent: share of the price. ATR: multiple of ATR(14), which adapts the filter to the volatility of any instrument.')
+modeName = input.string('Price', 'Mode', options = ['Price', 'Price + Time'], group = GRP_LOGIC, tooltip = 'Price: the method as described - only the size of the correction counts. Price + Time (Gann): a correction must also last longer than the reference one to replace it.')
+flipOnBreak = input.bool(true, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'On: a broken trend immediately becomes a trend in the opposite direction. Off: the trend goes undefined and waits for a fresh swing sequence - closer to the method, which says to close the position and only then look for a signal the other way.')
 
 showZigzag = input.bool(true, 'Show zigzag', group = GRP_ZIGZAG)
 zigzagUpColor = input.color(#26A69A, 'Up leg color', group = GRP_ZIGZAG)
 zigzagDownColor = input.color(#EF5350, 'Down leg color', group = GRP_ZIGZAG)
 zigzagWidth = input.int(2, 'Line width', minval = 1, maxval = 4, group = GRP_ZIGZAG)
 
-showThreshold = input.bool(true, 'Show threshold line', group = GRP_THRESHOLD, tooltip = 'A horizontal line at the price where the ongoing correction reaches the size of the reference one. Crossing it is the overbalance signal.')
+showThreshold = input.bool(true, 'Show threshold line', group = GRP_THRESHOLD, tooltip = 'A horizontal line one reference correction away from the trend extreme - the level that breaks the trend, and where the method puts the stop loss.')
 thresholdColor = input.color(#FF9800, 'Line color', group = GRP_THRESHOLD)
 thresholdStyleName = input.string('Dashed', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP_THRESHOLD)
 thresholdWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP_THRESHOLD)
 showThresholdLabel = input.bool(true, 'Show threshold value', group = GRP_THRESHOLD)
+showBrokenLevels = input.bool(true, 'Keep broken levels', group = GRP_THRESHOLD, tooltip = 'Leave the threshold line on the chart at the point where price broke it, instead of removing it together with the trend that owned it.')
 
-showBoxes = input.bool(true, 'Show correction boxes', group = GRP_BOXES, tooltip = 'A rectangle over every completed correction - its height is the price range, its width the duration in bars.')
+showBoxes = input.bool(true, 'Show correction boxes', group = GRP_BOXES, tooltip = 'A rectangle over every measured correction - its height is the size, its width the duration. Corrections filtered out as noise get no box.')
 boxUpColor = input.color(color.new(#26A69A, 85), 'Up correction color', group = GRP_BOXES, tooltip = 'Correction inside a downtrend - a bounce up.')
 boxDownColor = input.color(color.new(#EF5350, 85), 'Down correction color', group = GRP_BOXES, tooltip = 'Correction inside an uptrend - a pullback down.')
 boxBorderColor = input.color(color.new(color.gray, 60), 'Border color', group = GRP_BOXES)
+highlightReference = input.bool(true, 'Highlight the reference', group = GRP_BOXES, tooltip = 'Give the largest correction of the trend - the one acting as the reference - a solid, thicker border.')
 
 showSignal = input.bool(true, 'Show signal markers', group = GRP_SIGNAL)
 signalShapeName = input.string('Triangle', 'Marker shape', options = ['Triangle', 'Arrow', 'Label arrow', 'Circle', 'Diamond'], group = GRP_SIGNAL)
 signalSizeName = input.string('Small', 'Marker size', options = ['Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
 signalUpColor = input.color(#26A69A, 'Bullish signal color', group = GRP_SIGNAL, tooltip = 'A downtrend broken to the upside.')
 signalDownColor = input.color(#EF5350, 'Bearish signal color', group = GRP_SIGNAL, tooltip = 'An uptrend broken to the downside.')
-showSignalLabel = input.bool(true, 'Show signal label', group = GRP_SIGNAL, tooltip = 'A label with the size of the correction that broke the trend.')
-labelUnitName = input.string('Percent', 'Label unit', options = ['Percent', 'Points'], group = GRP_SIGNAL)
+showSignalLabel = input.bool(true, 'Show signal label', group = GRP_SIGNAL, tooltip = 'A label with the size of the reference correction that price broke through.')
+labelUnitName = input.string('Points', 'Label unit', options = ['Points', 'Percent'], group = GRP_SIGNAL)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP_SIGNAL)
 
 thresholdStyle = switch thresholdStyleName
@@ -70,7 +77,14 @@ signalSize = switch signalSizeName
     => size.small
 
 useTime = modeName == 'Price + Time'
-useLargest = referenceName == 'Largest so far'
+
+// The noise filter in price units. ATR keeps it proportional to the volatility
+// of whatever instrument the script runs on.
+atr = ta.atr(14)
+noiseFloor = switch noiseUnitName
+    'Percent' => close * minCorrection / 100
+    'ATR' => atr * minCorrection
+    => minCorrection
 
 // Confirmed swings. ta.pivothigh returns the pivot price rightBars after the
 // pivot bar, so every swing lands at bar_index - rightBars.
@@ -84,9 +98,17 @@ var int lastSwingBar = na
 // infer a "const bool" type that cannot be reassigned.
 var bool lastSwingIsHigh = false
 
-// Reference correction to compare against: price range and duration in bars.
+// The reference: the largest correction of the running trend, never the last
+// one. refBars carries its duration for the Price + Time mode.
 var float refRange = na
 var int refBars = na
+var box refBox = na
+
+// The extreme of the running trend - the high of an uptrend, the low of a
+// downtrend. The threshold is measured from here, so it has to track price
+// beyond the last confirmed swing.
+var float trendExtreme = na
+var int trendExtremeBar = na
 
 // Trend direction implied by the swing sequence: 1 up, -1 down, 0 unknown.
 var int trend = 0
@@ -97,28 +119,9 @@ var label thresholdLabel = na
 fmtSize(float priceRange, float basePrice) =>
     labelUnitName == 'Percent' and basePrice != 0 ? str.tostring(priceRange / basePrice * 100, '0.00') + '%' : str.tostring(priceRange, format.mintick)
 
-drawSignal(int barIdx, float price, bool bullish, float priceRange) =>
-    col = bullish ? signalUpColor : signalDownColor
-    if showSignal
-        // label.new stands in for plotshape here - the signal is confirmed
-        // rightBars after the fact, so it cannot be plotted on the current bar.
-        labelStyle = switch signalShapeName
-            'Arrow' => bullish ? label.style_arrowup : label.style_arrowdown
-            'Label arrow' => bullish ? label.style_label_up : label.style_label_down
-            'Circle' => label.style_circle
-            'Diamond' => label.style_diamond
-            => bullish ? label.style_triangleup : label.style_triangledown
-        label.new(barIdx, price, '', xloc = xloc.bar_index, style = labelStyle, color = col, size = signalSize)
-    if showSignalLabel
-        txt = (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(priceRange, price)
-        label.new(barIdx, price, txt, xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
-
-// Registering a confirmed swing has to happen in global scope - Pine forbids
-// assigning to global variables inside a user-defined function, and every step
-// below moves the trend state forward. Both pivots can confirm on the same bar,
-// so the block runs once per pivot type, in sequence.
-//
-// swingPrice / swingIsHigh hold the swing being processed in this pass.
+// Registering a confirmed swing happens in global scope - Pine forbids
+// assigning to global variables inside a user-defined function. Both pivots
+// can confirm on the same bar, so the block runs once per pivot type.
 float swingPrice = na
 bool swingIsHigh = false
 for pass = 0 to 1
@@ -135,43 +138,113 @@ for pass = 0 to 1
             legRange = math.abs(swingPrice - lastSwingPrice)
             legBars = swingBar - lastSwingBar
 
-            // A correction is the leg running against the trend: inside an
-            // uptrend the high -> low leg, inside a downtrend the low -> high one.
+            // A correction runs against the trend: inside an uptrend the
+            // high -> low leg, inside a downtrend the low -> high one.
             isCorrection = (trend == 1 and not swingIsHigh) or (trend == -1 and swingIsHigh)
 
             if trend == 0
-                // First complete leg sets the initial direction.
-                trend := swingIsHigh ? 1 : -1
-            else if isCorrection
-                if showBoxes
-                    box.new(lastSwingBar, math.max(lastSwingPrice, swingPrice), swingBar, math.min(lastSwingPrice, swingPrice), xloc = xloc.bar_index, bgcolor = swingIsHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor)
-
-                priceBroken = na(refRange) or legRange > refRange
-                timeBroken = na(refBars) or legBars > refBars
-                broken = useTime ? priceBroken and timeBroken : priceBroken
-
-                if broken and not na(refRange)
-                    // The correction outgrew the reference one - the trend flips
-                    // and the new direction is the one the correction ran in.
-                    drawSignal(swingBar, swingPrice, swingIsHigh, legRange)
+                // No trend yet - the first leg clearing the noise filter sets
+                // the direction and seeds the extreme.
+                if legRange >= noiseFloor
                     trend := swingIsHigh ? 1 : -1
-                    if resetOnBreak
-                        refRange := na
-                        refBars := na
-                    else
-                        refRange := legRange
-                        refBars := legBars
-                else
-                    refRange := useLargest and not na(refRange) ? math.max(refRange, legRange) : legRange
-                    refBars := useLargest and not na(refBars) ? math.max(refBars, legBars) : legBars
+                    trendExtreme := swingPrice
+                    trendExtremeBar := swingBar
+            else if isCorrection and legRange >= noiseFloor
+                // A correction worth measuring. It cannot break the trend here
+                // - that is detected intrabar below - so the only job left is
+                // promoting it to the reference when it is the largest so far.
+                newBox = showBoxes ? box.new(lastSwingBar, math.max(lastSwingPrice, swingPrice), swingBar, math.min(lastSwingPrice, swingPrice), xloc = xloc.bar_index, bgcolor = swingIsHigh ? boxUpColor : boxDownColor, border_color = boxBorderColor, border_style = line.style_dotted) : na
+
+                priceLarger = na(refRange) or legRange > refRange
+                timeLarger = na(refBars) or legBars > refBars
+                larger = useTime ? priceLarger and timeLarger : priceLarger
+
+                if larger
+                    refRange := legRange
+                    refBars := legBars
+                    if highlightReference
+                        if not na(refBox)
+                            box.set_border_style(refBox, line.style_dotted)
+                            box.set_border_width(refBox, 1)
+                        if not na(newBox)
+                            box.set_border_style(newBox, line.style_solid)
+                            box.set_border_width(newBox, 2)
+                    refBox := newBox
+            else if not isCorrection
+                // An impulse leg - it may push the trend extreme further out.
+                if trend == 1 and swingIsHigh and (na(trendExtreme) or swingPrice > trendExtreme)
+                    trendExtreme := swingPrice
+                    trendExtremeBar := swingBar
+                if trend == -1 and not swingIsHigh and (na(trendExtreme) or swingPrice < trendExtreme)
+                    trendExtreme := swingPrice
+                    trendExtremeBar := swingBar
 
         lastSwingPrice := swingPrice
         lastSwingBar := swingBar
         lastSwingIsHigh := swingIsHigh
 
-// The threshold sits one reference range away from the swing the ongoing
-// correction started at - inside an uptrend below the last high, inside a
-// downtrend above the last low.
+// Price runs ahead of the confirmed swings, so the trend extreme tracks it bar
+// by bar - otherwise the threshold would trail a stale high.
+if trend == 1 and not na(trendExtreme) and high > trendExtreme
+    trendExtreme := high
+    trendExtremeBar := bar_index
+if trend == -1 and not na(trendExtreme) and low < trendExtreme
+    trendExtreme := low
+    trendExtremeBar := bar_index
+
+// The level that breaks the trend: one reference correction away from the
+// trend extreme. This is where the method puts the stop loss.
+level = na(refRange) or na(trendExtreme) or trend == 0 ? na : trend == 1 ? trendExtreme - refRange : trendExtreme + refRange
+
+// The break, checked on every bar - so the signal lands where the stop would
+// actually be hit, not on the next confirmed swing.
+broken = not na(level) and (trend == 1 ? low <= level : high >= level)
+
+if broken
+    bullish = trend == -1
+    col = bullish ? signalUpColor : signalDownColor
+
+    if showSignal
+        labelStyle = switch signalShapeName
+            'Arrow' => bullish ? label.style_arrowup : label.style_arrowdown
+            'Label arrow' => bullish ? label.style_label_up : label.style_label_down
+            'Circle' => label.style_circle
+            'Diamond' => label.style_diamond
+            => bullish ? label.style_triangleup : label.style_triangledown
+        label.new(bar_index, level, '', xloc = xloc.bar_index, style = labelStyle, color = col, size = signalSize)
+
+    if showSignalLabel
+        label.new(bar_index, level, (bullish ? 'OB ▲ ' : 'OB ▼ ') + fmtSize(refRange, level), xloc = xloc.bar_index, style = bullish ? label.style_label_up : label.style_label_down, color = color.new(color.black, 100), textcolor = col, size = textSize)
+
+    // Freeze the broken level on the chart before the state resets.
+    if showBrokenLevels and not na(thresholdLine)
+        line.set_x2(thresholdLine, bar_index)
+        thresholdLine := na
+    if not na(thresholdLabel)
+        label.delete(thresholdLabel)
+        thresholdLabel := na
+
+    // The reference belonged to the trend that just died.
+    refRange := na
+    refBars := na
+    refBox := na
+
+    if flipOnBreak
+        // The new trend runs the way the breaking move went, and the level it
+        // broke through is its first extreme.
+        trend := -trend
+        trendExtreme := trend == 1 ? high : low
+        trendExtremeBar := bar_index
+    else
+        // Undefined until a fresh swing sequence sets a direction.
+        trend := 0
+        trendExtreme := na
+        trendExtremeBar := na
+
+alertcondition(broken, 'Overbalance broken', 'Overbalance level broken - the trend is no longer valid')
+
+// The live threshold - redrawn on the last bar so it always sits one reference
+// correction away from the current trend extreme.
 if barstate.islast
     if not na(thresholdLine)
         line.delete(thresholdLine)
@@ -180,12 +253,8 @@ if barstate.islast
     thresholdLine := na
     thresholdLabel := na
 
-    if showThreshold and not na(refRange) and not na(lastSwingPrice) and trend != 0
-        // The correction runs from the last swing that closed the impulse:
-        // the last high in an uptrend, the last low in a downtrend.
-        level = trend == 1 ? lastSwingPrice - refRange : lastSwingPrice + refRange
-        if (trend == 1 and lastSwingIsHigh) or (trend == -1 and not lastSwingIsHigh)
-            thresholdLine := line.new(lastSwingBar, level, bar_index + 10, level, xloc = xloc.bar_index, color = thresholdColor, style = thresholdStyle, width = thresholdWidth)
-            if showThresholdLabel
-                txt = 'Overbalance ' + fmtSize(refRange, lastSwingPrice) + (useTime and not na(refBars) ? ' / ' + str.tostring(refBars) + ' bars' : '')
-                thresholdLabel := label.new(bar_index + 10, level, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = thresholdColor, size = textSize)
+    if showThreshold and not na(level)
+        thresholdLine := line.new(trendExtremeBar, level, bar_index + 10, level, xloc = xloc.bar_index, color = thresholdColor, style = thresholdStyle, width = thresholdWidth)
+        if showThresholdLabel
+            txt = 'Overbalance ' + fmtSize(refRange, level) + (useTime and not na(refBars) ? ' / ' + str.tostring(refBars) + ' bars' : '')
+            thresholdLabel := label.new(bar_index + 10, level, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = thresholdColor, size = textSize)
