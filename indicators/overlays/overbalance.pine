@@ -30,8 +30,8 @@ GRP_SIGNAL = 'Signal'
 leftBars = input.int(5, 'Pivot left bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the left of a pivot that must be lower (for a high) or higher (for a low).')
 rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed this many bars after it happened, so a correction enters the measurement with that delay. The break itself is detected intrabar and is not delayed.')
 
-minCorrection = input.float(40, 'Noise filter', minval = 0, step = 1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the overbalance. The method uses 40 points on DAX - recalibrate for any other instrument. Set 0 to measure every correction.')
-noiseUnitName = input.string('Points', 'Noise filter unit', options = ['Points', 'Percent', 'ATR'], group = GRP_LOGIC, tooltip = 'Points: absolute price distance (DAX points). Percent: share of the price. ATR: multiple of ATR(14), which adapts the filter to the volatility of any instrument.')
+minCorrection = input.float(1, 'Noise filter', minval = 0, step = 0.1, group = GRP_LOGIC, tooltip = 'Corrections smaller than this never become the overbalance. Read together with the unit below: the default 1 ATR adapts to any instrument, while the method itself is calibrated as 40 POINTS on DAX - switch the unit to Points and set 40 to reproduce it exactly. Set 0 to measure every correction.')
+noiseUnitName = input.string('ATR', 'Noise filter unit', options = ['ATR', 'Points', 'Percent'], group = GRP_LOGIC, tooltip = 'ATR: multiple of ATR(14) - adapts to the volatility of any instrument, which is why it is the default. Points: absolute price distance, the unit the method is written in (40 on DAX) - a value calibrated for one instrument draws nothing on another. Percent: share of the price.')
 tolerancePct = input.float(33, 'Break tolerance (%)', minval = 0, maxval = 100, step = 1, group = GRP_LOGIC, tooltip = 'How far past the rectangle price must travel before the trend counts as permanently broken, as a share of the overbalance range. The method names 13%, 20% and 33% - the tighter the value, the more often you are stopped out and the better the reward to risk. 0 breaks the trend the moment price touches the edge.')
 useCloseForBreak = input.bool(false, 'Break on close only', group = GRP_LOGIC, tooltip = 'On: only a bar CLOSING beyond the tolerance breaks the trend - a wick through it is ignored. Off: any trade through the level counts, which is what a resting stop order would do.')
 flipOnBreak = input.bool(true, 'Flip trend after break', group = GRP_LOGIC, tooltip = 'On: a broken trend immediately becomes a trend in the opposite direction. Off: the trend goes undefined and waits for a fresh swing sequence - closer to the method, which says to close the position and only then look for a setup the other way.')
@@ -51,6 +51,8 @@ stopColor = input.color(#EF5350, 'Stop color', group = GRP_LEVELS)
 targetColor = input.color(#26A69A, 'Target color', group = GRP_LEVELS)
 showRR = input.bool(true, 'Show reward to risk', group = GRP_LEVELS, tooltip = 'Label the entry with the ratio between the distance to the target and the distance to the stop.')
 levelExtend = input.int(30, 'Extend right (bars)', minval = 0, group = GRP_LEVELS)
+
+showStatus = input.bool(true, 'Explain an empty chart', group = GRP_LOGIC, tooltip = 'When the indicator has nothing to draw, put a note in the corner saying why - almost always the noise filter is too large for this instrument, so no correction ever qualifies.')
 
 showZigzag = input.bool(false, 'Show zigzag', group = GRP_ZIGZAG, tooltip = 'The swing skeleton the corrections are measured on. Off by default - it is scaffolding, not part of the method.')
 zigzagUpColor = input.color(color.new(#26A69A, 40), 'Up leg color', group = GRP_ZIGZAG)
@@ -262,3 +264,12 @@ if barstate.islast
             rr = risk > 0 ? reward / risk : na
             txt = 'Entry ' + str.tostring(entry, format.mintick) + (na(rr) ? '' : '  R:R 1:' + str.tostring(rr, '0.0'))
             entryLabel := label.new(right, entry, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = entryColor, size = textSize)
+
+// An indicator that silently draws nothing is indistinguishable from a broken
+// one. When no overbalance has been found, say why - the noise filter being
+// calibrated for a different instrument is by far the most common reason.
+if barstate.islast and showStatus and na(obNear)
+    var table status = table.new(position.top_right, 1, 1, border_width = 1)
+    reason = trend == 0 ? 'no trend yet - no swing has cleared the noise filter' : 'no correction has cleared the noise filter yet'
+    hint = 'Overbalance: nothing to draw\n' + reason + '\nFilter = ' + str.tostring(noiseFloor, format.mintick) + ' (' + str.tostring(minCorrection) + ' ' + noiseUnitName + ')\nLower it, or switch the unit to ATR'
+    table.cell(status, 0, 0, hint, text_color = color.gray, text_size = size.small, text_halign = text.align_left)
