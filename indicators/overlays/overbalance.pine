@@ -30,6 +30,7 @@ GRP_RECT = 'Overbalance rectangle'
 GRP_LEVELS = 'Trade levels'
 GRP_ZIGZAG = 'Zigzag'
 GRP_SIGNAL = 'Signal'
+GRP_PANEL = 'Diagnostics'
 
 leftBars = input.int(5, 'Pivot left bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the left of a pivot that must be lower (for a high) or higher (for a low).')
 rightBars = input.int(5, 'Pivot right bars', minval = 1, group = GRP_SWING, tooltip = 'Bars to the right of a pivot. A swing is confirmed this many bars after it happened, so a correction enters the measurement with that delay. The break itself is detected intrabar and is not delayed.')
@@ -56,7 +57,10 @@ targetColor = input.color(#26A69A, 'Target color', group = GRP_LEVELS)
 showRR = input.bool(true, 'Show reward to risk', group = GRP_LEVELS, tooltip = 'Label the entry with the ratio between the distance to the target and the distance to the stop.')
 levelExtend = input.int(30, 'Extend right (bars)', minval = 0, group = GRP_LEVELS)
 
-showStatus = input.bool(true, 'Explain an empty chart', group = GRP_LOGIC, tooltip = 'When the indicator has nothing to draw, put a note in the corner saying why - almost always the noise filter is too large for this instrument, so no correction ever qualifies.')
+panelModeName = input.string('When empty', 'Diagnostics panel', options = ['Off', 'When empty', 'Always'], group = GRP_PANEL, tooltip = 'Off: never show it. When empty: only when the indicator has nothing to draw, explaining why - almost always a noise filter calibrated for a different instrument. Always: keep the panel up, showing the live state of the measurement.')
+panelPositionName = input.string('Top right', 'Panel position', options = ['Top right', 'Top left', 'Bottom right', 'Bottom left', 'Middle right'], group = GRP_PANEL)
+panelTextColor = input.color(color.new(color.gray, 0), 'Panel text color', group = GRP_PANEL)
+panelBgColor = input.color(color.new(color.black, 70), 'Panel background', group = GRP_PANEL)
 
 showZigzag = input.bool(false, 'Show zigzag', group = GRP_ZIGZAG, tooltip = 'The swing skeleton the corrections are measured on. Off by default - it is scaffolding, not part of the method.')
 zigzagUpColor = input.color(color.new(#26A69A, 40), 'Up leg color', group = GRP_ZIGZAG)
@@ -109,6 +113,15 @@ var int trendExtremeBar = na
 // Trend direction: 1 up, -1 down, 0 unknown.
 var int trend = 0
 
+// Diagnostics: what the measurement rejected and why. The largest rejected
+// correction is the single most telling number - when it sits just under the
+// filter, the filter is calibrated for a different instrument.
+var int swingCount = 0
+var int rejectedCount = 0
+var float largestRejected = na
+var int obUpdates = 0
+var int breakCount = 0
+
 var line entryLine = na
 var line stopLine = na
 var line targetLine = na
@@ -129,6 +142,8 @@ for pass = 0 to 1
     if not na(swingPrice)
         swingBar = bar_index - rightBars
 
+        swingCount := swingCount + 1
+
         if not na(lastSwingPrice)
             if showZigzag
                 line.new(lastSwingBar, lastSwingPrice, swingBar, swingPrice, xloc = xloc.bar_index, color = swingIsHigh ? zigzagUpColor : zigzagDownColor, width = zigzagWidth)
@@ -139,6 +154,13 @@ for pass = 0 to 1
             // high -> low leg, inside a downtrend the low -> high one. Only
             // corrections are ever compared - never an impulse to a correction.
             isCorrection = (trend == 1 and not swingIsHigh) or (trend == -1 and swingIsHigh)
+
+            // Every leg that fails the filter is worth counting - it is the
+            // evidence that tells a badly calibrated filter from a quiet market.
+            if legRange < noiseFloor
+                rejectedCount := rejectedCount + 1
+                if na(largestRejected) or legRange > largestRejected
+                    largestRejected := legRange
 
             if trend == 0
                 if legRange >= noiseFloor
@@ -151,6 +173,7 @@ for pass = 0 to 1
                 currentOb = na(obNear) or na(obFar) ? na : math.abs(obNear - obFar)
 
                 if na(currentOb) or legRange > currentOb
+                    obUpdates := obUpdates + 1
                     obNear := lastSwingPrice
                     obFar := swingPrice
                     obStartBar := lastSwingBar
@@ -199,6 +222,7 @@ breakPrice = useCloseForBreak ? close : trend == 1 ? low : high
 broken = not na(stop) and (trend == 1 ? breakPrice <= stop : breakPrice >= stop)
 
 if broken
+    breakCount := breakCount + 1
     bullish = trend == -1
     col = bullish ? signalUpColor : signalDownColor
 
@@ -274,10 +298,49 @@ if barstate.islast
             entryLabel := label.new(right, entry, txt, xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = entryColor, size = textSize)
 
 // An indicator that silently draws nothing is indistinguishable from a broken
-// one. When no overbalance has been found, say why - the noise filter being
-// calibrated for a different instrument is by far the most common reason.
-if barstate.islast and showStatus and na(obNear)
-    var table status = table.new(position.top_right, 1, 1, border_width = 1)
-    reason = trend == 0 ? 'no trend yet - no swing has cleared the noise filter' : 'no correction has cleared the noise filter yet'
-    hint = 'Overbalance: nothing to draw\n' + reason + '\nFilter = ' + str.tostring(noiseFloor, format.mintick) + ' (' + str.tostring(minCorrection) + ' ' + noiseUnitName + ')\nLower it, or switch the unit to ATR'
-    table.cell(status, 0, 0, hint, text_color = color.gray, text_size = size.small, text_halign = text.align_left)
+// one. The panel reports what the measurement is doing: how many swings it
+// saw, how many corrections the noise filter rejected and - the telling one -
+// how large the largest rejected correction was. A filter calibrated for
+// another instrument shows up immediately as "rejected 40, largest 2.1"
+// against a filter of 40.
+panelPosition = switch panelPositionName
+    'Top left' => position.top_left
+    'Bottom right' => position.bottom_right
+    'Bottom left' => position.bottom_left
+    'Middle right' => position.middle_right
+    => position.top_right
+
+panelWanted = panelModeName == 'Always' or (panelModeName == 'When empty' and na(obNear))
+
+if barstate.islast and panelWanted
+    var table panel = table.new(panelPosition, 2, 9, border_width = 1)
+    table.clear(panel, 0, 0, 1, 8)
+
+    trendText = trend == 1 ? 'up' : trend == -1 ? 'down' : 'undefined'
+    obText = na(obNear) or na(obFar) ? '-' : str.tostring(math.abs(obNear - obFar), format.mintick)
+    entryText = na(entry) ? '-' : str.tostring(entry, format.mintick)
+    stopText = na(stop) ? '-' : str.tostring(stop, format.mintick)
+    targetText = na(trendExtreme) ? '-' : str.tostring(trendExtreme, format.mintick)
+    rejectedText = str.tostring(rejectedCount) + (na(largestRejected) ? '' : ' (max ' + str.tostring(largestRejected, format.mintick) + ')')
+
+    table.cell(panel, 0, 0, 'Overbalance', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 0, 'diagnostics', text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 1, 'Trend', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 1, trendText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 2, 'Filter', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 2, str.tostring(noiseFloor, format.mintick) + '  [' + str.tostring(minCorrection) + ' ' + noiseUnitName + ']', text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 3, 'Swings seen', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 3, str.tostring(swingCount), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 4, 'Legs rejected', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 4, rejectedText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 5, 'Overbalance', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 5, obText + (obUpdates > 0 ? '  (' + str.tostring(obUpdates) + '×)' : ''), text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 6, 'Entry / Stop', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 6, entryText + ' / ' + stopText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+    table.cell(panel, 0, 7, 'Breaks / Target', text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.cell(panel, 1, 7, str.tostring(breakCount) + ' / ' + targetText, text_color = panelTextColor, text_size = size.small, text_halign = text.align_right, bgcolor = panelBgColor)
+
+    // The bottom row carries the verdict - what to do about an empty chart.
+    verdict = not na(obNear) ? 'measuring' : swingCount < 2 ? 'not enough swings yet - widen the chart history' : rejectedCount > 0 and not na(largestRejected) ? 'filter too large - largest leg was ' + str.tostring(largestRejected, format.mintick) : trend == 0 ? 'no trend defined yet' : 'no correction has qualified yet'
+    table.cell(panel, 0, 8, verdict, text_color = panelTextColor, text_size = size.small, text_halign = text.align_left, bgcolor = panelBgColor)
+    table.merge_cells(panel, 0, 8, 1, 8)
