@@ -22,8 +22,8 @@ lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP)
 pctPositionName = input.string('Behind the line', 'Percent position', options = ['Above the line', 'Behind the line'], group = GRP, tooltip = 'Above the line: the value sits over the end of the session open line. Behind the line: the value sits at the open price level, right of the line end, as if continuing it. The choice applies to both completed and ongoing sessions.')
 showBg = input.bool(false, 'Highlight the whole session', group = GRP, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
-bgUpColor = input.color(color.new(#26A69A, 85), 'Highlight up color', group = GRP)
-bgDownColor = input.color(color.new(#EF5350, 85), 'Highlight down color', group = GRP)
+bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GRP)
+bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP)
 showLive = input.bool(true, 'Show percent during session', group = 'General', tooltip = 'On: during the ongoing session the value follows the end of the line and updates on every bar. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
