@@ -12,7 +12,7 @@
 // shaded with the same color. Works on intraday timeframes
 // — on D and above every bar is its own session, so the indicator only shows
 // a hint.
-indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500)
+indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 GRP = 'Appearance'
 upColor = input.color(#26A69A, 'Up color', group = GRP)
@@ -21,8 +21,9 @@ lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed'
 lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP)
 pctPositionName = input.string('Behind the line', 'Percent position', options = ['Above the line', 'Behind the line'], group = GRP, tooltip = 'Above the line: the value sits over the end of the session open line. Behind the line: the value sits at the open price level, right of the line end, as if continuing it. The choice applies to both completed and ongoing sessions.')
-showBg = input.bool(false, 'Highlight the whole session', group = GRP, tooltip = 'Fills the entire session with the line color - green when price is above the session open, red when below.')
-bgTransp = input.int(50, 'Highlight transparency', minval = 0, maxval = 100, group = GRP, tooltip = '0 - solid color, 100 - fully transparent.')
+showBg = input.bool(false, 'Highlight the whole session', group = GRP, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
+bgUpColor = input.color(color.new(#26A69A, 85), 'Highlight up color', group = GRP)
+bgDownColor = input.color(color.new(#EF5350, 85), 'Highlight down color', group = GRP)
 showLive = input.bool(true, 'Show percent during session', group = 'General', tooltip = 'On: during the ongoing session the value follows the end of the line and updates on every bar. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
@@ -51,14 +52,19 @@ fmtPct(float pct) =>
 newLabel(int x, float y, float pct, string sizeName, string labelStyle) =>
     label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = labelStyle, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
 
+// Vertical bounds of the session highlight - far beyond any realistic price,
+// so the box always covers the full height of the pane.
+BG_TOP = 1e17
+BG_BOTTOM = -1e17
+
 // time('D') changes on the first bar of the trading day, so it also works
 // for sessions crossing midnight (e.g. futures).
 newSession = timeframe.change('D')
 
 var line ln = na
 var label lb = na
+var box bg = na
 var float sessionOpen = na
-color bgColor = na
 
 if timeframe.isintraday
     if newSession or barstate.isfirst
@@ -70,15 +76,21 @@ if timeframe.isintraday
         sessionOpen := open
         ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
         lb := na
+        // One box per session instead of bgcolor(), which paints a single bar
+        // and cannot be repainted later - a box spans the whole session and
+        // keeps one color, corrected on every bar of that session. The huge
+        // top/bottom values make it cover the full height of the pane; box
+        // 'extend' works on the time axis, so it is not usable for that.
+        bg := showBg ? box.new(bar_index, BG_TOP, bar_index, BG_BOTTOM, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
 
     if not na(ln)
         pct = (close - sessionOpen) / sessionOpen * 100
         col = pct >= 0 ? upColor : downColor
         line.set_x2(ln, bar_index)
         line.set_color(ln, col)
-        // The shade follows the current sign, so the whole session repaints as
-        // the price crosses the session open.
-        bgColor := showBg ? color.new(col, bgTransp) : na
+        if not na(bg)
+            box.set_right(bg, bar_index)
+            box.set_bgcolor(bg, pct >= 0 ? bgUpColor : bgDownColor)
         if showLive or session.islastbar
             if na(lb)
                 lb := newLabel(bar_index, sessionOpen, pct, textSize, pctStyle)
@@ -91,7 +103,3 @@ else
     if barstate.islast
         var table hint = table.new(position.top_right, 1, 1)
         table.cell(hint, 0, 0, 'Session Open Line: the indicator works on intraday timeframes', text_color = color.gray, text_size = size.small)
-
-// bgcolor() must run on every bar at the top level, so the fill is computed
-// inside the session logic and applied here.
-bgcolor(bgColor, title = 'Session highlight')
