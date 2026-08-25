@@ -26,7 +26,7 @@ For every trading session the script anchors a line at the session's opening pri
 - The line sits at the **open of the first bar of the session** and never moves vertically.
 - Its right end follows the current bar until the session ends.
 - The **color of the line depends on the sign of the change**: up color when `close >= session open`, down color otherwise. It is re-evaluated on every bar, so a session that flips from green to red repaints the whole line.
-- Optionally the whole session is **shaded** in the same up/down color.
+- The whole session is **shaded** in the same up/down color (on by default, can be turned off).
 
 ### Session detection
 
@@ -69,7 +69,10 @@ During the ongoing session the label follows the end of the line and updates on 
 - **Line width** _(default 1)_ - range `1`-`4`.
 - **Text size** _(default Small)_ - Auto / Tiny / Small / Normal / Large.
 - **Percent position** _(default Behind the line)_ - Above the line / Below the line / Behind the line, described above.
-- **Highlight the whole session** _(default off)_ - fills the entire session with a single color, decided by where the price stands against the session open.
+
+### Session highlight
+
+- **Highlight the whole session** _(default on)_ - fills the entire session with a single color, decided by where the price stands against the session open.
 - **Highlight up color** _(default `#26A69A` at 90% transparency)_.
 - **Highlight down color** _(default `#EF5350` at 90% transparency)_.
 

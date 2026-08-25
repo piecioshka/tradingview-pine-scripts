@@ -10,9 +10,9 @@
 // or behind its end - and the choice applies consistently to completed
 // sessions and to the ongoing one. During the ongoing session the value
 // updates on every bar. Line and label colors depend on the sign of the
-// change, and the whole session can be shaded with the same color. Works on
-// intraday timeframes - on D and above every bar is its own session, so the
-// indicator only shows a hint.
+// change, and the whole session is shaded with the same color (can be turned
+// off). Works on intraday timeframes - on D and above every bar is its own
+// session, so the indicator only shows a hint.
 indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 GRP = 'Appearance'
@@ -22,9 +22,10 @@ lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed'
 lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP)
 pctPositionName = input.string('Behind the line', 'Percent position', options = ['Above the line', 'Below the line', 'Behind the line'], group = GRP, tooltip = 'Above the line: the value sits over the end of the session open line. Below the line: the value hangs under the end of the line. Behind the line: the value sits at the open price level, right of the line end, as if continuing it. The choice applies to both completed and ongoing sessions.')
-showBg = input.bool(false, 'Highlight the whole session', group = GRP, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
-bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GRP)
-bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP)
+GRP_BG = 'Session highlight'
+showBg = input.bool(true, 'Highlight the whole session', group = GRP_BG, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
+bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GRP_BG)
+bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP_BG)
 showPct = input.bool(true, 'Show percent change', group = 'General', tooltip = 'Shows the session change as a percent of the session open, e.g. +0.84%.')
 showAbs = input.bool(false, 'Show change in instrument currency', group = 'General', tooltip = 'Shows the session change as a price difference (close minus session open) in the currency of the instrument, e.g. +12.50 USD. With both checkboxes on the label reads +0.84% (+12.50 USD).')
 
