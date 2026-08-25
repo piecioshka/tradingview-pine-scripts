@@ -1,6 +1,6 @@
 # Session Open Line
 
-A price overlay for TradingView (Pine Script v6). A horizontal line at the **session open price**, drawn from the first to the last bar of that session, with a label carrying the **percent price change during the session** (close vs session open).
+A price overlay for TradingView (Pine Script v6). A horizontal line at the **session open price**, drawn from the first to the last bar of that session, with a label carrying the **price change during the session** (close vs session open) - as a percent, as a difference in the instrument currency, or both.
 
 File: [`session-open-line.pine`](./session-open-line.pine)
 
@@ -38,16 +38,21 @@ The session highlight is drawn as one **box per session** rather than `bgcolor()
 
 ---
 
-## 🏷️ The percent label
+## 🏷️ The change label
 
-The label shows the change formatted as `+0.84%` / `-1.12%` (always signed, two decimals), colored by the sign, on a fully transparent background.
+The label is colored by the sign of the change and sits on a fully transparent background. Two checkboxes decide what it carries:
+
+- **Show percent change** _(default on)_ - the change as a percent of the session open, formatted as `+0.84%` / `-1.12%` (always signed, two decimals).
+- **Show change in instrument currency** _(default off)_ - the change as a price difference (`close - session open`), formatted with the symbol's tick precision (`format.mintick`) and suffixed with `syminfo.currency`, e.g. `+12.50 USD`. For symbols without a quote currency the suffix is omitted.
+
+With both on the label reads `+0.84% (+12.50 USD)`; with both off no label is drawn at all - only the line (and the optional highlight) remains.
 
 **Percent position** decides where it sits, and the choice applies the same way to completed sessions and to the ongoing one:
 
 - **Behind the line** _(default)_ - anchored on its left edge (`label.style_label_left`), at the open price level, right of the line end, as if continuing the line.
 - **Above the line** - anchored at its bottom-right corner (`label.style_label_lower_right`), so the text sits over the end of the session open line and does not stick out past the session end.
 
-**Show percent during session** _(default on)_ decides the timing:
+**Show value during session** _(default on)_ decides the timing:
 
 - **On** - during the ongoing session the label follows the end of the line and updates on every bar.
 - **Off** - a single value appears only on the last bar of the session (`session.islastbar`).
@@ -72,7 +77,9 @@ There is also a repair path: if a session ends without `session.islastbar` ever 
 
 ### General
 
-- **Show percent during session** _(default on)_ - live updating vs a single value at the session close.
+- **Show percent change** _(default on)_ - percent of the session open in the label.
+- **Show change in instrument currency** _(default off)_ - price difference in the instrument currency in the label.
+- **Show value during session** _(default on)_ - live updating vs a single value at the session close.
 
 ---
 
@@ -80,7 +87,7 @@ There is also a repair path: if a session ends without `session.islastbar` ever 
 
 - **The session open is a reference level, not a signal.** Trading above it means buyers have controlled the session so far; below it, sellers have.
 - **Reclaims and rejections at the line** are the interesting part - price returning to the open and being pushed away often marks who is defending the day.
-- **The percent value** gives an instant sense of the session's magnitude without measuring anything by hand, and the sign color makes a flip visible at a glance.
+- **The label value** gives an instant sense of the session's magnitude without measuring anything by hand, and the sign color makes a flip visible at a glance. The percent is comparable across instruments; the currency difference maps directly to points or ticks on the symbol you trade.
 - **With the session highlight on**, a screen full of alternating green and red blocks makes runs of consecutive up or down sessions obvious.
 
 ---
@@ -89,7 +96,7 @@ There is also a repair path: if a session ends without `session.islastbar` ever 
 
 - **Intraday timeframes only.** On D and above every bar is its own session, so the script draws nothing and instead shows a hint table in the top-right corner: `Session Open Line: the indicator works on intraday timeframes`.
 - Drawing objects are capped at **500** lines, **500** labels, and **500** boxes - older sessions drop off the left side of the chart.
-- The percent is computed from `close` against the session open, so during the ongoing session the value moves with every tick and only becomes final at the session close.
+- Both values are computed from `close` against the session open, so during the ongoing session they move with every tick and only become final at the session close.
 - The indicator produces **no alerts**.
 
 ---

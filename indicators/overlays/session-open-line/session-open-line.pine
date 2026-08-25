@@ -2,15 +2,16 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-// Draws a horizontal line at the session open price — from the first to the
-// last bar of the session. A label shows the percent price change during the
-// session (close vs session open). The 'Percent position' input decides where
-// that label sits - above the session open line or behind its end - and the
-// choice applies consistently to completed sessions and to the ongoing one.
-// Optionally the ongoing (last) session updates the percent live. Line and
-// label colors depend on the sign of the change, and the whole session can be
-// shaded with the same color. Works on intraday timeframes
-// — on D and above every bar is its own session, so the indicator only shows
+// Draws a horizontal line at the session open price - from the first to the
+// last bar of the session. A label shows the price change during the session
+// (close vs session open) as a percent, as a difference in the instrument
+// currency, or both - each part has its own checkbox. The 'Percent position'
+// input decides where that label sits - above the session open line or behind
+// its end - and the choice applies consistently to completed sessions and to
+// the ongoing one. Optionally the ongoing (last) session updates the value
+// live. Line and label colors depend on the sign of the change, and the whole
+// session can be shaded with the same color. Works on intraday timeframes
+// - on D and above every bar is its own session, so the indicator only shows
 // a hint.
 indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
@@ -24,7 +25,9 @@ pctPositionName = input.string('Behind the line', 'Percent position', options = 
 showBg = input.bool(false, 'Highlight the whole session', group = GRP, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
 bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GRP)
 bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP)
-showLive = input.bool(true, 'Show percent during session', group = 'General', tooltip = 'On: during the ongoing session the value follows the end of the line and updates on every bar. Off: a single value appears only on the last bar of the session.')
+showPct = input.bool(true, 'Show percent change', group = 'General', tooltip = 'Shows the session change as a percent of the session open, e.g. +0.84%.')
+showAbs = input.bool(false, 'Show change in instrument currency', group = 'General', tooltip = 'Shows the session change as a price difference (close minus session open) in the currency of the instrument, e.g. +12.50 USD. With both checkboxes on the label reads +0.84% (+12.50 USD).')
+showLive = input.bool(true, 'Show value during session', group = 'General', tooltip = 'On: during the ongoing session the value follows the end of the line and updates on every bar. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
     'Dashed' => line.style_dashed
@@ -42,15 +45,29 @@ textSize = switch textSizeName
 // the ongoing one alike.
 pctStyle = pctPositionName == 'Behind the line' ? label.style_label_left : label.style_label_lower_right
 
+// Both checkboxes off means no label at all.
+showLabel = showPct or showAbs
+
+// syminfo.currency is empty for some symbols (e.g. indices without a quote
+// currency) - then the difference is shown as a bare number.
+currencySuffix = not na(syminfo.currency) and syminfo.currency != '' ? ' ' + syminfo.currency : ''
+
 fmtPct(float pct) =>
     (pct >= 0 ? '+' : '') + str.tostring(pct, '0.00') + '%'
+
+fmtAbs(float delta) =>
+    (delta >= 0 ? '+' : '') + str.tostring(delta, format.mintick) + currencySuffix
+
+// Percent first, the currency difference in parentheses - or either one alone.
+fmtChange(float delta, float pct) =>
+    showPct and showAbs ? fmtPct(pct) + ' (' + fmtAbs(delta) + ')' : showAbs ? fmtAbs(delta) : fmtPct(pct)
 
 // label_lower_right - anchor at the bottom-right corner, the text sits above
 // the line and does not stick out past the session end. label_left - anchor
 // on the left edge, the text sits at the open price level, to the right of
 // the line end, as if continuing the line.
-newLabel(int x, float y, float pct, string sizeName, string labelStyle) =>
-    label.new(x, y, fmtPct(pct), xloc = xloc.bar_index, style = labelStyle, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
+newLabel(int x, float y, float delta, float pct, string sizeName, string labelStyle) =>
+    label.new(x, y, fmtChange(delta, pct), xloc = xloc.bar_index, style = labelStyle, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
 
 // Vertical bounds of the session highlight - far beyond any realistic price,
 // so the box always covers the full height of the pane.
@@ -71,8 +88,9 @@ if timeframe.isintraday
         // The session ended but no label was created (session.islastbar did
         // not mark the last bar, e.g. on a shortened session) — add the
         // result now.
-        if not na(sessionOpen) and na(lb)
-            newLabel(bar_index - 1, sessionOpen, (close[1] - sessionOpen) / sessionOpen * 100, textSize, pctStyle)
+        if showLabel and not na(sessionOpen) and na(lb)
+            lastDelta = close[1] - sessionOpen
+            newLabel(bar_index - 1, sessionOpen, lastDelta, lastDelta / sessionOpen * 100, textSize, pctStyle)
         sessionOpen := open
         ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
         lb := na
@@ -84,19 +102,20 @@ if timeframe.isintraday
         bg := showBg ? box.new(bar_index, BG_TOP, bar_index, BG_BOTTOM, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
 
     if not na(ln)
-        pct = (close - sessionOpen) / sessionOpen * 100
+        delta = close - sessionOpen
+        pct = delta / sessionOpen * 100
         col = pct >= 0 ? upColor : downColor
         line.set_x2(ln, bar_index)
         line.set_color(ln, col)
         if not na(bg)
             box.set_right(bg, bar_index)
             box.set_bgcolor(bg, pct >= 0 ? bgUpColor : bgDownColor)
-        if showLive or session.islastbar
+        if showLabel and (showLive or session.islastbar)
             if na(lb)
-                lb := newLabel(bar_index, sessionOpen, pct, textSize, pctStyle)
+                lb := newLabel(bar_index, sessionOpen, delta, pct, textSize, pctStyle)
             else
                 label.set_x(lb, bar_index)
-                label.set_text(lb, fmtPct(pct))
+                label.set_text(lb, fmtChange(delta, pct))
                 label.set_textcolor(lb, col)
                 label.set_style(lb, pctStyle)
 else
