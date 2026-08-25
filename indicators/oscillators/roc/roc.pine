@@ -32,3 +32,7 @@ if showTrades and longTrade
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 if showTrades and sellTrade
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)
+
+// --- Alerts ---
+alertcondition(longTrade, 'ROC: cross up',   'ROC crossed zero up (momentum turned positive)')
+alertcondition(sellTrade, 'ROC: cross down', 'ROC crossed zero down (momentum turned negative)')

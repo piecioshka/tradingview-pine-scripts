@@ -40,3 +40,7 @@ if showTrades and longTrade
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize)
 if showTrades and sellTrade
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize)
+
+// --- Alerts ---
+alertcondition(longTrade, 'BB: below the lower band', 'Price closed below the lower Bollinger band (mean reversion long setup)')
+alertcondition(sellTrade, 'BB: above the upper band', 'Price closed above the upper Bollinger band (mean reversion short setup)')

@@ -39,16 +39,23 @@ histColor = histogram >= 0 ? histogram > histogram[1] ? color.new(color.green, 5
 plot(histogram, 'Histogram', color=histColor, linewidth=2, style=plot.style_columns)
 hline(0, 'Zero', color=color.gray, linestyle=hline.style_solid)
 
+crossUp = ta.crossover(aSeries, bSeries)
+crossDn = ta.crossunder(aSeries, bSeries)
+
 // Short crosses long UP (histogram goes above zero) -> bullish impulse -> BUY OPEN.
 // Marker below the candle (as in Accumulation / Distribution Density).
-if (ta.crossover(aSeries, bSeries))
+if (crossUp)
     line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.green, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 
 // Short crosses long DOWN (histogram goes below zero) -> bearish impulse -> BUY CLOSE.
 // Marker above the candle.
-if (ta.crossunder(aSeries, bSeries))
+if (crossDn)
     line.new(bar_index, histogram, bar_index, histogram, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.left)
     line.new(bar_index, high, bar_index, low, color=color.new(color.red, 70), style=line.style_dashed, extend=extend.right, force_overlay=true)
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)
+
+// --- Alerts ---
+alertcondition(crossUp, 'MA spread: cross up',   'The histogram crossed zero up - the short MA crossed the long one up (bullish impulse)')
+alertcondition(crossDn, 'MA spread: cross down', 'The histogram crossed zero down - the short MA crossed the long one down (bearish impulse)')

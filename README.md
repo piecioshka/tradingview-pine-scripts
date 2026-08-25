@@ -52,7 +52,7 @@ A single moving average - SMA / EMA / WMA / VWMA / RMA (default 50 EMA). Optiona
 
 > 📖 Full documentation: [2x MA](indicators/overlays/2x-ma/2x-ma.md)
 
-Two moving averages, each with a configurable type (default SMA 50 and 200). Optional labels with the length and type at the line ends, plus signal markers at the crosses (golden / death cross) - marker shape (triangle, arrow, label arrow, circle, diamond) and size are configurable.
+Two moving averages, each with a configurable type (default SMA 50 and 200). Optional labels with the length and type at the line ends, plus signal markers at the crosses (golden / death cross) - marker shape (triangle, arrow, label arrow, circle, diamond) and size are configurable, plus built-in alerts.
 
 ![2x MA](indicators/overlays/2x-ma/2x-ma.png)
 
@@ -76,7 +76,7 @@ Envelopes around a moving average - upper and lower percentage deviation (defaul
 
 > 📖 Full documentation: [Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.md)
 
-Bollinger Bands - SMA (default 20) ± a configurable number of standard deviations (default 2). Optional mean-reversion signal markers (configurable shape and size) when close crosses the lower / upper band.
+Bollinger Bands - SMA (default 20) ± a configurable number of standard deviations (default 2). Optional mean-reversion signal markers (configurable shape and size) when close crosses the lower / upper band, plus built-in alerts.
 
 ![Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.png)
 
@@ -92,7 +92,7 @@ Guppy Multiple Moving Average - two EMA groups: short-term (speculators) and lon
 
 > 📖 Full documentation: [Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.md)
 
-Golden Cross and Death Cross - crossings of a fast and a slow average (classically SMA 50 vs SMA 200). Each cross gets a vertical dashed line, a GOLDEN CROSS / DEATH CROSS label, and a marker with a configurable shape and size.
+Golden Cross and Death Cross - crossings of a fast and a slow average (classically SMA 50 vs SMA 200). Each cross gets a vertical dashed line, a GOLDEN CROSS / DEATH CROSS label, and a marker with a configurable shape and size, plus built-in alerts.
 
 ![Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.png)
 
@@ -160,7 +160,7 @@ Moving Average Convergence Divergence - the difference of a fast and a slow aver
 
 > 📖 Full documentation: [MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.md)
 
-A histogram showing the distance between two moving averages (short minus long), with markers on their crossovers.
+A histogram showing the distance between two moving averages (short minus long), with markers on their crossovers and built-in alerts.
 
 ![MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.png)
 
@@ -184,7 +184,7 @@ Relative Strength Index with configurable overbought/oversold levels (default 70
 
 > 📖 Full documentation: [ROC](indicators/oscillators/roc/roc.md)
 
-Rate of Change - the percentage price change over a given period. Optional signal markers (configurable shape and size) on the price panel at zero crosses.
+Rate of Change - the percentage price change over a given period. Optional signal markers (configurable shape and size) on the price panel at zero crosses, plus built-in alerts.
 
 ![ROC](indicators/oscillators/roc/roc.png)
 

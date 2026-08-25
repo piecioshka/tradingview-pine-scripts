@@ -55,6 +55,13 @@ Markers are drawn as labels rather than `plotshape()`, because `plotshape()` req
 
 ---
 
+## 🔔 Alerts
+
+- **BB: below the lower band** - price closed below the lower band (mean reversion long setup).
+- **BB: above the upper band** - price closed above the upper band (mean reversion short setup).
+
+---
+
 ## ⛔ Limitations
 
 - Markers are labels, so TradingView keeps only the most recent **500** (`max_labels_count=500`).

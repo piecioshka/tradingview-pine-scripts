@@ -65,3 +65,7 @@ if showTrades and crossUp
     label.new(bar_index, na, '', yloc=yloc.belowbar, style=upStyle, color=color.green, size=markerSize, force_overlay=true)
 if showTrades and crossDn
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize, force_overlay=true)
+
+// --- Alerts ---
+alertcondition(crossUp, 'MA: cross up',   'The short MA crossed the long one up (golden cross, bullish impulse)')
+alertcondition(crossDn, 'MA: cross down', 'The short MA crossed the long one down (death cross, bearish impulse)')

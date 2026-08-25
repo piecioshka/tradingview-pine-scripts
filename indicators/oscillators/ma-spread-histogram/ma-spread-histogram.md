@@ -69,11 +69,18 @@ The `50 / 200 SMA` defaults are the classic Golden / Death Cross pair, so out of
 
 ---
 
+## 🔔 Alerts
+
+- **MA spread: cross up** - the histogram crossed zero up (bullish impulse).
+- **MA spread: cross down** - the histogram crossed zero down (bearish impulse).
+
+---
+
 ## ⛔ Limitations
 
 - The spread is an **absolute price difference**, not a percentage - values are not comparable between instruments, or between the same instrument at very different price levels.
 - Long averages need history: with the default 200 the histogram is empty until 200 candles have loaded.
-- The script has **no alerts** and no toggle to hide the markers or the crossover lines.
+- There is no toggle to hide the markers or the crossover lines.
 - Markers are labels; TradingView keeps only the most recent **500** for this script, and lines have their own separate limit.
 - `VWMA` needs volume data; on instruments without volume it produces nothing usable.
 - Crossovers are evaluated on live values, so drawings on an unclosed candle can disappear before the close.

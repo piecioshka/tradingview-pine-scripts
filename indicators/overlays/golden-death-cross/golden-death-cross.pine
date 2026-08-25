@@ -42,3 +42,7 @@ if (deathCross)
     line.new(bar_index, high, bar_index, low, color=color.new(color.red, 50), style=line.style_dashed, extend=extend.both)
     label.new(bar_index, slowMA, 'DEATH CROSS', color=color.new(color.red, 30), textcolor=color.white, style=label.style_label_down, size=size.normal)
     label.new(bar_index, na, '', yloc=yloc.abovebar, style=downStyle, color=color.red, size=markerSize)
+
+// --- Alerts ---
+alertcondition(goldenCross, 'Golden cross', 'Golden cross - the fast SMA crossed the slow one up (bullish signal)')
+alertcondition(deathCross,  'Death cross',  'Death cross - the fast SMA crossed the slow one down (bearish signal)')

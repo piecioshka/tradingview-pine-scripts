@@ -62,10 +62,16 @@ The shape and size settings apply to the small candle marker. The `GOLDEN CROSS`
 
 ---
 
+## 🔔 Alerts
+
+- **Golden cross** - the fast SMA crossed the slow one up (bullish signal).
+- **Death cross** - the fast SMA crossed the slow one down (bearish signal).
+
+---
+
 ## ⛔ Limitations
 
 - Every cross draws **two labels plus a line**. Labels are capped by `max_labels_count=500`, so on a very long history with short lengths the oldest annotations get dropped; the line drawings have their own TradingView limit as well.
-- No `alertcondition()` in the script - crosses do not fire TradingView alerts on their own.
 - Only SMA is available; if you want EMA or another method on the crossing pair, use [2x MA](../2x-ma/2x-ma.md).
 - The extended dashed lines are visually heavy. On a chart with many historical crossings they will clutter the view.
 

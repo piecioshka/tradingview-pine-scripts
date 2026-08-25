@@ -53,11 +53,17 @@ The column height is the **actual percentage**, so the value is directly compara
 
 ---
 
+## 🔔 Alerts
+
+- **ROC: cross up** - ROC crossed zero up (momentum turned positive).
+- **ROC: cross down** - ROC crossed zero down (momentum turned negative).
+
+---
+
 ## ⛔ Limitations
 
 - **No smoothing at all.** In a choppy market the ROC crosses zero constantly, so the markers fire often; treat them as a momentum state change, not as trade signals on their own.
 - **Highly sensitive to the reference candle.** A single spike `Length` candles ago distorts every reading until it drops out of the window.
-- The script has **no alerts** - it draws only markers.
 - Markers are labels; TradingView keeps only the most recent **500** for this script.
 - Signals are evaluated on live values, so a marker on an unclosed candle can disappear before the close.
 

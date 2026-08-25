@@ -69,12 +69,18 @@ Whenever the short average crosses the long one, a marker is placed on the candl
 
 ---
 
+## 🔔 Alerts
+
+- **MA: cross up** - the short MA crossed the long one up (golden cross, bullish impulse).
+- **MA: cross down** - the short MA crossed the long one down (death cross, bearish impulse).
+
+---
+
 ## ⛔ Limitations
 
 - Markers are labels, and TradingView keeps at most **500** of them (the script sets `max_labels_count=500`). On a long history with a very fast pair of averages, the oldest markers get dropped.
 - Both averages are computed on `close`; there is no source input.
 - **VWMA** requires volume data - it is not usable on instruments without it (for example TVC CFDs).
-- The script has no `alertcondition()`, so crosses do not fire TradingView alerts on their own.
 
 ---
 
