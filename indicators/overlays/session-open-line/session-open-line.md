@@ -52,12 +52,7 @@ With both on the label reads `+0.84% (+12.50 USD)`; with both off no label is dr
 - **Behind the line** _(default)_ - anchored on its left edge (`label.style_label_left`), at the open price level, right of the line end, as if continuing the line.
 - **Above the line** - anchored at its bottom-right corner (`label.style_label_lower_right`), so the text sits over the end of the session open line and does not stick out past the session end.
 
-**Show value during session** _(default on)_ decides the timing:
-
-- **On** - during the ongoing session the label follows the end of the line and updates on every bar.
-- **Off** - a single value appears only on the last bar of the session (`session.islastbar`).
-
-There is also a repair path: if a session ends without `session.islastbar` ever marking its last bar (for example a shortened session), the script creates the missing label retroactively on the first bar of the next session, using the previous bar's close.
+During the ongoing session the label follows the end of the line and updates on every bar; once the session ends it stays at the last bar with the final value.
 
 ---
 
@@ -79,7 +74,6 @@ There is also a repair path: if a session ends without `session.islastbar` ever 
 
 - **Show percent change** _(default on)_ - percent of the session open in the label.
 - **Show change in instrument currency** _(default off)_ - price difference in the instrument currency in the label.
-- **Show value during session** _(default on)_ - live updating vs a single value at the session close.
 
 ---
 

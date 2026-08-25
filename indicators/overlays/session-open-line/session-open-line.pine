@@ -8,8 +8,8 @@
 // currency, or both - each part has its own checkbox. The 'Percent position'
 // input decides where that label sits - above the session open line or behind
 // its end - and the choice applies consistently to completed sessions and to
-// the ongoing one. Optionally the ongoing (last) session updates the value
-// live. Line and label colors depend on the sign of the change, and the whole
+// the ongoing one. During the ongoing session the value updates on every bar.
+// Line and label colors depend on the sign of the change, and the whole
 // session can be shaded with the same color. Works on intraday timeframes
 // - on D and above every bar is its own session, so the indicator only shows
 // a hint.
@@ -27,7 +27,6 @@ bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GR
 bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP)
 showPct = input.bool(true, 'Show percent change', group = 'General', tooltip = 'Shows the session change as a percent of the session open, e.g. +0.84%.')
 showAbs = input.bool(false, 'Show change in instrument currency', group = 'General', tooltip = 'Shows the session change as a price difference (close minus session open) in the currency of the instrument, e.g. +12.50 USD. With both checkboxes on the label reads +0.84% (+12.50 USD).')
-showLive = input.bool(true, 'Show value during session', group = 'General', tooltip = 'On: during the ongoing session the value follows the end of the line and updates on every bar. Off: a single value appears only on the last bar of the session.')
 
 lineStyle = switch lineStyleName
     'Dashed' => line.style_dashed
@@ -85,12 +84,6 @@ var float sessionOpen = na
 
 if timeframe.isintraday
     if newSession or barstate.isfirst
-        // The session ended but no label was created (session.islastbar did
-        // not mark the last bar, e.g. on a shortened session) — add the
-        // result now.
-        if showLabel and not na(sessionOpen) and na(lb)
-            lastDelta = close[1] - sessionOpen
-            newLabel(bar_index - 1, sessionOpen, lastDelta, lastDelta / sessionOpen * 100, textSize, pctStyle)
         sessionOpen := open
         ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
         lb := na
@@ -110,7 +103,9 @@ if timeframe.isintraday
         if not na(bg)
             box.set_right(bg, bar_index)
             box.set_bgcolor(bg, pct >= 0 ? bgUpColor : bgDownColor)
-        if showLabel and (showLive or session.islastbar)
+        // The label follows the end of the line and updates on every bar of
+        // the session.
+        if showLabel
             if na(lb)
                 lb := newLabel(bar_index, sessionOpen, delta, pct, textSize, pctStyle)
             else
