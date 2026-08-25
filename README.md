@@ -20,7 +20,6 @@
     - [Vertical Hour Lines](#vertical-hour-lines)
     - [Session Open Line](#session-open-line)
     - [Last Time at Price](#last-time-at-price)
-    - [Overbalance](#overbalance)
   - [Seasonality](#seasonality)
     - [Monthly Seasonality](#monthly-seasonality)
     - [Daily Seasonality](#daily-seasonality)
@@ -100,10 +99,6 @@ A horizontal line at the session open price, drawn from the first to the last ba
 A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
 
 ![Last Time at Price](screenshots/indicators/last-time-at-price.png)
-
-#### [Overbalance](indicators/overlays/overbalance.pine)
-
-Overbalance - market geometry described by Bryce Gilmore and popularized in Poland by Łukasz Stefanik. One sentence carries the method: the trend lasts as long as the largest correction of that trend is not permanently broken. A correction of that trend becomes the "magic rectangle" - measured between two confirmed swings (`ta.pivothigh` / `ta.pivotlow`), then extended to the right as the live zone the method trades: entry at its far edge, target at the trend extreme, stop one tolerance beyond it. Which correction is the reference is a "Reference correction" input - the sources are not formalized on this point, so the default is the first correction of the trend, the one they name as conducting it, while "largest so far" (the literal wording) and "last correction" stay available. The tolerance is what "permanently" means - the method names 13%, 20% and 33% of the overbalance range, trading win rate against reward to risk (33% by default), and a break can be required to close beyond the level rather than merely wick through it. Corrections are only ever compared to corrections, and anything below the noise filter is skipped - the method treats moves under 40 points on DAX as noise, with percent and ATR units available for other instruments. Broken rectangles stay on the chart in gray, and a break fires a marker, a label and an alert condition. A diagnostics panel reports the live state of the measurement - trend, active filter, swings seen, legs rejected with the largest one among them, the overbalance size, and the entry / stop / target levels - plus a one-line verdict, so an empty chart says why it is empty instead of looking broken.
 
 ### Seasonality
 
