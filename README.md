@@ -32,7 +32,6 @@
     - [RSI](#rsi)
     - [ROC](#roc)
   - [Volume](#volume)
-    - [Accumulation / Distribution](#accumulation--distribution)
     - [Accumulation / Distribution Density](#accumulation--distribution-density)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
@@ -159,14 +158,6 @@ Rate of Change - the percentage price change over a given period. Optional signa
 ![ROC](screenshots/indicators/roc.png)
 
 ### Volume
-
-#### [Accumulation / Distribution](indicators/volume/accumulation-distribution.pine)
-
-> 📖 Full documentation: [Accumulation / Distribution](indicators/volume/accumulation-distribution.md)
-
-The A/D line by Marc Chaikin - combines price with volume, measuring buying and selling pressure. Optional EMA signal line (default 21) and signal markers (configurable shape and size) on the price panel when the Chaikin oscillator (EMA 3 - EMA 10 of the A/D line) crosses zero.
-
-![Accumulation / Distribution](screenshots/indicators/accumulation-distribution.png)
 
 #### [Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density.pine)
 
