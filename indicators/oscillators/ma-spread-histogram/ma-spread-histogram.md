@@ -85,9 +85,9 @@ The `50 / 200 SMA` defaults are the classic Golden / Death Cross pair, so out of
 This is the oscillator view of the Moving Average family on the price chart:
 
 - [1x MA](../../overlays/1x-ma/1x-ma.md) - a single moving average.
-- [2x MA](../../overlays/2x-ma/2x-ma.pine) - the two averages this histogram measures the spread between.
-- [3x MA](../../overlays/3x-ma/3x-ma.pine) - three averages.
-- [Golden / Death Cross](../../overlays/golden-death-cross/golden-death-cross.pine) - the `50 / 200` crossover marked directly on price.
+- [2x MA](../../overlays/2x-ma/2x-ma.md) - the two averages this histogram measures the spread between.
+- [3x MA](../../overlays/3x-ma/3x-ma.md) - three averages.
+- [Golden / Death Cross](../../overlays/golden-death-cross/golden-death-cross.md) - the `50 / 200` crossover marked directly on price.
 - [MACD](../macd/macd.md) - the same difference-of-averages idea, but with a signal line on top and much shorter default windows.
 
 ---

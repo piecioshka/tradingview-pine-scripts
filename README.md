@@ -42,11 +42,15 @@
 
 #### [1x MA](indicators/overlays/1x-ma/1x-ma.pine)
 
+> 📖 Full documentation: [1x MA](indicators/overlays/1x-ma/1x-ma.md)
+
 A single moving average - SMA / EMA / WMA / VWMA / RMA (default 50 EMA). Optional label with the length and type (e.g. "200 EMA") at the end of the line.
 
 ![1x MA](indicators/overlays/1x-ma/1x-ma.png)
 
 #### [2x MA](indicators/overlays/2x-ma/2x-ma.pine)
+
+> 📖 Full documentation: [2x MA](indicators/overlays/2x-ma/2x-ma.md)
 
 Two moving averages, each with a configurable type (default SMA 50 and 200). Optional labels with the length and type at the line ends, plus signal markers at the crosses (golden / death cross) - marker shape (triangle, arrow, label arrow, circle, diamond) and size are configurable.
 
@@ -54,11 +58,15 @@ Two moving averages, each with a configurable type (default SMA 50 and 200). Opt
 
 #### [3x MA](indicators/overlays/3x-ma/3x-ma.pine)
 
+> 📖 Full documentation: [3x MA](indicators/overlays/3x-ma/3x-ma.md)
+
 Three moving averages (default SMA 4, 9, and 18). Optional labels with the length and type at the line ends.
 
 ![3x MA](indicators/overlays/3x-ma/3x-ma.png)
 
 #### [Envelopes](indicators/overlays/envelopes/envelopes.pine)
+
+> 📖 Full documentation: [Envelopes](indicators/overlays/envelopes/envelopes.md)
 
 Envelopes around a moving average - upper and lower percentage deviation (default 3% around SMA 21).
 
@@ -66,11 +74,15 @@ Envelopes around a moving average - upper and lower percentage deviation (defaul
 
 #### [Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.pine)
 
+> 📖 Full documentation: [Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.md)
+
 Bollinger Bands - SMA (default 20) ± a configurable number of standard deviations (default 2). Optional mean-reversion signal markers (configurable shape and size) when close crosses the lower / upper band.
 
 ![Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.png)
 
 #### [GMMA](indicators/overlays/gmma/gmma.pine)
+
+> 📖 Full documentation: [GMMA](indicators/overlays/gmma/gmma.md)
 
 Guppy Multiple Moving Average - two EMA groups: short-term (speculators) and long-term (investors).
 
@@ -78,11 +90,15 @@ Guppy Multiple Moving Average - two EMA groups: short-term (speculators) and lon
 
 #### [Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.pine)
 
+> 📖 Full documentation: [Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.md)
+
 Golden Cross and Death Cross - crossings of a fast and a slow average (classically SMA 50 vs SMA 200). Each cross gets a vertical dashed line, a GOLDEN CROSS / DEATH CROSS label, and a marker with a configurable shape and size.
 
 ![Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.png)
 
 #### [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.pine)
+
+> 📖 Full documentation: [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.md)
 
 Vertical lines at the given hours - 10 independent slots, each with its own toggle, hour, color, style, and width (one settings row per slot). Enabled by default: 10:30, 15:00, 20:00, and 23:00 as a light-purple dashed line with 70% transparency. Selectable time zone (Warsaw by default; optionally exchanges, UTC, or a custom IANA zone) - it must match the chart's time-axis zone, otherwise the lines land shifted.
 
@@ -90,11 +106,15 @@ Vertical lines at the given hours - 10 independent slots, each with its own togg
 
 #### [Session Open Line](indicators/overlays/session-open-line/session-open-line.pine)
 
+> 📖 Full documentation: [Session Open Line](indicators/overlays/session-open-line/session-open-line.md)
+
 A horizontal line at the session open price, drawn from the first to the last bar of the session. A label carries the percent price change during the session (close vs open). The "Percent position" dropdown picks where that label sits - "Behind the line" (default) at the open price level, right of the line end, as if continuing it, or "Above the line" over the end of the session open line - and the choice applies the same way to completed sessions and to the ongoing one. Optionally the ongoing session updates the percent live. The line and label colors depend on the sign of the change. Works on intraday timeframes - on D and above every bar is its own session, so the indicator only shows a hint.
 
 ![Session Open Line](indicators/overlays/session-open-line/session-open-line.png)
 
 #### [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.pine)
+
+> 📖 Full documentation: [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.md)
 
 A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
 
@@ -104,17 +124,23 @@ A label next to the current price line showing when the market was last at this 
 
 #### [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.pine)
 
+> 📖 Full documentation: [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.md)
+
 Chart background colored by month - seasonal patterns become visible (e.g. Lean Hogs). Each of the 12 months can be toggled; the names include futures contract codes (F, G, H, …).
 
 ![Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.png)
 
 #### [Daily Seasonality](indicators/seasonality/daily-seasonality/daily-seasonality.pine)
 
+> 📖 Full documentation: [Daily Seasonality](indicators/seasonality/daily-seasonality/daily-seasonality.md)
+
 Chart background colored by day of the week - a rainbow across the week (Monday → Sunday), with the option to disable selected days.
 
 ![Daily Seasonality](indicators/seasonality/daily-seasonality/daily-seasonality.png)
 
 #### [Hourly Seasonality](indicators/seasonality/hourly-seasonality/hourly-seasonality.pine)
+
+> 📖 Full documentation: [Hourly Seasonality](indicators/seasonality/hourly-seasonality/hourly-seasonality.md)
 
 Chart background colored by hour - a daily gradient (night → dawn → day → dusk). Active hours selected with a text field, e.g. `"9-16,18,22"`.
 
@@ -124,11 +150,15 @@ Chart background colored by hour - a daily gradient (night → dawn → day → 
 
 #### [MACD](indicators/oscillators/macd/macd.pine)
 
+> 📖 Full documentation: [MACD](indicators/oscillators/macd/macd.md)
+
 Moving Average Convergence Divergence - the difference of a fast and a slow average (default EMA 12/26, types configurable) with a signal line (default EMA 9). Histogram of the MACD minus signal difference, optional signal markers (configurable shape and size) on the price panel at crossings, a status table, and built-in alerts.
 
 ![MACD](indicators/oscillators/macd/macd.png)
 
 #### [MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.pine)
+
+> 📖 Full documentation: [MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.md)
 
 A histogram showing the distance between two moving averages (short minus long), with markers on their crossovers.
 
@@ -136,17 +166,23 @@ A histogram showing the distance between two moving averages (short minus long),
 
 #### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.pine)
 
+> 📖 Full documentation: [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.md)
+
 Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default 80/20), a zone gradient, optional signal markers (configurable shape and size) on the price panel when %K crosses %D coming out of an extreme zone, a status table, and built-in alerts.
 
 ![Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.png)
 
 #### [RSI](indicators/oscillators/rsi/rsi.pine)
 
+> 📖 Full documentation: [RSI](indicators/oscillators/rsi/rsi.md)
+
 Relative Strength Index with configurable overbought/oversold levels (default 70/30) and a zone gradient. Optional smoothing MA (also with Bollinger Bands), regular bull/bear divergences, mean-reversion signal markers (configurable shape and size) on the price panel, a status table, and built-in alerts.
 
 ![RSI](indicators/oscillators/rsi/rsi.png)
 
 #### [ROC](indicators/oscillators/roc/roc.pine)
+
+> 📖 Full documentation: [ROC](indicators/oscillators/roc/roc.md)
 
 Rate of Change - the percentage price change over a given period. Optional signal markers (configurable shape and size) on the price panel at zero crosses.
 
