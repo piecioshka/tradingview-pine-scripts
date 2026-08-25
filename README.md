@@ -37,7 +37,6 @@
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Delta Footprint Table](#delta-footprint-table)
-    - [Delta Footprint Imbalance](#delta-footprint-imbalance)
 
 ## Indicators
 
@@ -206,16 +205,6 @@ A standalone footprint **status table** (buy / sell / delta + % / **stacked imba
 ![Delta Footprint Table](screenshots/indicators/delta-footprint-table.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
-
-#### [Delta Footprint Imbalance](indicators/volume/delta-footprint-imbalance.pine)
-
-> 📖 Full documentation: [Delta Footprint Imbalance](indicators/volume/delta-footprint-imbalance.md)
-
-Detects **footprint imbalances** (diagonal: one side ≥ _ratio_ × the diagonally opposite one, classically 3:1) and their **stacked** runs (N+ levels in the same direction). Every stacked imbalance becomes a **persistent support/resistance zone** (a box extending to the right) with **automatic mitigation** - once tested by price, the zone fades or disappears, so only live levels remain on the chart (order-block behavior). Run strength is mapped to **color intensity**. A mini-dashboard counts active bull/bear zones and points to the nearest one above/below price.
-
-![Delta Footprint Imbalance](screenshots/indicators/delta-footprint-imbalance.png)
-
-> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe. Makes sense on low timeframes (1-15 m).
 
 ## License
 

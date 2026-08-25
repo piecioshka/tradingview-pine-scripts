@@ -70,7 +70,6 @@ File: [`delta-footprint-histogram.pine`](./delta-footprint-histogram.pine)
 
 - **Delta Footprint Bubble** - delta + POC bubbles + Value Area on the price chart.
 - **Delta Footprint Table** - status table (buy / sell / delta % / POC / CVD).
-- **Delta Footprint Imbalance** - stacked imbalances turned into S/R zones.
 
 ---
 

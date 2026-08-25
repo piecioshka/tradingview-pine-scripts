@@ -41,7 +41,7 @@ Every row is **individually toggleable**:
 - ⏱️ **CVD (1h)** - rolling delta of the last 60 minutes, independent of the session reset (shows `-` on timeframes above 1h).
 - 🔊 **Volume / Buy (ask) / Sell (bid)** - the current candle's turnover split by aggressor side.
 - ⚖️ **Delta** and **Delta %** - buy minus sell, absolute or as % of total volume (green/red by sign).
-- 🧱 **Imbalance (stacked)** - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels (per the Imbalance settings; same definition as in _Delta Footprint Imbalance_).
+- 🧱 **Imbalance (stacked)** - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels.
 - 📍 **Value Area (VAH-VAL)** - width of the range holding the configured % of volume: narrow = concentrated, wide = dispersed.
 - 🎯 **POC** / **Max volume** - the highest-volume price of the candle and the volume at that level.
 
@@ -73,7 +73,6 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **onl
 
 - **Delta Footprint Bubble** - delta + POC bubbles + Value Area on the price chart.
 - **Delta Footprint Histogram** - delta columns in a separate panel.
-- **Delta Footprint Imbalance** - stacked imbalances turned into S/R zones.
 
 ---
 

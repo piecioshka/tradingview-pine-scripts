@@ -81,7 +81,6 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 
 - **Delta Footprint Histogram** - the same delta as columns in a separate panel.
 - **Delta Footprint Table** - status table (buy / sell / delta % / POC / CVD).
-- **Delta Footprint Imbalance** - stacked imbalances turned into S/R zones.
 
 ---
 
