@@ -53,6 +53,7 @@ With both on the label reads `+0.84% (+12.50 USD)`; with both off no label is dr
 
 - **Behind the line** _(default)_ - anchored on its left edge (`label.style_label_left`), at the open price level, right of the line end, as if continuing the line.
 - **Above the line** - anchored at its bottom-right corner (`label.style_label_lower_right`), so the text sits over the end of the session open line and does not stick out past the session end.
+- **Below the line** - anchored at its top-right corner (`label.style_label_upper_right`), so the text hangs under the end of the line, again inside the session.
 
 During the ongoing session the label follows the end of the line and updates on every bar; once the session ends it stays at the last bar with the final value.
 
@@ -67,7 +68,7 @@ During the ongoing session the label follows the end of the line and updates on 
 - **Line style** _(default Solid)_ - Solid / Dashed / Dotted.
 - **Line width** _(default 1)_ - range `1`-`4`.
 - **Text size** _(default Small)_ - Auto / Tiny / Small / Normal / Large.
-- **Percent position** _(default Behind the line)_ - Above the line / Behind the line, described above.
+- **Percent position** _(default Behind the line)_ - Above the line / Below the line / Behind the line, described above.
 - **Highlight the whole session** _(default off)_ - fills the entire session with a single color, decided by where the price stands against the session open.
 - **Highlight up color** _(default `#26A69A` at 90% transparency)_.
 - **Highlight down color** _(default `#EF5350` at 90% transparency)_.
