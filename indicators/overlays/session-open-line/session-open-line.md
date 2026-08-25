@@ -34,7 +34,9 @@ A new session is detected with `timeframe.change('D')` - the trading day boundar
 
 ### Why a box, not `bgcolor()`
 
-The session highlight is drawn as one **box per session** rather than `bgcolor()`. `bgcolor()` paints a single bar and cannot be repainted afterwards, so a session that flips sign would end up striped. A box spans the whole session and keeps a single color that is corrected on every bar. Its top and bottom are set to `1e17` / `-1e17` so it always covers the full height of the pane - box `extend` only works on the time axis and cannot be used for that.
+The session highlight is drawn as one **box per session** rather than `bgcolor()`. `bgcolor()` paints a single bar and cannot be repainted afterwards, so a session that flips sign would end up striped. A box spans the whole session and keeps a single color that is corrected on every bar. Box `extend` only works on the time axis, so the vertical coverage comes from the box bounds: the highest high and lowest low of the loaded data, padded by 100x that range above and below. On the last bar every box is brought to the final bounds, so sessions drawn while less data was loaded get the same coverage.
+
+Why not simply `1e17` / `-1e17`: TradingView silently skips boxes whose bounds lie extremely far from the price scale (on an instrument near 85, bounds of +-1e8 still draw while +-1e9 do not). Such boxes exist - they show up in the object tree - but never render, so the highlight looks like it is not working at all.
 
 ---
 

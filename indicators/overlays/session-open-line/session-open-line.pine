@@ -68,10 +68,22 @@ fmtChange(float delta, float pct) =>
 newLabel(int x, float y, float delta, float pct, string sizeName, string labelStyle) =>
     label.new(x, y, fmtChange(delta, pct), xloc = xloc.bar_index, style = labelStyle, textcolor = pct >= 0 ? upColor : downColor, color = color.new(color.black, 100), size = sizeName)
 
-// Vertical bounds of the session highlight - far beyond any realistic price,
-// so the box always covers the full height of the pane.
-BG_TOP = 1e17
-BG_BOTTOM = -1e17
+// Vertical bounds of the session highlight. TradingView silently skips boxes
+// whose top/bottom lie extremely far from the price scale (measured on an
+// instrument near 85: bounds of +-1e8 still draw, +-1e9 do not), so absurd
+// constants like 1e17 produce boxes that exist but never render. Instead
+// the bounds follow the price range of the loaded data - 100x that range
+// above and below covers the full height of the pane at any realistic zoom
+// while staying far inside the renderer's limits.
+BG_PAD = 100.0
+var float dataHigh = na
+var float dataLow = na
+if not na(high) and not na(low)
+    dataHigh := na(dataHigh) ? high : math.max(dataHigh, high)
+    dataLow := na(dataLow) ? low : math.min(dataLow, low)
+bgPad = math.max(dataHigh - dataLow, syminfo.mintick) * BG_PAD
+bgTop = dataHigh + bgPad
+bgBottom = dataLow - bgPad
 
 // time('D') changes on the first bar of the trading day, so it also works
 // for sessions crossing midnight (e.g. futures).
@@ -89,10 +101,10 @@ if timeframe.isintraday
         lb := na
         // One box per session instead of bgcolor(), which paints a single bar
         // and cannot be repainted later - a box spans the whole session and
-        // keeps one color, corrected on every bar of that session. The huge
-        // top/bottom values make it cover the full height of the pane; box
-        // 'extend' works on the time axis, so it is not usable for that.
-        bg := showBg ? box.new(bar_index, BG_TOP, bar_index, BG_BOTTOM, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
+        // keeps one color, corrected on every bar of that session. Box
+        // 'extend' works on the time axis only, so the vertical coverage
+        // comes from the bgTop/bgBottom bounds.
+        bg := showBg ? box.new(bar_index, bgTop, bar_index, bgBottom, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
 
     if not na(ln)
         delta = close - sessionOpen
@@ -113,6 +125,16 @@ if timeframe.isintraday
                 label.set_text(lb, fmtChange(delta, pct))
                 label.set_textcolor(lb, col)
                 label.set_style(lb, pctStyle)
+
+    // Boxes of earlier sessions were created while less data was loaded, so
+    // their bounds are narrower - on the last bar bring every box to the
+    // final bounds. Runs only when the bounds actually change.
+    var float sweptTop = na
+    if barstate.islast and (na(sweptTop) or bgTop != sweptTop)
+        sweptTop := bgTop
+        for b in box.all
+            box.set_top(b, bgTop)
+            box.set_bottom(b, bgBottom)
 else
     if barstate.islast
         var table hint = table.new(position.top_right, 1, 1)
