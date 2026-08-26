@@ -32,11 +32,11 @@
     - [ROC](#roc)
   - [Volume](#volume)
     - [Accumulation / Distribution Density](#accumulation--distribution-density)
+- [Premium](#premium)
+  - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Delta Footprint Table](#delta-footprint-table)
-- [Premium](#premium)
-  - [Volume](#volume-1)
     - [Naked POC](#naked-poc)
 
 ## Indicators
@@ -201,43 +201,43 @@ Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's ind
 
 ![Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.png)
 
-#### [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble/delta-footprint-bubble.pine)
-
-> 📖 Full documentation: [Delta Footprint Bubble](indicators/volume/delta-footprint-bubble/delta-footprint-bubble.md)
-
-Volume delta from real footprint data (`request.footprint()`, available since January 2026) - the difference between aggressive buy volume (at the ask) and sell volume (at the bid) within a candle. The value shown as a **number next to each candle** (green = buy dominance, red = sell; above/below the candle or above/below the POC bubble, with a configurable gap). Each candle's POC as an **optional Bookmap-style bubble** (size ∝ volume, the same power normalization as in the histogram), with an optional **POC trail** (a line connecting the bubbles - a segmented polyline or a smooth, rounded curve). Additionally **Value Area (VAH/VAL)** and a session **CVD** (in the data window). When the candle direction contradicts the delta (rising with negative delta or falling with positive) - the delta number is shown **in bold**.
-
-![Delta Footprint Bubble](indicators/volume/delta-footprint-bubble/delta-footprint-bubble.png)
-
-> ⚠️ Requires a TradingView **Premium** or **Ultimate** account - without it the script does not compile. `request.footprint()` works only for the chart's **current timeframe**.
-
-#### [Delta Footprint Histogram](indicators/volume/delta-footprint-histogram/delta-footprint-histogram.pine)
-
-> 📖 Full documentation: [Delta Footprint Histogram](indicators/volume/delta-footprint-histogram/delta-footprint-histogram.md)
-
-The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
-
-![Delta Footprint Histogram](indicators/volume/delta-footprint-histogram/delta-footprint-histogram.png)
-
-> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
-
-#### [Delta Footprint Table](indicators/volume/delta-footprint-table/delta-footprint-table.pine)
-
-> 📖 Full documentation: [Delta Footprint Table](indicators/volume/delta-footprint-table/delta-footprint-table.md)
-
-A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session).
-
-![Delta Footprint Table](indicators/volume/delta-footprint-table/delta-footprint-table.png)
-
-> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
-
 ## Premium
 
-An indicator built on `request.footprint()`, which TradingView sells only with the **Premium** plan and above. No screenshots or separate docs for this group - each `.pine` file starts with a comment explaining what it does and which plan it needs.
+Indicators built on `request.footprint()`, which TradingView sells only with the **Premium** plan and above. No screenshots or separate docs for this group - each `.pine` file starts with a comment explaining what it does and which plan it needs.
 
 > ⚠️ Requires **Premium** (or Ultimate).
 
 ### Volume
+
+#### [Delta Footprint Bubble](indicators-premium/volume/delta-footprint-bubble/delta-footprint-bubble.pine)
+
+> 📖 Full documentation: [Delta Footprint Bubble](indicators-premium/volume/delta-footprint-bubble/delta-footprint-bubble.md)
+
+Volume delta from real footprint data (`request.footprint()`, available since January 2026) - the difference between aggressive buy volume (at the ask) and sell volume (at the bid) within a candle. The value shown as a **number next to each candle** (green = buy dominance, red = sell; above/below the candle or above/below the POC bubble, with a configurable gap). Each candle's POC as an **optional Bookmap-style bubble** (size ∝ volume, the same power normalization as in the histogram), with an optional **POC trail** (a line connecting the bubbles - a segmented polyline or a smooth, rounded curve). Additionally **Value Area (VAH/VAL)** and a session **CVD** (in the data window). When the candle direction contradicts the delta (rising with negative delta or falling with positive) - the delta number is shown **in bold**.
+
+![Delta Footprint Bubble](indicators-premium/volume/delta-footprint-bubble/delta-footprint-bubble.png)
+
+> ⚠️ Requires a TradingView **Premium** or **Ultimate** account - without it the script does not compile. `request.footprint()` works only for the chart's **current timeframe**.
+
+#### [Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.pine)
+
+> 📖 Full documentation: [Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.md)
+
+The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
+
+![Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.png)
+
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
+
+#### [Delta Footprint Table](indicators-premium/volume/delta-footprint-table/delta-footprint-table.pine)
+
+> 📖 Full documentation: [Delta Footprint Table](indicators-premium/volume/delta-footprint-table/delta-footprint-table.md)
+
+A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session).
+
+![Delta Footprint Table](indicators-premium/volume/delta-footprint-table/delta-footprint-table.png)
+
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 
 #### [Naked POC](indicators-premium/volume/naked-poc/naked-poc.pine)
 
