@@ -245,6 +245,10 @@ A standalone footprint **status table** (buy / sell / delta + % / **stacked imba
 
 The footprint POC of every session (rows of the whole day merged) or of every candle as a line that stays until price trades through it. The ongoing session gets a developing POC - a dashed line that moves with every bar and becomes a naked POC when the day closes. Alerts on new and tested levels. Needs `request.footprint()`.
 
+![Naked POC](indicators-premium/volume/naked-poc/naked-poc.png)
+
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
+
 ## License
 
 [The MIT License](https://piecioshka.mit-license.org) @ 2026
