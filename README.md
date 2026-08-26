@@ -203,7 +203,7 @@ Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's ind
 
 ## Premium
 
-Indicators built on `request.footprint()`, which TradingView sells only with the **Premium** plan and above. No screenshots or separate docs for this group - each `.pine` file starts with a comment explaining what it does and which plan it needs.
+Indicators built on `request.footprint()`, which TradingView sells only with the **Premium** plan and above.
 
 > ⚠️ Requires **Premium** (or Ultimate).
 
@@ -240,6 +240,8 @@ A standalone footprint **status table** (buy / sell / delta + % / **stacked imba
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 
 #### [Naked POC](indicators-premium/volume/naked-poc/naked-poc.pine)
+
+> 📖 Full documentation: [Naked POC](indicators-premium/volume/naked-poc/naked-poc.md)
 
 The footprint POC of every session (rows of the whole day merged) or of every candle as a line that stays until price trades through it. The ongoing session gets a developing POC - a dashed line that moves with every bar and becomes a naked POC when the day closes. Alerts on new and tested levels. Needs `request.footprint()`.
 
