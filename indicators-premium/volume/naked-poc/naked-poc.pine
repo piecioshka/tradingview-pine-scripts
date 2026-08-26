@@ -1,0 +1,168 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Piotr Kowalski "piecioshka"
+
+//@version=6
+// Draws the Point of Control (the footprint row with the highest volume) as
+// a horizontal line that stays "naked" - extended to the right - until price
+// trades through it again. Two modes: the POC of every candle, or the POC of
+// the whole session (all footprint rows of the day merged into one profile).
+// A session POC is final only when the session ends, so the naked line
+// appears at that moment; the ongoing session gets a separate developing
+// POC - a dashed line that moves with every bar as volume builds up, and
+// turns into a naked POC when the day closes. A tested POC is removed or
+// kept in a faded color. Naked POCs are classic magnets: price tends to
+// come back to the level where most business was done and left unfinished.
+// Requires Premium / Ultimate (request.footprint). Only the chart timeframe.
+indicator('Naked POC', overlay = true, max_lines_count = 500, max_labels_count = 500)
+
+GRP = 'Footprint'
+ticksPerRow = input.int(10, 'Ticks per row', minval = 1, group = GRP, tooltip = 'Height of a single footprint row in ticks. Decides the POC resolution.')
+modeName = input.string('Session', 'POC of', options = ['Session', 'Every candle'], group = GRP, tooltip = 'Session: one POC per day, built from the rows of every candle in that day. Every candle: the POC of each candle separately (a lot of lines - use the volume filter).')
+minRatio = input.float(0, 'Min. POC volume vs average (x)', minval = 0, step = 0.5, group = GRP, tooltip = 'In "Every candle" mode only the POCs whose row volume is at least this many times the average POC volume of the last 50 candles are drawn. 0 = every candle.')
+
+GRP_L = 'Lines'
+keepTested = input.bool(false, 'Keep tested POCs', group = GRP_L, tooltip = 'Tested lines stay on the chart in the "tested" color, cut at the bar that tested them.')
+maxLines = input.int(50, 'Max naked POCs', minval = 1, maxval = 250, group = GRP_L)
+showLabel = input.bool(true, 'Show label', group = GRP_L, tooltip = 'A small "nPOC" label with the price at the right end of the line.')
+nakedColor = input.color(#FF9800, 'Naked POC', group = GRP_L)
+testedColor = input.color(color.new(color.gray, 60), 'Tested POC', group = GRP_L)
+lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP_L)
+lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP_L)
+
+GRP_D = 'Developing POC (session mode)'
+showDev = input.bool(true, 'Show developing POC', group = GRP_D, tooltip = 'The POC of the ongoing session as a dashed line that moves with every bar. When the session ends it becomes a naked POC.')
+devColor = input.color(color.new(#FF9800, 35), 'Developing POC', group = GRP_D)
+devStyleName = input.string('Dashed', 'Developing line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP_D)
+
+styleOf(string name) =>
+    switch name
+        'Dashed' => line.style_dashed
+        'Dotted' => line.style_dotted
+        => line.style_solid
+
+lineStyle = styleOf(lineStyleName)
+devStyle = styleOf(devStyleName)
+rowHeight = syminfo.mintick * ticksPerRow
+
+type Poc
+    line ln
+    label lb
+    float price
+    int createdAt
+    bool tested = false
+
+var pocs = array.new<Poc>()
+
+newLevel(int x, float price) =>
+    ln = line.new(x, price, bar_index, price, xloc = xloc.bar_index, color = nakedColor, style = lineStyle, width = lineWidth)
+    lb = showLabel ? label.new(bar_index, price, 'nPOC ' + str.tostring(price, format.mintick), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = nakedColor, size = size.small) : na
+    array.push(pocs, Poc.new(ln, lb, price, bar_index))
+
+fp = request.footprint(ticksPerRow, 70)
+hasData = not na(fp)
+
+float pocPrice = na
+float pocVol = na
+if hasData
+    row = fp.poc()
+    if not na(row)
+        pocPrice := (row.up_price() + row.down_price()) / 2
+        pocVol := row.total_volume()
+
+// --- Session profile: volume per row bottom price, merged over the day ---
+var sessionVol = map.new<float, float>()
+var int sessionStartBar = na
+newSession = timeframe.change('D')
+int newLevels = 0
+
+// Middle price of the row holding the most volume so far in the session.
+sessionPoc() =>
+    float bestKey = na
+    float bestVol = -1
+    for key in map.keys(sessionVol)
+        v = map.get(sessionVol, key)
+        if v > bestVol
+            bestVol := v
+            bestKey := key
+    na(bestKey) ? na : bestKey + rowHeight / 2
+
+var line devLine = na
+var label devLabel = na
+
+if modeName == 'Session'
+    if newSession and not na(sessionStartBar) and map.size(sessionVol) > 0
+        // The previous session is complete - its POC becomes a naked POC.
+        finalPoc = sessionPoc()
+        if not na(finalPoc)
+            newLevel(sessionStartBar, finalPoc)
+            newLevels += 1
+    if newSession or barstate.isfirst
+        map.clear(sessionVol)
+        sessionStartBar := bar_index
+        line.delete(devLine)
+        label.delete(devLabel)
+        devLine := na
+        devLabel := na
+    if hasData and barstate.isconfirmed
+        for r in fp.rows()
+            key = r.down_price()
+            map.put(sessionVol, key, nz(map.get(sessionVol, key)) + r.total_volume())
+    // Developing POC of the ongoing session - redrawn on every bar.
+    if showDev and map.size(sessionVol) > 0
+        devPrice = sessionPoc()
+        if not na(devPrice)
+            if na(devLine)
+                devLine := line.new(sessionStartBar, devPrice, bar_index, devPrice, xloc = xloc.bar_index, color = devColor, style = devStyle, width = lineWidth)
+                devLabel := showLabel ? label.new(bar_index, devPrice, 'dPOC ' + str.tostring(devPrice, format.mintick), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.black, 100), textcolor = devColor, size = size.small) : na
+            else
+                line.set_xy1(devLine, sessionStartBar, devPrice)
+                line.set_xy2(devLine, bar_index, devPrice)
+                if not na(devLabel)
+                    label.set_xy(devLabel, bar_index, devPrice)
+                    label.set_text(devLabel, 'dPOC ' + str.tostring(devPrice, format.mintick))
+else
+    avgPocVol = ta.sma(nz(pocVol), 50)
+    if hasData and barstate.isconfirmed and not na(pocPrice) and (minRatio == 0 or pocVol >= minRatio * avgPocVol)
+        newLevel(bar_index, pocPrice)
+        newLevels += 1
+
+// --- Extend naked lines, retire the ones price has traded through ---
+int testedNow = 0
+if array.size(pocs) > 0
+    for k = array.size(pocs) - 1 to 0
+        p = array.get(pocs, k)
+        if not p.tested
+            line.set_x2(p.ln, bar_index)
+            if not na(p.lb)
+                label.set_x(p.lb, bar_index)
+            if bar_index > p.createdAt and low <= p.price and high >= p.price
+                p.tested := true
+                testedNow += 1
+                if keepTested
+                    line.set_color(p.ln, testedColor)
+                    if not na(p.lb)
+                        label.delete(p.lb)
+                else
+                    line.delete(p.ln)
+                    if not na(p.lb)
+                        label.delete(p.lb)
+                    array.remove(pocs, k)
+
+while array.size(pocs) > maxLines
+    old = array.shift(pocs)
+    line.delete(old.ln)
+    if not na(old.lb)
+        label.delete(old.lb)
+
+nakedCount = 0
+for p in pocs
+    if not p.tested
+        nakedCount += 1
+
+devPlot = modeName == 'Session' and not na(devLine) ? line.get_y2(devLine) : na
+plot(nakedCount, 'Naked POCs', display = display.data_window)
+plot(devPlot, 'Developing POC', display = display.data_window)
+plot(pocPrice, 'Candle POC', display = display.data_window)
+
+alertcondition(newLevels > 0, 'New naked POC', 'Naked POC: new level on {{ticker}} {{interval}}')
+alertcondition(testedNow > 0, 'POC tested', 'Naked POC: a naked POC was tested on {{ticker}} {{interval}}')
