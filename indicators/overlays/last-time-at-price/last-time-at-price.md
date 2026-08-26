@@ -4,6 +4,8 @@ A price overlay for TradingView (Pine Script v6). A single label next to the cur
 
 File: [`last-time-at-price.pine`](./last-time-at-price.pine)
 
+Wersja polska: [`last-time-at-price.pl.md`](./last-time-at-price.pl.md)
+
 ---
 
 ## 🧠 What it shows

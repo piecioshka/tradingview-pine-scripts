@@ -4,6 +4,8 @@ An overlay indicator for TradingView (Pine Script v6). **Two moving averages, a 
 
 File: [`2x-ma.pine`](./2x-ma.pine)
 
+Wersja polska: [`2x-ma.pl.md`](./2x-ma.pl.md)
+
 ---
 
 ## 🧠 What it shows

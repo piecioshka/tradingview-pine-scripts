@@ -4,6 +4,8 @@ A momentum oscillator for TradingView (Pine Script v6). It answers one question:
 
 File: [`stochastic-oscillator.pine`](./stochastic-oscillator.pine)
 
+Wersja polska: [`stochastic-oscillator.pl.md`](./stochastic-oscillator.pl.md)
+
 ---
 
 ## 🧠 What it shows

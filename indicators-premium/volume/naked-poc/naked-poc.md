@@ -4,6 +4,8 @@ An order flow overlay for TradingView (Pine Script v6). Draws the **Point of Con
 
 File: [`naked-poc.pine`](./naked-poc.pine)
 
+Wersja polska: [`naked-poc.pl.md`](./naked-poc.pl.md)
+
 ---
 
 ## ⚠️ Requirements

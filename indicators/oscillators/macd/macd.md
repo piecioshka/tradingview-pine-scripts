@@ -4,6 +4,8 @@ A momentum oscillator for TradingView (Pine Script v6). It measures **the distan
 
 File: [`macd.pine`](./macd.pine)
 
+Wersja polska: [`macd.pl.md`](./macd.pl.md)
+
 ---
 
 ## 🧠 What it shows

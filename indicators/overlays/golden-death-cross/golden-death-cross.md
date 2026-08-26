@@ -4,6 +4,8 @@ An overlay indicator for TradingView (Pine Script v6). It marks the two crossing
 
 File: [`golden-death-cross.pine`](./golden-death-cross.pine)
 
+Wersja polska: [`golden-death-cross.pl.md`](./golden-death-cross.pl.md)
+
 ---
 
 ## 🧠 What it shows

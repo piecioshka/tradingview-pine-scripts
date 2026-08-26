@@ -4,6 +4,8 @@ A price overlay for TradingView (Pine Script v6). A **fixed-percentage channel a
 
 File: [`envelopes.pine`](./envelopes.pine)
 
+Wersja polska: [`envelopes.pl.md`](./envelopes.pl.md)
+
 ---
 
 ## 🧠 What it shows

@@ -4,6 +4,8 @@ A momentum oscillator for TradingView (Pine Script v6). It measures **the ratio 
 
 File: [`rsi.pine`](./rsi.pine)
 
+Wersja polska: [`rsi.pl.md`](./rsi.pl.md)
+
 ---
 
 ## 🧠 What it shows

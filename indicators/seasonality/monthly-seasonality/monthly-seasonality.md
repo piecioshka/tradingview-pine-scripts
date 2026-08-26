@@ -4,6 +4,8 @@ A seasonality indicator for TradingView (Pine Script v6). It paints the **chart 
 
 File: [`monthly-seasonality.pine`](./monthly-seasonality.pine)
 
+Wersja polska: [`monthly-seasonality.pl.md`](./monthly-seasonality.pl.md)
+
 ---
 
 ## 🧠 What it shows

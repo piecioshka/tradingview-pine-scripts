@@ -4,6 +4,8 @@ An order flow indicator for TradingView (Pine Script v6). A standalone **footpri
 
 File: [`delta-footprint-table.pine`](./delta-footprint-table.pine)
 
+Wersja polska: [`delta-footprint-table.pl.md`](./delta-footprint-table.pl.md)
+
 ---
 
 ## ⚠️ Requirements

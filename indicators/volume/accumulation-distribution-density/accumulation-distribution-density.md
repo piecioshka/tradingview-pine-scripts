@@ -4,6 +4,8 @@ A volume indicator for TradingView (Pine Script v6), modeled after **Mieczyslaw 
 
 File: [`accumulation-distribution-density.pine`](./accumulation-distribution-density.pine)
 
+Wersja polska: [`accumulation-distribution-density.pl.md`](./accumulation-distribution-density.pl.md)
+
 ---
 
 ## 🧠 The idea: density

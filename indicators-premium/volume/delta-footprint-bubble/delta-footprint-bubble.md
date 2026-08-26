@@ -4,6 +4,8 @@ An order flow indicator for TradingView (Pine Script v6). It reads **real footpr
 
 File: [`delta-footprint-bubble.pine`](./delta-footprint-bubble.pine)
 
+Wersja polska: [`delta-footprint-bubble.pl.md`](./delta-footprint-bubble.pl.md)
+
 ---
 
 ## ⚠️ Requirements

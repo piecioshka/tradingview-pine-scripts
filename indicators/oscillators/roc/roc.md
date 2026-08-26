@@ -4,6 +4,8 @@ A momentum indicator for TradingView (Pine Script v6). It plots **the percentage
 
 File: [`roc.pine`](./roc.pine)
 
+Wersja polska: [`roc.pl.md`](./roc.pl.md)
+
 ---
 
 ## 🧠 What it shows

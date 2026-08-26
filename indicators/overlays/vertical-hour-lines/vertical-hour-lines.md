@@ -4,6 +4,8 @@ A price overlay for TradingView (Pine Script v6). **Vertical lines at chosen clo
 
 File: [`vertical-hour-lines.pine`](./vertical-hour-lines.pine)
 
+Wersja polska: [`vertical-hour-lines.pl.md`](./vertical-hour-lines.pl.md)
+
 ---
 
 ## 🧠 What it shows

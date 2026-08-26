@@ -4,6 +4,8 @@ An oscillator for TradingView (Pine Script v6) that takes a two-moving-average s
 
 File: [`ma-spread-histogram.pine`](./ma-spread-histogram.pine)
 
+Wersja polska: [`ma-spread-histogram.pl.md`](./ma-spread-histogram.pl.md)
+
 ---
 
 ## 🧠 What it shows

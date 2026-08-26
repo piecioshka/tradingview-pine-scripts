@@ -4,6 +4,8 @@ A price overlay for TradingView (Pine Script v6). A horizontal line at the **ses
 
 File: [`session-open-line.pine`](./session-open-line.pine)
 
+Wersja polska: [`session-open-line.pl.md`](./session-open-line.pl.md)
+
 ---
 
 ## 🧠 What it shows

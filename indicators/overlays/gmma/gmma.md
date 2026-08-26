@@ -4,6 +4,8 @@ An overlay indicator for TradingView (Pine Script v6). **Guppy Multiple Moving A
 
 File: [`gmma.pine`](./gmma.pine)
 
+Wersja polska: [`gmma.pl.md`](./gmma.pl.md)
+
 ---
 
 ## 🧠 What it shows

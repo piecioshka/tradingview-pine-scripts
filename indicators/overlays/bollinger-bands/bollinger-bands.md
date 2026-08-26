@@ -4,6 +4,8 @@ A price overlay for TradingView (Pine Script v6). A **volatility channel around 
 
 File: [`bollinger-bands.pine`](./bollinger-bands.pine)
 
+Wersja polska: [`bollinger-bands.pl.md`](./bollinger-bands.pl.md)
+
 ---
 
 ## 🧠 What it shows
