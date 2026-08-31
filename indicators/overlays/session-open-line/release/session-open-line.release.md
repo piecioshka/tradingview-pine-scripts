@@ -20,41 +20,48 @@ Session Open Line
 ## Tags
 
 ```
-session, sessionopen, openingprice, dayopen, intraday, daytrading, levels, priceaction
+session, sessionopen, previousclose, openingprice, gap, intraday, daytrading, levels, priceaction
 ```
 
 ## Description (BBCode)
 
 ```
-A price overlay for TradingView (Pine Script v6). A horizontal line at the [b]session open price[/b], drawn from the first to the last bar of that session, with a label carrying the [b]price change during the session[/b] (close vs session open) - as a percent, as a difference in the instrument currency, or both. Alerts fire when the price crosses the line, and the session open level plus the session change are exposed as hidden series for other scripts.
+A price overlay for TradingView (Pine Script v6). A horizontal line at the session's [b]reference level[/b] - the [b]previous session's close[/b] by default, or the [b]session open[/b] - drawn from the first to the last bar of that session, with a label carrying the [b]price change during the session[/b] (close vs the reference) - as a percent, as a difference in the instrument currency, or both. Alerts fire when the price crosses the line, and the reference level plus the session change are exposed as hidden series for other scripts.
 
 █ [b]🧠 WHAT IT SHOWS[/b]
 
-For every trading session the script anchors a line at the session's opening price and stretches it to the right as the session progresses:
+For every trading session the script anchors a line at the session's reference level and stretches it to the right as the session progresses:
 
 [pine]
   price
     │                            ╭─╮
-    │        session open        │ │ ╭╮        ← price above the open
+    │      reference level       │ │ ╭╮        ← price above the reference
     │   ╭╮                   ╭╮  ╰─╯ ││
     │ ══╪╪═══════════════════╪╪═══════╪╪══ ─►  [ +0.84% ]
     │   ╰╯  ╭╮   ╭╮          ╰╯       ╰╯
-    │       ╰╯   ╰╯                       ← price below the open
+    │       ╰╯   ╰╯                       ← price below the reference
     │
     │  ├──────── one session ────────┤├── next session ──
     └────────────────────────────────────────────── time
 [/pine]
 
 [list]
-[*]The line sits at the [b]open of the first bar of the session[/b] and never moves vertically.
+[*]The line sits at the [b]reference level[/b] - the previous session's close (default) or the session open - and never moves vertically.
 [*]Its right end follows the current bar until the session ends.
-[*]The [b]color of the line depends on the sign of the change[/b]: up color when [b]close >= session open[/b], down color otherwise. It is re-evaluated on every bar, so a session that flips from green to red repaints the whole line.
+[*]The [b]color of the line depends on the sign of the change[/b]: up color when [b]close >= reference level[/b], down color otherwise. It is re-evaluated on every bar, so a session that flips from green to red repaints the whole line.
 [*]The whole session is [b]shaded[/b] in the same up/down color (on by default, can be turned off).
+[/list]
+
+[b]Reference level[/b]
+
+[list]
+[*][b]Previous session close[/b] [i](default)[/i] - the close of the last bar of the prior session. The change matches the [b]day change quoted against the previous close[/b] (the way most quote screens report it), and an opening gap shows up as the distance between the line and the session's first candle.
+[*][b]Session open[/b] - the open of the first bar of the session. The change measures only what happened [b]inside[/b] the session; there is never a gap between the line and the first candle.
 [/list]
 
 [b]Session detection[/b]
 
-A new session is detected with [b]timeframe.change('D')[/b] - the trading day boundary as TradingView defines it for the symbol. That is deliberately not "midnight": it follows the instrument's own session definition, so [b]futures sessions that cross midnight are handled correctly[/b] (the line starts at the session open, not at 00:00).
+A new session is detected with [b]timeframe.change('D')[/b] - the trading day boundary as TradingView defines it for the symbol. That is deliberately not "midnight": it follows the instrument's own session definition, so [b]futures sessions that cross midnight are handled correctly[/b] (the line starts at the session boundary, not at 00:00).
 
 [b]Why a box, not bgcolor()[/b]
 
@@ -67,17 +74,17 @@ Why not simply [b]1e17[/b] / [b]-1e17[/b]: TradingView silently skips boxes whos
 The label is colored by the sign of the change and sits on a fully transparent background. Two checkboxes decide what it carries:
 
 [list]
-[*][b]Show percent change[/b] [i](default on)[/i] - the change as a percent of the session open, formatted as [b]+0.84%[/b] / [b]-1.12%[/b] (always signed, two decimals).
-[*][b]Show change in instrument currency[/b] [i](default off)[/i] - the change as a price difference ([b]close - session open[/b]), formatted with the symbol's tick precision ([b]format.mintick[/b]) and suffixed with [b]syminfo.currency[/b], e.g. [b]+12.50 USD[/b]. For symbols without a quote currency the suffix is omitted.
+[*][b]Show percent change[/b] [i](default on)[/i] - the change as a percent of the reference level, formatted as [b]+0.84%[/b] / [b]-1.12%[/b] (always signed, two decimals).
+[*][b]Show change in instrument currency[/b] [i](default off)[/i] - the change as a price difference ([b]close - reference level[/b]), formatted with the symbol's tick precision ([b]format.mintick[/b]) and suffixed with [b]syminfo.currency[/b], e.g. [b]+12.50 USD[/b]. For symbols without a quote currency the suffix is omitted.
 [/list]
 
-With both on the label reads [b]+0.84% (+12.50 USD)[/b]; with both off no label is drawn at all - only the line (and the optional highlight) remains. For a session that opens at or below zero (possible on futures spreads) the percent is undefined - the label falls back to the price difference, and the up/down color always follows the sign of the difference, which stays meaningful at any price.
+With both on the label reads [b]+0.84% (+12.50 USD)[/b]; with both off no label is drawn at all - only the line (and the optional highlight) remains. For a reference level at or below zero (possible on futures spreads) the percent is undefined - the label falls back to the price difference, and the up/down color always follows the sign of the difference, which stays meaningful at any price.
 
 [b]Percent position[/b] decides where it sits, and the choice applies the same way to completed sessions and to the ongoing one:
 
 [list]
-[*][b]Behind the line[/b] [i](default)[/i] - anchored on its left edge ([b]label.style_label_left[/b]), at the open price level, right of the line end, as if continuing the line.
-[*][b]Above the line[/b] - anchored at its bottom-right corner ([b]label.style_label_lower_right[/b]), so the text sits over the end of the session open line and does not stick out past the session end.
+[*][b]Behind the line[/b] [i](default)[/i] - anchored on its left edge ([b]label.style_label_left[/b]), at the reference level, right of the line end, as if continuing the line.
+[*][b]Above the line[/b] - anchored at its bottom-right corner ([b]label.style_label_lower_right[/b]), so the text sits over the end of the line and does not stick out past the session end.
 [*][b]Below the line[/b] - anchored at its top-right corner ([b]label.style_label_upper_right[/b]), so the text hangs under the end of the line, again inside the session.
 [/list]
 
@@ -88,7 +95,8 @@ During the ongoing session the label follows the end of the line and updates on 
 [b]General[/b]
 
 [list]
-[*][b]Show percent change[/b] [i](default on)[/i] - percent of the session open in the label.
+[*][b]Reference level[/b] [i](default Previous session close)[/i] - Previous session close / Session open, described above.
+[*][b]Show percent change[/b] [i](default on)[/i] - percent of the reference level in the label.
 [*][b]Show change in instrument currency[/b] [i](default off)[/i] - price difference in the instrument currency in the label.
 [/list]
 
@@ -106,7 +114,7 @@ During the ongoing session the label follows the end of the line and updates on 
 [b]Session highlight[/b]
 
 [list]
-[*][b]Highlight the whole session[/b] [i](default on)[/i] - fills the entire session with a single color, decided by where the price stands against the session open.
+[*][b]Highlight the whole session[/b] [i](default on)[/i] - fills the entire session with a single color, decided by where the price stands against the reference level.
 [*][b]Highlight up color[/b] [i](default [b]#26A69A[/b] at 90% transparency)[/i].
 [*][b]Highlight down color[/b] [i](default [b]#EF5350[/b] at 90% transparency)[/i].
 [/list]
@@ -114,8 +122,9 @@ During the ongoing session the label follows the end of the line and updates on 
 █ [b]📈 HOW TO READ IT[/b]
 
 [list]
-[*][b]The session open is a reference level, not a signal.[/b] Trading above it means buyers have controlled the session so far; below it, sellers have.
-[*][b]Reclaims and rejections at the line[/b] are the interesting part - price returning to the open and being pushed away often marks who is defending the day.
+[*][b]The line is a reference level, not a signal.[/b] Trading above it means buyers have controlled the day so far; below it, sellers have.
+[*][b]Reclaims and rejections at the line[/b] are the interesting part - price returning to the level and being pushed away often marks who is defending the day.
+[*][b]With the previous-session-close reference[/b] (default) the line doubles as the [b]gap-fill level[/b]: a session that opens with a gap and later crosses the line has closed that gap.
 [*][b]The label value[/b] gives an instant sense of the session's magnitude without measuring anything by hand, and the sign color makes a flip visible at a glance. The percent is comparable across instruments; the currency difference maps directly to points or ticks on the symbol you trade.
 [*][b]With the session highlight on[/b], a screen full of alternating green and red blocks makes runs of consecutive up or down sessions obvious.
 [/list]
@@ -123,19 +132,19 @@ During the ongoing session the label follows the end of the line and updates on 
 █ [b]🔔 ALERTS[/b]
 
 [list]
-[*][b]Cross above session open[/b] - the price crossed the current session's line from below.
-[*][b]Cross below session open[/b] - the price crossed the current session's line from above.
+[*][b]Cross above the reference level[/b] - the price crossed the current session's line from below.
+[*][b]Cross below the reference level[/b] - the price crossed the current session's line from above.
 [/list]
 
-Those are exactly the reclaim/rejection moments described above. The first bar of a session - where the line jumps to the new open - never fires either alert. Crosses are evaluated on [b]close[/b], so on the live candle a cross can appear and un-cross before the candle closes; set the alert trigger to [b]Once Per Bar Close[/b] if you only want confirmed crosses.
+Those are exactly the reclaim/rejection moments described above (with the default reference: the gap-fill / day-flip moments). The first bar of a session - where the line jumps to the new reference - never fires either alert. Crosses are evaluated on [b]close[/b], so on the live candle a cross can appear and un-cross before the candle closes; set the alert trigger to [b]Once Per Bar Close[/b] if you only want confirmed crosses.
 
 █ [b]📤 HIDDEN SERIES[/b]
 
 The script exposes two hidden series, visible in the [b]Data Window[/b] and usable as an [b]external source[/b] in other indicators and strategies (any [b]input.source[/b] field):
 
 [list]
-[*][b]Session open[/b] - the open price of the current session (the level the line sits at).
-[*][b]Session change %[/b] - the session change as a percent of the session open.
+[*][b]Reference level[/b] - the level the line sits at: the previous session's close (default) or the session open.
+[*][b]Session change %[/b] - the session change as a percent of the reference level.
 [/list]
 
 █ [b]⛔ LIMITATIONS[/b]
@@ -143,8 +152,8 @@ The script exposes two hidden series, visible in the [b]Data Window[/b] and usab
 [list]
 [*][b]Intraday timeframes only.[/b] On D and above every bar is its own session, so the script draws nothing and instead shows a hint table in the top-right corner: [b]Session Open Line: the indicator works on intraday timeframes[/b].
 [*]Drawing objects are capped at [b]500[/b] lines, [b]500[/b] labels, and [b]500[/b] boxes - older sessions drop off the left side of the chart.
-[*]Both values are computed from [b]close[/b] against the session open, so during the ongoing session they move with every tick and only become final at the session close.
-[*]The [b]first session in the loaded history[/b] starts at the first loaded bar, which is not necessarily the true session start - its "open" (and therefore its change) can be off. Every later session is exact.
+[*]Both values are computed from [b]close[/b] against the reference level, so during the ongoing session they move with every tick and only become final at the session close.
+[*]The [b]first session in the loaded history[/b] starts at the first loaded bar, which is not necessarily the true session start. With the default reference (previous session close) it has no prior close at all, so it draws nothing; with the session-open reference its "open" (and therefore its change) can be off. Every later session is exact.
 [/list]
 
 © Piotr Kowalski "piecioshka". License: Mozilla Public License 2.0.

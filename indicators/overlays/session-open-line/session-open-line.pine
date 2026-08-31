@@ -4,35 +4,42 @@
 // Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/overlays/session-open-line/session-open-line.pl.md
 
 //@version=6
-// Draws a horizontal line at the session open price - from the first to the
-// last bar of the session. A label shows the price change during the session
-// (close vs session open) as a percent, as a difference in the instrument
-// currency, or both - each part has its own checkbox. The 'Percent position'
-// input decides where that label sits - above or below the session open line,
-// or behind its end - and the choice applies consistently to completed
-// sessions and to the ongoing one. During the ongoing session the value
-// updates on every bar. Line and label colors depend on the sign of the
-// change, and the whole session is shaded with the same color (can be turned
-// off). Alerts fire when the price crosses the session open line in either
-// direction, and the session open level plus the session change (%) are
-// exposed as hidden series - other scripts can use them as external sources.
-// Works on intraday timeframes - on D and above every bar is its own
-// session, so the indicator only shows a hint.
+// Draws a horizontal line at the session's reference level - from the first
+// to the last bar of the session. By default the reference is the previous
+// session's close, so the change matches the day change quoted against the
+// prior close and opening gaps become visible; the 'Reference level' input
+// switches it to the session open, measuring only what happened inside the
+// session. A label shows the price change during the session (close vs the
+// reference level) as a percent, as a difference in the instrument currency,
+// or both - each part has its own checkbox. The 'Percent
+// position' input decides where the label sits - above or below the line, or
+// behind its end - and the choice applies consistently to completed sessions
+// and to the ongoing one. During the ongoing session the value updates on
+// every bar. Line and label colors depend on the sign of the change, and the
+// whole session is shaded with the same color (can be turned off). Alerts
+// fire when the price crosses the line in either direction, and the
+// reference level plus the session change (%) are exposed as hidden series -
+// other scripts can use them as external sources. Works on intraday
+// timeframes - on D and above every bar is its own session, so the indicator
+// only shows a hint.
 indicator('Session Open Line', overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
-showPct = input.bool(true, 'Show percent change', group = 'General', tooltip = 'Shows the session change as a percent of the session open, e.g. +0.84%.')
-showAbs = input.bool(false, 'Show change in instrument currency', group = 'General', tooltip = 'Shows the session change as a price difference (close minus session open) in the currency of the instrument, e.g. +12.50 USD. With both checkboxes on the label reads +0.84% (+12.50 USD).')
+refLevelName = input.string('Previous session close', 'Reference level', options = ['Previous session close', 'Session open'], group = 'General', tooltip = 'The level the line sits at and the change is measured from. Previous session close (default): the close of the last bar of the previous session - the change matches the day change quoted against the prior close, and an opening gap shows up as the distance between the line and the first candle. Session open: the open of the first bar of the session - the change measures only what happened inside the session. The first session in the loaded history has no previous close, so in the default mode it gets no line.')
+showPct = input.bool(true, 'Show percent change', group = 'General', tooltip = 'Shows the session change as a percent of the reference level, e.g. +0.84%.')
+showAbs = input.bool(false, 'Show change in instrument currency', group = 'General', tooltip = 'Shows the session change as a price difference (close minus the reference level) in the currency of the instrument, e.g. +12.50 USD. With both checkboxes on the label reads +0.84% (+12.50 USD).')
 GRP = 'Appearance'
 upColor = input.color(#26A69A, 'Up color', group = GRP)
 downColor = input.color(#EF5350, 'Down color', group = GRP)
 lineStyleName = input.string('Solid', 'Line style', options = ['Solid', 'Dashed', 'Dotted'], group = GRP)
 lineWidth = input.int(1, 'Line width', minval = 1, maxval = 4, group = GRP)
 textSizeName = input.string('Small', 'Text size', options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large'], group = GRP)
-pctPositionName = input.string('Behind the line', 'Percent position', options = ['Above the line', 'Below the line', 'Behind the line'], group = GRP, tooltip = 'Above the line: the value sits over the end of the session open line. Below the line: the value hangs under the end of the line. Behind the line: the value sits at the open price level, right of the line end, as if continuing it. The choice applies to both completed and ongoing sessions.')
+pctPositionName = input.string('Behind the line', 'Percent position', options = ['Above the line', 'Below the line', 'Behind the line'], group = GRP, tooltip = 'Above the line: the value sits over the end of the line. Below the line: the value hangs under the end of the line. Behind the line: the value sits at the reference level, right of the line end, as if continuing it. The choice applies to both completed and ongoing sessions.')
 GRP_BG = 'Session highlight'
-showBg = input.bool(true, 'Highlight the whole session', group = GRP_BG, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the session open.')
+showBg = input.bool(true, 'Highlight the whole session', group = GRP_BG, tooltip = 'Fills the entire session with a single color, decided by where the price stands against the reference level.')
 bgUpColor = input.color(color.new(#26A69A, 90), 'Highlight up color', group = GRP_BG)
 bgDownColor = input.color(color.new(#EF5350, 90), 'Highlight down color', group = GRP_BG)
+
+usePrevClose = refLevelName == 'Previous session close'
 
 lineStyle = switch lineStyleName
     'Dashed' => line.style_dashed
@@ -67,8 +74,8 @@ fmtAbs(float delta) =>
     (delta >= 0 ? '+' : '') + str.tostring(delta, format.mintick) + currencySuffix
 
 // Percent first, the currency difference in parentheses - or either one
-// alone. An undefined percent (session open at or below zero) falls back to
-// the price difference, which stays meaningful at any price.
+// alone. An undefined percent (reference level at or below zero) falls back
+// to the price difference, which stays meaningful at any price.
 fmtChange(float delta, float pct) =>
     showPct and showAbs and not na(pct) ? fmtPct(pct) + ' (' + fmtAbs(delta) + ')' : showPct and not na(pct) ? fmtPct(pct) : fmtAbs(delta)
 
@@ -76,7 +83,7 @@ fmtChange(float delta, float pct) =>
 // the line and does not stick out past the session end. label_upper_right -
 // anchor at the top-right corner, the text hangs below the line, again inside
 // the session. label_left - anchor on the left edge, the text sits at the
-// open price level, to the right of the line end, as if continuing the line.
+// reference level, to the right of the line end, as if continuing the line.
 newLabel(int x, float y, float delta, float pct, color col, string sizeName, string labelStyle) =>
     label.new(x, y, fmtChange(delta, pct), xloc = xloc.bar_index, style = labelStyle, textcolor = col, color = color.new(color.black, 100), size = sizeName)
 
@@ -104,25 +111,33 @@ newSession = timeframe.change('D')
 var line ln = na
 var label lb = na
 var box bg = na
-var float sessionOpen = na
+var float sessionRef = na
 
+// The reference level of the session: its own open, or the close of the
+// previous session (close[1] on the session's first bar). On the very first
+// loaded bar close[1] is na - in 'Previous session close' mode the first
+// session has no reference, so it draws nothing.
 if timeframe.isintraday and (newSession or barstate.isfirst)
-    sessionOpen := open
-    ln := line.new(bar_index, open, bar_index, open, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
+    sessionRef := usePrevClose ? close[1] : open
     lb := na
-    // One box per session instead of bgcolor(), which paints a single bar
-    // and cannot be repainted later - a box spans the whole session and
-    // keeps one color, corrected on every bar of that session. Box
-    // 'extend' works on the time axis only, so the vertical coverage
-    // comes from the bgTop/bgBottom bounds.
-    bg := showBg ? box.new(bar_index, bgTop, bar_index, bgBottom, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
+    if not na(sessionRef)
+        ln := line.new(bar_index, sessionRef, bar_index, sessionRef, xloc = xloc.bar_index, color = upColor, style = lineStyle, width = lineWidth)
+        // One box per session instead of bgcolor(), which paints a single bar
+        // and cannot be repainted later - a box spans the whole session and
+        // keeps one color, corrected on every bar of that session. Box
+        // 'extend' works on the time axis only, so the vertical coverage
+        // comes from the bgTop/bgBottom bounds.
+        bg := showBg ? box.new(bar_index, bgTop, bar_index, bgBottom, xloc = xloc.bar_index, border_color = color.new(color.black, 100), bgcolor = bgUpColor) : na
+    else
+        ln := na
+        bg := na
 
 // The sign of the change comes from the price difference, not from the
-// percent - for a session open at or below zero (possible on futures
+// percent - for a reference level at or below zero (possible on futures
 // spreads) the percent flips sign or loses meaning, the difference never
 // does.
-delta = close - sessionOpen
-pct = sessionOpen > 0 ? delta / sessionOpen * 100 : na
+delta = close - sessionRef
+pct = sessionRef > 0 ? delta / sessionRef * 100 : na
 col = delta >= 0 ? upColor : downColor
 
 if timeframe.isintraday and not na(ln)
@@ -135,7 +150,7 @@ if timeframe.isintraday and not na(ln)
     // the session.
     if showLabel
         if na(lb)
-            lb := newLabel(bar_index, sessionOpen, delta, pct, col, textSize, pctStyle)
+            lb := newLabel(bar_index, sessionRef, delta, pct, col, textSize, pctStyle)
         else
             label.set_x(lb, bar_index)
             label.set_text(lb, fmtChange(delta, pct))
@@ -157,16 +172,16 @@ else
         table.cell(hint, 0, 0, 'Session Open Line: the indicator works on intraday timeframes', text_color = color.gray, text_size = size.small)
 
 // A cross is only meaningful against the current session's line, so the
-// first bar of a session - where the line jumps to the new open - is
+// first bar of a session - where the line jumps to the new reference - is
 // excluded.
-crossUp = ta.crossover(close, sessionOpen)
-crossDown = ta.crossunder(close, sessionOpen)
+crossUp = ta.crossover(close, sessionRef)
+crossDown = ta.crossunder(close, sessionRef)
 alertOk = timeframe.isintraday and not newSession
-alertcondition(alertOk and crossUp, 'Cross above session open', 'Price crossed above the session open')
-alertcondition(alertOk and crossDown, 'Cross below session open', 'Price crossed below the session open')
+alertcondition(alertOk and crossUp, 'Cross above the reference level', 'Price crossed above the session reference level (session open or previous session close)')
+alertcondition(alertOk and crossDown, 'Cross below the reference level', 'Price crossed below the session reference level (session open or previous session close)')
 
 // Hidden series - rows in the Data Window and external sources for other
-// scripts (any input.source field): the session open level and the session
+// scripts (any input.source field): the reference level and the session
 // change as a percent.
-plot(timeframe.isintraday ? sessionOpen : na, 'Session open', display = display.data_window, editable = false)
+plot(timeframe.isintraday ? sessionRef : na, 'Reference level', display = display.data_window, editable = false)
 plot(timeframe.isintraday ? pct : na, 'Session change %', display = display.data_window, editable = false)
