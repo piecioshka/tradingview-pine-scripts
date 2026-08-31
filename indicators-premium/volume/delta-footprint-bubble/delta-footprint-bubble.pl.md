@@ -90,7 +90,7 @@ Footprint zna **stronę agresora** każdej transakcji wewnątrz świecy:
 
 ## 👨‍👩‍👧 Rodzina Delta Footprint
 
-- **Delta Footprint Histogram** - ta sama delta jako kolumny w osobnym panelu.
+- **Volume Delta Histogram** - ta sama delta jako kolumny w osobnym panelu.
 - **Volume Delta Table** - tabela statusu (wolumen / kupno / sprzedaż / delta % / CVD).
 
 ---

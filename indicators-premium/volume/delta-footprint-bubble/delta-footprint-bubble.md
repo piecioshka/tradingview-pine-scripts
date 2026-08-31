@@ -91,7 +91,7 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 
 ## 👨‍👩‍👧 The Delta Footprint family
 
-- **Delta Footprint Histogram** - the same delta as columns in a separate panel.
+- **Volume Delta Histogram** - the same delta as columns in a separate panel.
 - **Volume Delta Table** - status table (volume / buy / sell / delta % / CVD).
 
 ---

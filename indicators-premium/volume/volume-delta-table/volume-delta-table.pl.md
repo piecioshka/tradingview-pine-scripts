@@ -78,7 +78,7 @@ Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użytecz
 ## 🔗 Powiązane
 
 - **Delta Footprint Bubble** - delta + bąbelki POC + Value Area na wykresie ceny.
-- **Delta Footprint Histogram** - kolumny delty w osobnym panelu.
+- **Volume Delta Histogram** - kolumny delty w osobnym panelu.
 
 ---
 

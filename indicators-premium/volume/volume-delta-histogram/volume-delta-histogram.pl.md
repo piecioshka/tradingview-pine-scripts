@@ -1,9 +1,9 @@
-# Delta Footprint Histogram
+# Volume Delta Histogram
 
-Wskaźnik order flow dla TradingView (Pine Script v6). **Delta footprint jako histogram w osobnym panelu** - zachowuje się jak wbudowany wskaźnik Volume, ale kolumny pokazują, **kto był agresorem**, a nie tylko ile się nahandlowało.
+Wskaźnik order flow dla TradingView (Pine Script v6). **Delta wolumenu (z prawdziwych danych footprint) jako histogram w osobnym panelu** - zachowuje się jak wbudowany wskaźnik Volume, ale kolumny pokazują, **kto był agresorem**, a nie tylko ile się nahandlowało.
 
-Plik: [`delta-footprint-histogram.pine`](./delta-footprint-histogram.pine)
-Wersja angielska: [`delta-footprint-histogram.md`](./delta-footprint-histogram.md)
+Plik: [`volume-delta-histogram.pine`](./volume-delta-histogram.pine)
+Wersja angielska: [`volume-delta-histogram.md`](./volume-delta-histogram.md)
 
 ---
 

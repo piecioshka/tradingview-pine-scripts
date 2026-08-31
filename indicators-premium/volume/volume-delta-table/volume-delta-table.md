@@ -79,7 +79,7 @@ The script exposes its numbers as hidden series (visible in the Data Window, usa
 ## 🔗 Related
 
 - **Delta Footprint Bubble** - delta + POC bubbles + Value Area on the price chart.
-- **Delta Footprint Histogram** - delta columns in a separate panel.
+- **Volume Delta Histogram** - delta columns in a separate panel.
 
 ---
 

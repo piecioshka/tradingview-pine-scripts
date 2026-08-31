@@ -35,7 +35,7 @@
 - [Premium](#premium)
   - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
-    - [Delta Footprint Histogram](#delta-footprint-histogram)
+    - [Volume Delta Histogram](#volume-delta-histogram)
     - [Naked POC](#naked-poc)
     - [Volume Delta Table](#volume-delta-table)
 - [Tools](#tools)
@@ -220,13 +220,13 @@ Volume delta from real footprint data (`request.footprint()`, available since Ja
 
 > ⚠️ Requires a TradingView **Premium** or **Ultimate** account - without it the script does not compile. `request.footprint()` works only for the chart's **current timeframe**.
 
-#### [Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.pine)
+#### [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pine)
 
-> 📖 Full documentation: [Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.md) · [po polsku](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.pl.md)
+> 📖 Full documentation: [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.md) · [po polsku](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pl.md)
 
-The footprint delta as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
+The volume delta (from real footprint data) as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
 
-![Delta Footprint Histogram](indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.png)
+![Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 

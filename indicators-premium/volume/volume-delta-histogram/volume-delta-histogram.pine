@@ -1,12 +1,12 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
-// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.md
-// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/delta-footprint-histogram/delta-footprint-histogram.pl.md
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pl.md
 
 //@version=6
-indicator('Delta Footprint Histogram', overlay=false, max_labels_count=500)
+indicator('Volume Delta Histogram', overlay=false, max_labels_count=500)
 
-// Footprint delta histogram in a separate panel, anchored to the base (0).
+// Volume delta histogram (from real footprint data) in a separate panel, anchored to the base (0).
 // Column = |delta| (buy − sell), colored by sign: green = buy dominance, red = sell.
 // The height is normalized and capped at a given % of the panel; real delta values are
 // visible as numbers on the columns and in the data window.
