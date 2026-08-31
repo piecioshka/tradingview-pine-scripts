@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/oscillators/macd/macd.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/oscillators/macd/macd.pl.md
 
 //@version=6
 indicator('MACD = Moving Average Convergence Divergence', overlay=false, max_lines_count=100, max_labels_count=100)

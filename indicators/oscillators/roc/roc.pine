@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/oscillators/roc/roc.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/oscillators/roc/roc.pl.md
 
 //@version=6
 indicator('ROC = Rate of Change', overlay=false, max_labels_count=500)

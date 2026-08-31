@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/naked-poc/naked-poc.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/naked-poc/naked-poc.pl.md
 
 //@version=6
 // Draws the Point of Control (the footprint row with the highest volume) as

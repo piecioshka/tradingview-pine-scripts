@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/seasonality/daily-seasonality/daily-seasonality.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/seasonality/daily-seasonality/daily-seasonality.pl.md
 
 //@version=6
 indicator('Daily Seasonality', overlay = true)

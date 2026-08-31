@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pl.md
 
 //@version=6
 indicator('Accumulation / Distribution Density (VD)', overlay=true, max_labels_count=500)

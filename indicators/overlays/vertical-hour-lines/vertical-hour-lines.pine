@@ -1,5 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/overlays/vertical-hour-lines/vertical-hour-lines.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/overlays/vertical-hour-lines/vertical-hour-lines.pl.md
 
 //@version=6
 // Draws vertical lines at the given hours — up to 10 slots, each with its own
