@@ -54,7 +54,7 @@ Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyc
 
 ## 📍 Linia POC
 
-Opcjonalna **pozioma linia na wykresie na poziomie POC bieżącej świecy** (_Show POC line_, domyślnie wyłączona), z etykietą pokazującą **cenę tego poziomu** (`POC 4312.4`). Linia jest przedłużona w lewo, więc od razu widać, jak cena zachowywała się na tym poziomie w przeszłości, i podąża za POC w miarę budowania się bieżącej świecy. Kolor, styl (ciągła/kreskowana/kropkowana) i grubość są konfigurowalne.
+**Pozioma kropkowana linia przez cały wykres na poziomie POC bieżącej świecy** - plot `POC line`, domyślnie włączony, **przełączany w zakładce Styl** jak każdy plot. **Dokładna cena poziomu** widnieje na skali cenowej (w kolorze linii) i w Data Window, a linia podąża za POC w miarę budowania się bieżącej świecy. Kolor ustawia się w grupie parametrów `POC line`; opcja _Sync color with the table POC value_ każe linii przejąć kolor wartości POC z tabelki (_Base color_), więc linia i tabelka pozostają spójne przy zmianie motywu.
 
 ---
 
@@ -64,7 +64,7 @@ Opcjonalna **pozioma linia na wykresie na poziomie POC bieżącej świecy** (_Sh
 - **Imbalance** (imbalans): _ratio X:1_ (stosunek X:1, domyślnie 3), _min. stacked levels_ (min. liczba skumulowanych poziomów, domyślnie 3).
 - **Table** (tabela): pozycja (6 rogów/boków), marginesy, rozmiar tekstu.
 - **Table rows** (wiersze tabeli): przełącznik na każdy wiersz (patrz wyżej).
-- **POC line** (linia POC): pokaż/ukryj (domyślnie wyłączona), kolor, styl, grubość.
+- **POC line** (linia POC): kolor + synchronizacja z kolorem wartości POC w tabelce; widoczność w zakładce Styl.
 - **Colors** (kolory): kolor bazowy/neutralny, kolor Max volume.
 - **CVD**: dzienny reset sesji (domyślnie włączony).
 
@@ -79,7 +79,7 @@ Opcjonalna **pozioma linia na wykresie na poziomie POC bieżącej świecy** (_Sh
 
 ## 📤 Ukryte serie
 
-Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użyteczne jako **zewnętrzne źródło** przez `input.source` w innych wskaźnikach i strategiach): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)** oraz **POC** (cena).
+Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użyteczne jako **zewnętrzne źródło** przez `input.source` w innych wskaźnikach i strategiach): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)**. Cenę POC wystawia plot `POC line` (rysowany też na wykresie).
 
 ---
 
