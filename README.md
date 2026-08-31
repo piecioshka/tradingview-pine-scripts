@@ -110,7 +110,7 @@ A label next to the current price line showing when the market was last at this 
 
 #### [Session Open Line](indicators/overlays/session-open-line/session-open-line.pine)
 
-> 📖 Full documentation: [Session Open Line](indicators/overlays/session-open-line/session-open-line.md) · [po polsku](indicators/overlays/session-open-line/session-open-line.pl.md)
+> 📖 Full documentation: [Session Open Line](indicators/overlays/session-open-line/session-open-line.md) · [po polsku](indicators/overlays/session-open-line/session-open-line.pl.md) · [release notes](indicators/overlays/session-open-line/release/session-open-line.release.md)
 
 A horizontal line at the session's reference level - the previous session's close (default) or the session open - drawn from the first to the last bar of the session. A label carries the price change during the session (close vs the reference) - as a percent, as a difference in the instrument currency, or both, each behind its own checkbox. With the default reference the change matches the day change quoted against the prior close and the line doubles as the gap-fill level. The "Percent position" dropdown picks where that label sits - "Behind the line" (default) at the reference level, right of the line end, as if continuing it, or "Above the line" / "Below the line" over or under the end of the line - and the choice applies the same way to completed sessions and to the ongoing one. The line and label colors depend on the sign of the change, and the whole session is shaded with that color (on by default). Alerts fire when the price crosses the line, and the reference level plus the session change (%) are exposed as hidden series usable as external sources in other scripts. Works on intraday timeframes - on D and above every bar is its own session, so the indicator only shows a hint.
 
@@ -196,7 +196,9 @@ Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default
 
 #### [Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pine)
 
-> 📖 Full documentation: [Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md) · [po polsku](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pl.md)
+> 📖 Full documentation: [Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md) · [po polsku](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pl.md) · [release notes](indicators/volume/accumulation-distribution-density/release/accumulation-distribution-density.release.md)
+>
+> 🚀 Published on TradingView: [Accumulation / Distribution Density (VD)](https://pl.tradingview.com/script/olfpEvv8/)
 
 Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's indicator from xStation (XTB). Looks for candles whose volume-to-price-movement ratio (**density** = volume per unit of range) is disproportionately high and which set a local extreme - heavy turnover with little movement at a low/high suggests position accumulation/distribution and a potential turning point. **▲ marker** below a candle = accumulation density (potential bullish signal), **▼ marker** above a candle = distribution density (potential bearish signal); the marker shape (triangle, arrow, label arrow, circle, diamond), size, and colors are configurable. Parameters as in xStation: Max/Min of, Average Spread of, Average Density of, Spread Factor (with a toggle), Density Factor, and the Bar close % filter. Built-in `alertcondition` for both signals. Requires an instrument with volume data (TVC CFDs lack it - use e.g. futures contracts).
 
@@ -242,7 +244,7 @@ The volume delta (from real footprint data) as a **histogram in a separate panel
 
 #### [Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.pine)
 
-> 📖 Full documentation: [Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.md) · [po polsku](indicators-premium/volume/volume-delta-table/volume-delta-table.pl.md)
+> 📖 Full documentation: [Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.md) · [po polsku](indicators-premium/volume/volume-delta-table/volume-delta-table.pl.md) · [release notes](indicators-premium/volume/volume-delta-table/release/volume-delta-table.release.md)
 
 A standalone **volume delta status table** (volume / buy / sell / delta + % / CVD) in a chart corner. The buy/sell split comes from real footprint data (`request.footprint()`), so the table shows genuine aggressor-side volume, not a close-vs-open approximation. Every row is individually toggleable (by default: Volume, Buy, Sell, Delta; opt-in: session start, bar count, session and 1-hour CVD, Delta %). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta apply **only to the last candle** (CVD accumulates over the session). Delta-flip alerts and hidden series (Delta, Buy, Sell, CVD) included.
 
