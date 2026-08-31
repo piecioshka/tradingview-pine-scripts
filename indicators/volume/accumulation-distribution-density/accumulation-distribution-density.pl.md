@@ -52,6 +52,8 @@ Marker pojawia się na świecy tylko wtedy, gdy spełnione są **wszystkie** pon
 
 Obie średnie (zakresu i gęstości) używają okna **kończącego się na poprzedniej świecy** - świeca sygnałowa nie zawyża własnego progu.
 
+Domyślnie warunki sprawdzane są dopiero po **zamknięciu** świecy (_Signal on closed candle only_) - marker nigdy nie pojawia się i nie znika na żywej świecy.
+
 ---
 
 ## 🛠️ Parametry
@@ -65,6 +67,7 @@ Obie średnie (zakresu i gęstości) używają okna **kończącego się na poprz
 - **Spread Factor** (mnożnik zakresu) _(domyślnie 1.4)_ - o ile świeca sygnałowa może być większa od średniego zakresu.
 - **Density Factor** (mnożnik gęstości) _(domyślnie 2)_ - ile razy średnią gęstość musi osiągnąć świeca.
 - **Bar close (%)** (położenie zamknięcia) _(domyślnie 0)_ - opisany wyżej filtr położenia zamknięcia.
+- **Signal on closed candle only** (sygnał tylko na zamkniętej świecy) _(domyślnie włączone)_ - sygnały liczone wyłącznie po zamknięciu świecy (brak repaintingu). Wyłącz, aby obserwować sygnały tworzące się na żywej świecy - taki sygnał może zniknąć przed zamknięciem.
 
 ### Appearance - wygląd
 
@@ -78,6 +81,14 @@ Obie średnie (zakresu i gęstości) używają okna **kończącego się na poprz
 
 - **Accumulation density** - potencjalny sygnał byczy (ciężki wolumen, mały ruch, nowy dołek).
 - **Distribution density** - potencjalny sygnał niedźwiedzi (ciężki wolumen, mały ruch, nowy szczyt).
+
+Przy włączonym _Signal on closed candle only_ (domyślnie) alerty odpalają się przy zamknięciu świecy. Jeśli wyłączysz tę opcję, ustaw wyzwalacz alertu na **Once Per Bar Close** - inaczej alert może odpalić się na sygnale z żywej świecy, który później zniknie.
+
+---
+
+## 📤 Wyjście sygnału
+
+Skrypt wystawia ukrytą serię **Signal**: `+1` (akumulacja), `-1` (dystrybucja), `0` (brak). Jest widoczna w oknie danych (Data Window) i może służyć jako **zewnętrzne źródło** w innych wskaźnikach i strategiach (dowolne pole `input.source`) - np. do zbudowania własnej strategii na tych sygnałach.
 
 ---
 
@@ -102,7 +113,7 @@ Nawet przy identycznych wartościach parametrów markery **nie pokryją się 1:1
    - sprawdzenie nowego ekstremum używa `<=` / `>=` (oryginał może wymagać ścisłego przebicia),
    - świeca o zerowym zakresie (doji) dzieli przez jeden tik zamiast być pomijana,
    - "Bar close %" mierzony od low (akumulacja) / od high (dystrybucja).
-3. ⏳ **Zachowanie na żywej świecy.** Warunki są liczone na wartościach na żywo, więc marker na niezamkniętej świecy może zniknąć przed jej zamknięciem. xStation może oceniać wyłącznie świece zamknięte.
+3. ⏳ **Zachowanie na żywej świecy.** Przy wyłączonym _Signal on closed candle only_ warunki są liczone na wartościach na żywo, więc marker na niezamkniętej świecy może zniknąć przed jej zamknięciem. Domyślnie (włączone) oceniane są wyłącznie świece zamknięte; jak robi to xStation - nie wiadomo.
 
 **Praktyczny wniosek:** porównuj oba na **tym samym typie danych rynkowych** (np. kontrakty futures na złoto po obu stronach), oczekuj zgodności w _charakterze_ (markery skupiają się w tych samych miejscach), a nie na identycznych świecach.
 
@@ -110,9 +121,9 @@ Nawet przy identycznych wartościach parametrów markery **nie pokryją się 1:1
 
 ## ⛔ Ograniczenia
 
-- Wymaga instrumentu z **danymi o wolumenie** - CFD TVC (TVC:GOLD, TVC:USOIL) mają zerowy wolumen i nigdy nie sygnalizują; używaj kontraktów futures (np. COMEX:GC1!).
+- Wymaga instrumentu z **danymi o wolumenie** - wiele CFD TVC (TVC:GOLD, TVC:USOIL) ma zerowy wolumen i nigdy nie sygnalizuje; skrypt pokazuje wtedy ostrzeżenie w prawym górnym rogu wykresu. Sprawdzaj per symbol (np. TVC:UKOIL wolumen _ma_) albo używaj kontraktów futures (np. COMEX:GC1!).
 - Markery to etykiety - TradingView trzyma tylko **500** najnowszych.
-- Sygnał na niezamkniętej świecy może zniknąć przed jej zamknięciem (patrz wyżej).
+- Sygnał na niezamkniętej świecy może zniknąć przed jej zamknięciem - tylko przy wyłączonym _Signal on closed candle only_ (patrz wyżej).
 
 ---
 

@@ -52,6 +52,8 @@ A marker appears on a candle only when **all** of these hold:
 
 Both averages (range and density) use a window **ending at the previous candle** - the signal candle does not inflate its own threshold.
 
+By default the conditions are checked only once the candle **closes** (_Signal on closed candle only_) - a marker never appears and then disappears on the live candle.
+
 ---
 
 ## 🛠️ Parameters
@@ -65,6 +67,7 @@ Both averages (range and density) use a window **ending at the previous candle**
 - **Spread Factor** _(default 1.4)_ - how much larger than the average range the signal candle may be.
 - **Density Factor** _(default 2)_ - how many times the average density the candle must reach.
 - **Bar close (%)** _(default 0)_ - the close-position filter described above.
+- **Signal on closed candle only** _(default on)_ - evaluate signals only when a candle closes (no repainting). Turn off to watch signals form in real time on the unclosed candle - such a signal may vanish before the close.
 
 ### Appearance
 
@@ -78,6 +81,14 @@ Both averages (range and density) use a window **ending at the previous candle**
 
 - **Accumulation density** - potential bullish signal (heavy volume, little movement, new low).
 - **Distribution density** - potential bearish signal (heavy volume, little movement, new high).
+
+With _Signal on closed candle only_ on (default) alerts fire at the candle close. If you turn that option off, set the alert trigger to **Once Per Bar Close** - otherwise an alert can fire on a live-candle signal that later vanishes.
+
+---
+
+## 📤 Signal output
+
+The script exposes a hidden **Signal** series: `+1` (accumulation), `-1` (distribution), `0` (none). It is visible in the Data Window and can be used as an **external source** in other indicators and strategies (any `input.source` field) - e.g. to build your own strategy on top of these signals.
 
 ---
 
@@ -102,7 +113,7 @@ Even with identical parameter values, markers **will not land 1:1** on xStation'
    - new-extreme check uses `<=` / `>=` (the original may require a strict break),
    - a zero-range candle (doji) divides by one tick instead of being skipped,
    - "Bar close %" measured from the low (accumulation) / from the high (distribution).
-3. ⏳ **Live-candle behavior.** Conditions are evaluated on live values, so a marker on an unclosed candle can disappear before the close. xStation may evaluate only closed candles.
+3. ⏳ **Live-candle behavior.** With _Signal on closed candle only_ turned off, conditions are evaluated on live values, so a marker on an unclosed candle can disappear before the close. The default (on) evaluates only closed candles; xStation's behavior here is unknown.
 
 **Practical takeaway:** compare the two on the **same market data type** (e.g. gold futures on both), expect agreement in _character_ (markers cluster in the same spots), not in identical candles.
 
@@ -110,9 +121,9 @@ Even with identical parameter values, markers **will not land 1:1** on xStation'
 
 ## ⛔ Limitations
 
-- Requires an instrument with **volume data** - TVC CFDs (TVC:GOLD, TVC:USOIL) have zero volume and never signal; use futures (e.g. COMEX:GC1!).
+- Requires an instrument with **volume data** - many TVC CFDs (TVC:GOLD, TVC:USOIL) have zero volume and never signal; the script then shows a warning in the top-right corner of the chart. Check per symbol (e.g. TVC:UKOIL _does_ have volume) or use futures (e.g. COMEX:GC1!).
 - Markers are labels - TradingView keeps only the most recent **500**.
-- A signal on an unclosed candle may vanish before the close (see above).
+- A signal on an unclosed candle may vanish before the close - only with _Signal on closed candle only_ turned off (see above).
 
 ---
 
