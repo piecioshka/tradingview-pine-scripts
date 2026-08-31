@@ -33,7 +33,7 @@ gView = 'Display'
 showLabels  = input.bool(true,  'Show delta numbers', group=gView, tooltip='Delta number printed next to each candle (green = buy dominance, red = sell).')
 numMode     = input.string('Absolute', 'Number format', options=['Absolute', 'Percent of volume'], group=gView, tooltip='"Absolute" = delta in contracts/units (K/M/B abbreviated). "Percent of volume" = delta as % of the candle volume (buy + sell), e.g. +37% means buyers outweigh by 37% of the total.')
 fontSize    = input.string('Small', 'Number size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gView)
-numPos      = input.string('Below POC', 'Number position', options=['Below POC', 'Above POC', 'Below candle', 'Above candle'], group=gView, tooltip='Where to print the delta number: "Below/Above POC" = below/above the POC bubble, "Below/Above candle" = below the candle (low) / above the candle (high). No POC data → POC positions fall back to the candle.')
+numPos      = input.string('Below POC', 'Number position', options=['Below POC', 'Above POC', 'Below candle', 'Above candle', 'By sign (POC)', 'By sign (candle)'], group=gView, tooltip='Where to print the delta number: "Below/Above POC" = below/above the POC bubble, "Below/Above candle" = below the candle (low) / above the candle (high). "By sign" = position follows the delta sign: green (positive) numbers above, red (negative) below - anchored to the POC bubble or the candle. No POC data → POC positions fall back to the candle.')
 numGap      = input.float(0.5, 'Number gap (× ATR)', minval=0, maxval=5, step=0.1, group=gView, tooltip='Gap between the number and the candle / POC bubble, as a multiple of ATR(14). 0 = right next to it.')
 showBubble  = input.bool(true, 'Show POC bubbles', group=gView, tooltip='Bubbles (dots) at the POC level, scaled by volume. Turn off to keep only delta numbers / Value Area / POC trail.')
 pocColor    = input.color(color.new(color.orange, 20), 'POC bubble color', group=gView)
@@ -194,10 +194,12 @@ f_bold(string s) =>
     out
 
 // --- Delta labels (below/above the candle or the POC bubble; divergence = bold number) ---
+// "By sign" modes place the number by the delta sign: positive (green) above, negative (red) below.
 szLbl   = fontSize == 'Tiny' ? size.tiny : fontSize == 'Small' ? size.small : fontSize == 'Normal' ? size.normal : size.large
 atr     = nz(ta.atr(14))
-usePoc  = (numPos == 'Below POC' or numPos == 'Above POC') and not na(pocPrice)   // no POC → falls back to the candle
-above   = numPos == 'Above POC' or numPos == 'Above candle'
+bySign  = numPos == 'By sign (POC)' or numPos == 'By sign (candle)'
+usePoc  = (numPos == 'Below POC' or numPos == 'Above POC' or numPos == 'By sign (POC)') and not na(pocPrice)   // no POC → falls back to the candle
+above   = numPos == 'Above POC' or numPos == 'Above candle' or (bySign and delta > 0)
 baseY   = usePoc ? pocPrice : (above ? high : low)
 lblY    = above ? baseY + numGap * atr : baseY - numGap * atr   // gap = numGap × ATR; above or below the POC bubble / candle
 if showLabels and hasDelta

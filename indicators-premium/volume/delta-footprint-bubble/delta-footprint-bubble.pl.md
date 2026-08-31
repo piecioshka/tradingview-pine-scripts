@@ -43,7 +43,7 @@ Footprint zna **stronę agresora** każdej transakcji wewnątrz świecy:
 
 ### Elementy po kolei
 
-- 🔢 **Liczby delty** - zielone/czerwone, drukowane pod/nad świecą albo bąbelkiem POC (konfigurowalna pozycja i odstęp w jednostkach ATR). Format: absolutny (K/M/B) albo **procent wolumenu świecy**. **Pogrubiona liczba = dywergencja**: kierunek świecy przeczy delcie (np. cena rośnie przy ujemnej delcie) - coś się nie zgadza, warto się przyjrzeć.
+- 🔢 **Liczby delty** - zielone/czerwone, drukowane pod/nad świecą albo bąbelkiem POC, albo rozmieszczane **wg znaku delty** (zielone nad, czerwone pod) - konfigurowalna pozycja i odstęp w jednostkach ATR. Format: absolutny (K/M/B) albo **procent wolumenu świecy**. **Pogrubiona liczba = dywergencja**: kierunek świecy przeczy delcie (np. cena rośnie przy ujemnej delcie) - coś się nie zgadza, warto się przyjrzeć.
 - 🫧 **Bąbelki POC** - Point of Control każdej świecy (poziom ceny o najwyższym wolumenie). Rozmiar bąbelka rośnie wraz z wolumenem na POC (normalizacja potęgowa, jak w histogramie). Skalę tworzą trzy glify (• ● ⬤) plus rozmiary etykiet. Opcjonalnie kolorowane na zielono/czerwono wg znaku delty zamiast stałego koloru.
 - 🔺 **Stacked imbalance** - imbalance diagonalny czytany z wierszy footprintu: agresywne kupno na poziomie vs agresywna sprzedaż poziom niżej (i odwrotnie). Gdy jedna strona ma co najmniej _ratio_ x więcej od drugiej na kilku kolejnych poziomach, świeca dostaje trójkąt (w górę = kupno, w dół = sprzedaż). Klasyczny sygnał order flow: inicjatywa/absorpcja.
 - 🧵 **Ślad POC** - jedna łamana przez środki ostatnich ~500 bąbelków: _Segmented_ (proste odcinki) albo _Curved_ (wygładzona). Pokazuje, jak wędruje "uczciwa cena".
@@ -61,7 +61,7 @@ Footprint zna **stronę agresora** każdej transakcji wewnątrz świecy:
 
 ### Wyświetlanie
 
-- **Show delta numbers / format (absolutny lub % wolumenu) / size / position / gap (x ATR)** (pokazuj liczby delty / format / rozmiar / pozycja / odstęp w ATR).
+- **Show delta numbers / format (absolutny lub % wolumenu) / size / position / gap (x ATR)** (pokazuj liczby delty / format / rozmiar / pozycja / odstęp w ATR) - pozycje: pod/nad bąbelkiem POC, pod/nad świecą, albo _By sign_ (wg znaku: zielone nad, czerwone pod - względem POC albo świecy).
 - **Show POC bubbles / color / color by delta sign / link with a line / line style** (pokazuj bąbelki POC / kolor / kolor wg znaku delty / połącz linią / styl linii).
 - **Bubble size normalization** (normalizacja rozmiaru bąbelka) _(domyślnie 0.5)_ - skalowanie potęgowe; 1 = liniowo, mniej = skoki spłaszczone.
 - **Value Area (VAH/VAL)** + kolor wypełnienia.

@@ -44,7 +44,7 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 
 ### Elements, one by one
 
-- 🔢 **Delta numbers** - green/red, printed below/above the candle or the POC bubble (configurable position and gap in ATR units). Format: absolute (K/M/B) or **percent of the candle volume**. **Bold number = divergence**: the candle direction contradicts the delta (e.g. price rises on negative delta) - something odd, worth a look.
+- 🔢 **Delta numbers** - green/red, printed below/above the candle or the POC bubble, or placed **by the delta sign** (green above, red below) - configurable position and gap in ATR units. Format: absolute (K/M/B) or **percent of the candle volume**. **Bold number = divergence**: the candle direction contradicts the delta (e.g. price rises on negative delta) - something odd, worth a look.
 - 🫧 **POC bubbles** - each candle's Point of Control (the price level with the highest volume). Bubble size grows with the POC volume (power normalization, like the histogram). Three glyphs (• ● ⬤) plus label sizes form the scale. Optionally colored green/red by the delta sign instead of the fixed color.
 - 🔺 **Stacked imbalance** - diagonal imbalance read from the footprint rows: aggressive buys at a level vs aggressive sells one level lower (and vice versa). When one side is at least _ratio_ x the other on several consecutive levels, a triangle marks the candle (up = buy, down = sell). A classic order flow signal of initiative/absorption.
 - 🧵 **POC trail** - one polyline through the last ~500 bubble centers: _Segmented_ (straight lines) or _Curved_ (smooth). Shows how the "fair price" migrates.
@@ -62,7 +62,7 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 
 ### Display
 
-- **Show delta numbers / format (absolute or % of volume) / size / position / gap (x ATR)**.
+- **Show delta numbers / format (absolute or % of volume) / size / position / gap (x ATR)** - position options: below/above the POC bubble, below/above the candle, or _By sign_ (green above, red below - anchored to the POC or the candle).
 - **Show POC bubbles / color / color by delta sign / link with a line / line style**.
 - **Bubble size normalization** _(default 0.5)_ - power scaling; 1 = linear, lower = spikes compressed.
 - **Value Area (VAH/VAL)** + fill color.
