@@ -60,7 +60,7 @@ alertcondition(distSignal, 'Distribution density', 'Distribution density — pot
 
 // Hidden signal series (+1 accumulation, -1 distribution, 0 none) — lets other scripts
 // use this indicator as an external source (input.source) and shows up in the Data Window.
-plot(accSignal ? 1 : distSignal ? -1 : 0, 'Signal', display=display.data_window)
+plot(accSignal ? 1 : distSignal ? -1 : 0, 'Signal', display=display.data_window, editable=false)
 
 // Warn when the symbol has no volume data at all — the indicator can never signal there.
 cumVolume = ta.cum(nz(volume))
