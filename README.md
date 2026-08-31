@@ -255,7 +255,7 @@ The footprint POC of every session (rows of the whole day merged) or of every ca
 - [`convert-md-to-bbcode`](https://github.com/piecioshka/convert-md-to-bbcode) - converts an indicator's Markdown doc into the BBCode accepted by the TradingView "Publish script" description field:
 
   ```bash
-  npx convert-md-to-bbcode indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md
+  npx convert-md-to-bbcode --pinecoders indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md
   ```
 
 ## License
