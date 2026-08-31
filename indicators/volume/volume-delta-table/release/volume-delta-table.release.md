@@ -1,32 +1,31 @@
-# Release: Delta Footprint Table
+# Release: Volume Delta Table
 
-Publication material for the TradingView "Publish script" form. The description is generated with [`convert-md-to-bbcode`](https://github.com/piecioshka/convert-md-to-bbcode) from [`delta-footprint-table.md`](../delta-footprint-table.md):
+Publication material for the TradingView "Publish script" form. The description is generated with [`convert-md-to-bbcode`](https://github.com/piecioshka/convert-md-to-bbcode) from [`volume-delta-table.md`](../volume-delta-table.md):
 
 ```bash
-npx convert-md-to-bbcode --pinecoders ../delta-footprint-table.md
+npx convert-md-to-bbcode --pinecoders ../volume-delta-table.md
 ```
 
-(the `File:` / `Wersja polska:` lines with repo-only links and the "The Delta Footprint family" section pointing at unpublished scripts are removed from the output; the intro paragraph and the first "How to use it" bullet are reworded so they do not name unpublished scripts)
+(the `File:` / `Wersja polska:` lines with repo-only links and the "Related" section pointing at unpublished scripts are removed from the output)
 
 ## Title
 
-Delta Footprint Table
+Volume Delta Table
 
 ## Categories
 
 - Volume
-- Volume Profile
 
 ## Tags
 
 ```
-orderflow, footprint, delta, cvd, cumulativedelta, valuearea, imbalance, volume
+orderflow, footprint, delta, cvd, cumulativedelta, volume, buysellvolume, daytrading
 ```
 
 ## Description (BBCode)
 
 ```
-An order flow indicator for TradingView (Pine Script v6). A standalone [b]footprint status table[/b] in a chart corner - one glance tells you who is in control of the [b]current candle[/b] and the [b]session[/b]. It computes its own metrics from [b]request.footprint()[/b], so it works fully independently of any other indicator.
+A volume indicator for TradingView (Pine Script v6). A standalone [b]volume delta status table[/b] in a chart corner - one glance tells you who is in control of the [b]current candle[/b] and the [b]session[/b]. The buy/sell split comes from real footprint data ([b]request.footprint()[/b]), so the table shows genuine aggressor-side volume, not a close-vs-open approximation.
 
 █ [b]⚠️ REQUIREMENTS[/b]
 
@@ -49,13 +48,10 @@ An order flow indicator for TradingView (Pine Script v6). A standalone [b]footpr
 │ Buy (ask)         │ 5.1K     │
 │ Sell (bid)        │ 3.3K     │
 │ Delta             │ +1.8K    │  ← tinted background
-│ Imbalance         │ ▲6  ▼0   │
-│ ┄┄┄┄┄┄            │ ┄┄┄┄┄┄   │
-│ Value Area        │ 12.5     │  level row
 └───────────────────┴──────────┘
 [/pine]
 
-By default the table shows only the current-candle rows (Volume, Buy, Sell, Delta) - the session rows above the first separator and the Value Area row are opt-in.
+By default the table shows only the current-candle rows (Volume, Buy, Sell, Delta) - the session rows above the separator are opt-in.
 
 Every row is [b]individually toggleable[/b]:
 
@@ -65,8 +61,6 @@ Every row is [b]individually toggleable[/b]:
 [*]⏱️ [b]CVD (1h)[/b] (off by default) - rolling delta of the last 60 minutes, independent of the session reset (shows [b]-[/b] on timeframes above 1h).
 [*]🔊 [b]Volume / Buy (ask) / Sell (bid)[/b] - the current candle's turnover split by aggressor side.
 [*]⚖️ [b]Delta[/b] and [b]Delta %[/b] - buy minus sell, absolute or as % of total volume (green/red by sign).
-[*]🧱 [b]Imbalance (stacked)[/b] - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels.
-[*]📍 [b]Value Area (VAH-VAL)[/b] - width of the range holding the configured % of volume: narrow = concentrated, wide = dispersed.
 [/list]
 
 The header ("Last candle · 5m") reminds you that buy/sell/delta apply [b]only to the last candle[/b] of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign ([b]+1.8K[/b] / [b]-1.1K[/b]).
@@ -74,8 +68,6 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta apply [b]only t
 █ [b]🛠️ KEY PARAMETERS[/b]
 
 [list]
-[*][b]Footprint[/b]: [i]Ticks per row[/i] (default 10), [i]Value Area %[/i] (default 70).
-[*][b]Imbalance[/b]: [i]ratio X:1[/i] (default 3), [i]min. stacked levels[/i] (default 3).
 [*][b]Table[/b]: position (6 corners/sides), margins, text size.
 [*][b]Table rows[/b]: a toggle per row (see above).
 [*][b]Colors[/b]: base/neutral color.
@@ -96,10 +88,9 @@ The script exposes its numbers as hidden series (visible in the Data Window, usa
 █ [b]📈 HOW TO USE IT[/b]
 
 [list]
-[*]Keep it next to a footprint or delta-bubble indicator - the table gives the numbers, they give the shape.
+[*]Keep it next to a footprint or delta indicator - the table gives the numbers, they give the shape.
 [*][b]Delta vs candle direction[/b] - a green candle with negative delta (or the reverse) = absorption.
 [*][b]CVD (session) vs price[/b] - price up while CVD falls = the rally is passive, be careful.
-[*][b]▲/▼ Imbalance[/b] - a quick tell that one side is stacking aggressive prints right now.
 [/list]
 
 © Piotr Kowalski "piecioshka". License: Mozilla Public License 2.0.

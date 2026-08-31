@@ -115,7 +115,7 @@ With _POC of_ set to **Every candle** the script skips the session profile and d
 ## 🔗 Related
 
 - [Delta Footprint Bubble](../delta-footprint-bubble/delta-footprint-bubble.md) - the POC of every candle as a bubble, plus delta and Value Area; the candle-level view of the same footprint data.
-- [Delta Footprint Table](../delta-footprint-table/delta-footprint-table.md) - the numbers behind the current candle and the session CVD.
+- [Volume Delta Table](../../../indicators/volume/volume-delta-table/volume-delta-table.md) - the numbers behind the current candle and the session CVD.
 - [Session Open Line](../../../indicators/overlays/session-open-line/session-open-line.md) - the other daily reference level; a naked POC sitting on a session open is a strong confluence.
 
 ---

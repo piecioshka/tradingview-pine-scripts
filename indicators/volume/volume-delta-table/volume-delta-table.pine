@@ -1,13 +1,13 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Piotr Kowalski "piecioshka"
-// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/delta-footprint-table/delta-footprint-table.md
-// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators-premium/volume/delta-footprint-table/delta-footprint-table.pl.md
+// Docs (EN): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/volume/volume-delta-table/volume-delta-table.md
+// Docs (PL): https://github.com/piecioshka/tradingview-pine-scripts/blob/main/indicators/volume/volume-delta-table/volume-delta-table.pl.md
 
 //@version=6
-indicator('Delta Footprint Table', overlay=true)
+indicator('Volume Delta Table', overlay=true)
 
-// Standalone footprint status table: buy / sell / delta (+ %) / imbalance / CVD.
-// Add it next to "Delta Footprint Bubble" / "Histogram". Runs its own request.footprint - works independently.
+// Standalone volume delta status table: volume / buy / sell / delta (+ %) / CVD.
+// The buy/sell split comes from request.footprint (real aggressor-side volume).
 // Requires Premium/Ultimate; no footprint data (e.g. some crypto) → "-".
 
 cBuy  = color.rgb(38, 166, 154)  // buy dominance (positive delta) - default candle green #26A69A
@@ -20,14 +20,6 @@ type Row
     color  labColor
     color  valColor
     color  bg = na
-
-gCalc = 'Footprint'
-ticksPerRow = input.int(10, 'Ticks per row', minval=1, group=gCalc, tooltip='Height of a single footprint row in ticks. Affects Value Area resolution (does not change the delta total). Fewer = more precise, but more rows.')
-vaPercent   = input.int(70, 'Value Area %', minval=1, maxval=100, group=gCalc, tooltip='Percent of volume defining the Value Area (classically 70%).')
-
-gImb = 'Imbalance ("Imbalance" row)'
-imbRatio    = input.float(3.0, 'Imbalance ratio (X:1)', minval=1.0, step=0.1, group=gImb, tooltip='The dominant side must be ≥ X times larger than the diagonally opposite one (classically 3:1). Applies to the "Imbalance" row.')
-imbMinStack = input.int(3, 'Min. stacked levels', minval=2, group=gImb, tooltip='How many consecutive levels with an imbalance in the same direction count as "stacked".')
 
 gTable = 'Table'
 tablePos     = input.string('Top right', 'Position', options=['Top right', 'Middle right', 'Bottom right', 'Top left', 'Middle left', 'Bottom left'], group=gTable)
@@ -45,8 +37,6 @@ showBuy    = input.bool(true, 'Buy (ask)',      group=gRows, tooltip='Show the b
 showSell   = input.bool(true, 'Sell (bid)',     group=gRows, tooltip='Show the sell (bid) volume row.')
 showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Show the delta row (buy − sell) as an absolute value.')
 showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Show the delta row as a percentage share of total volume.')
-showImbalance = input.bool(false, 'Imbalance (stacked)', group=gRows, tooltip='Show the stacked imbalance counter for the current candle: ▲ levels with a buy imbalance, ▼ levels with a sell imbalance. Computed per the "Imbalance" group settings.')
-showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Show the footprint Value Area width: VAH − VAL.\n\nThe Value Area is the price range holding a given % of volume (70% by default).\nVAH (Value Area High) = upper bound of that range.\nVAL (Value Area Low) = lower bound.\nThe row shows the VAH − VAL width: narrower = concentrated volume, wider = dispersed.')
 
 gColors = 'Colors'
 cNeutral = input.color(color.gray, 'Base color', group=gColors, tooltip='Base table text color: row names and neutral values (no data, zero delta). The header background and separators derive from it too.')
@@ -55,34 +45,25 @@ gCvd = 'Cumulative delta (CVD)'
 resetDaily = input.bool(true, 'Reset CVD on new daily session', group=gCvd, tooltip='Cumulative delta (CVD) zeroed at the start of each day. Turn off to accumulate from the beginning of history.')
 
 // --- Footprint + metrics ---
-fp = request.footprint(ticksPerRow, vaPercent)
+// The row-split arguments are irrelevant here - only the candle totals (delta,
+// buy volume, sell volume) are read, and those do not depend on the row height.
+fp = request.footprint(10, 70)
 hasData = not na(fp)
-float delta    = na
-float buyVol   = na
-float sellVol  = na
-float vahPrice = na
-float valPrice = na
+float delta   = na
+float buyVol  = na
+float sellVol = na
 if hasData
     delta   := fp.delta()
     buyVol  := fp.buy_volume()
     sellVol := fp.sell_volume()
-    vahRow = fp.vah()
-    if not na(vahRow)
-        vahPrice := (vahRow.up_price() + vahRow.down_price()) / 2
-    valRow = fp.val()
-    if not na(valRow)
-        valPrice := (valRow.up_price() + valRow.down_price()) / 2
 
 totalVol = hasData ? buyVol + sellVol : na
 hasDelta = hasData and not na(totalVol) and totalVol > 0
 if not hasDelta
-    delta    := na
-    buyVol   := na
-    sellVol  := na
-    vahPrice := na
-    valPrice := na
+    delta   := na
+    buyVol  := na
+    sellVol := na
 deltaPct = hasDelta ? delta / totalVol * 100 : na
-vaSpread = (not na(vahPrice) and not na(valPrice)) ? vahPrice - valPrice : na
 
 newDay = ta.change(time('D')) != 0
 var float cvd = 0.0
@@ -138,8 +119,7 @@ rowOffset = isTop ? 1 : 0
 hdrTip = 'Buy / sell / delta apply ONLY to the last (current) candle of the selected timeframe - e.g. the last minute on a 1m chart. CVD accumulates over the session.'
 hdrBg  = color.new(cNeutral, 82)   // subtle header-bar background
 anySession = showSessionStart or showBarCount or showCvd or showCvdHour
-anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance
-anyLevel   = showVa
+anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct
 sepText   = '┄┄┄┄┄┄'
 sepColor  = color.new(cNeutral, 40)
 
@@ -147,51 +127,8 @@ sepColor  = color.new(cNeutral, 40)
 f_signColor(float x) =>
     na(x) ? cNeutral : x > 0 ? cBuy : x < 0 ? cSell : cNeutral
 
-MAX_ROWS = 20   // header + at most all rows + 2 separators + margin (with headroom)
+MAX_ROWS = 14   // header + at most all rows + separator + margins (with headroom)
 var table infoTable = table.new(tablePosition, 3, MAX_ROWS, frame_width=0, border_width=0)
-// --- Stacked imbalance in the current candle: level counter on both sides ---
-// Diagonal: buy at a level vs sell one level below / sell vs buy one level above.
-// Only levels belonging to runs ≥ imbMinStack are counted. Cheap: a single pass over the footprint rows.
-int imbBuyLv  = 0
-int imbSellLv = 0
-if barstate.islast and showImbalance and hasData
-    rws = fp.rows()
-    nr = array.size(rws)
-    if nr >= 2
-        bV  = array.new<float>()
-        sV  = array.new<float>()
-        dnP = array.new<float>()
-        for ri = 0 to nr - 1
-            rr = array.get(rws, ri)
-            array.push(bV,  rr.buy_volume())
-            array.push(sV,  rr.sell_volume())
-            array.push(dnP, rr.down_price())
-        if array.get(dnP, 0) > array.get(dnP, nr - 1)   // sort ascending by price (index 0 = lowest)
-            array.reverse(bV)
-            array.reverse(sV)
-        dr = array.new<int>(nr, 0)
-        for ri = 0 to nr - 1
-            bv = array.get(bV, ri)
-            sv = array.get(sV, ri)
-            bi = ri >= 1      and bv > 0 and bv >= imbRatio * array.get(sV, ri - 1)
-            si = ri <= nr - 2 and sv > 0 and sv >= imbRatio * array.get(bV, ri + 1)
-            array.set(dr, ri, bi and si ? (bv >= sv ? 1 : -1) : bi ? 1 : si ? -1 : 0)
-        ri = 0
-        while ri < nr
-            dv = array.get(dr, ri)
-            if dv != 0
-                jj = ri
-                while jj + 1 < nr and array.get(dr, jj + 1) == dv
-                    jj += 1
-                ln = jj - ri + 1
-                if ln >= imbMinStack
-                    if dv == 1
-                        imbBuyLv  += ln
-                    else
-                        imbSellLv += ln
-                ri := jj + 1
-            else
-                ri += 1
 
 if barstate.islast
     // 1) Build the list of visible rows in display order (separator = a Row with sepText in both columns).
@@ -204,7 +141,7 @@ if barstate.islast
         rows.push(Row.new('CVD (session)', hasDelta ? f_signed(cvd) : '-', cNeutral, f_signColor(cvd)))
     if showCvdHour
         rows.push(Row.new('CVD (1h)', na(cvdHour) ? '-' : f_signed(cvdHour), cNeutral, f_signColor(cvdHour)))
-    if anySession and (anyCandle or anyLevel)
+    if anySession and anyCandle
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showVolume
         rows.push(Row.new('Volume', hasDelta ? f_abbr(totalVol) : '-', cNeutral, cNeutral))
@@ -216,14 +153,6 @@ if barstate.islast
         rows.push(Row.new('Delta', hasDelta ? f_signed(delta) : '-', cNeutral, deltaColor, color.new(deltaColor, 80)))
     if showDeltaPct
         rows.push(Row.new('Delta %', na(deltaPct) ? '-' : (deltaPct > 0 ? '+' : '') + str.tostring(deltaPct, '#.#') + '%', cNeutral, deltaColor))
-    if showImbalance
-        imbVal   = not hasDelta ? '-' : (imbBuyLv == 0 and imbSellLv == 0) ? 'none' : '▲' + str.tostring(imbBuyLv) + '  ▼' + str.tostring(imbSellLv)
-        imbColor = imbBuyLv > imbSellLv ? cBuy : imbSellLv > imbBuyLv ? cSell : cNeutral
-        rows.push(Row.new('Imbalance', imbVal, cNeutral, imbColor))
-    if anyCandle and anyLevel
-        rows.push(Row.new(sepText, sepText, sepColor, sepColor))
-    if showVa
-        rows.push(Row.new('Value Area', na(vaSpread) ? '-' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
 
     // 2) Render: clear the previous layout, margins (empty spacer cells), header, then the rows.
     table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
@@ -244,7 +173,7 @@ if barstate.islast
         table.cell(infoTable, c0, rowOffset + 1 + nRows, '', height=tableMarginY)
 
 // Hidden series (Data Window only) - the table's numbers as data, usable as an
-// external source (input.source) in other scripts, same as the rest of the family.
+// external source (input.source) in other scripts.
 plot(delta,               'Delta',         color=deltaColor, format=format.volume, display=display.data_window, editable=false)
 plot(buyVol,              'Buy (ask)',     color=cBuy,       format=format.volume, display=display.data_window, editable=false)
 plot(sellVol,             'Sell (bid)',    color=cSell,      format=format.volume, display=display.data_window, editable=false)

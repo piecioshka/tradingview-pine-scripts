@@ -70,7 +70,7 @@ Wersja angielska: [`delta-footprint-histogram.md`](./delta-footprint-histogram.m
 ## 👨‍👩‍👧 Rodzina Delta Footprint
 
 - **Delta Footprint Bubble** - delta + bąbelki POC + Value Area na wykresie ceny.
-- **Delta Footprint Table** - tabela statusu (kupno / sprzedaż / delta % / POC / CVD).
+- **Volume Delta Table** - tabela statusu (wolumen / kupno / sprzedaż / delta % / CVD).
 
 ---
 

@@ -1,9 +1,9 @@
-# Delta Footprint Table
+# Volume Delta Table
 
-Wskaźnik order flow dla TradingView (Pine Script v6). Samodzielna **tabela statusu footprint** w rogu wykresu - jeden rzut oka mówi, kto kontroluje **bieżącą świecę** i **sesję**. Wyodrębniona z "Delta Footprint Bubble", liczy własne metryki, więc działa w pełni niezależnie.
+Wskaźnik wolumenowy dla TradingView (Pine Script v6). Samodzielna **tabela statusu delty wolumenu** w rogu wykresu - jeden rzut oka mówi, kto kontroluje **bieżącą świecę** i **sesję**. Podział na kupno/sprzedaż pochodzi z prawdziwych danych footprint (`request.footprint()`), więc tabela pokazuje rzeczywisty wolumen strony agresywnej, a nie przybliżenie po kierunku świecy.
 
-Plik: [`delta-footprint-table.pine`](./delta-footprint-table.pine)
-Wersja angielska: [`delta-footprint-table.md`](./delta-footprint-table.md)
+Plik: [`volume-delta-table.pine`](./volume-delta-table.pine)
+Wersja angielska: [`volume-delta-table.md`](./volume-delta-table.md)
 
 ---
 
@@ -28,13 +28,10 @@ Wersja angielska: [`delta-footprint-table.md`](./delta-footprint-table.md)
 │ Buy (ask)         │ 5.1K     │
 │ Sell (bid)        │ 3.3K     │
 │ Delta             │ +1.8K    │  ← podbarwione tło
-│ Imbalance         │ ▲6  ▼0   │
-│ ┄┄┄┄┄┄            │ ┄┄┄┄┄┄   │
-│ Value Area        │ 12.5     │  wiersz poziomów
 └───────────────────┴──────────┘
 ```
 
-Domyślnie tabela pokazuje tylko wiersze bieżącej świecy (Volume, Buy, Sell, Delta) - wiersze sesji nad pierwszym separatorem i wiersz Value Area trzeba włączyć samemu.
+Domyślnie tabela pokazuje tylko wiersze bieżącej świecy (Volume, Buy, Sell, Delta) - wiersze sesji nad separatorem trzeba włączyć samemu.
 
 Każdy wiersz można **włączyć i wyłączyć osobno**:
 
@@ -43,8 +40,6 @@ Każdy wiersz można **włączyć i wyłączyć osobno**:
 - ⏱️ **CVD (1h)** (domyślnie wyłączony) - krocząca delta z ostatnich 60 minut, niezależna od resetu sesji (pokazuje `-` na interwałach powyżej 1h).
 - 🔊 **Volume / Buy (ask) / Sell (bid)** - obrót bieżącej świecy z podziałem na stronę agresora: wolumen / kupno (po ask) / sprzedaż (po bid).
 - ⚖️ **Delta** i **Delta %** - kupno minus sprzedaż, w wartości bezwzględnej albo jako % całego wolumenu (zielone/czerwone wg znaku).
-- 🧱 **Imbalance (stacked)** (imbalans, skumulowany) - licznik skumulowanych poziomów imbalansu diagonalnego w bieżącej świecy: ▲ poziomy kupna, ▼ poziomy sprzedaży.
-- 📍 **Value Area (VAH-VAL)** (obszar wartości) - szerokość zakresu mieszczącego skonfigurowany % wolumenu: wąski = skoncentrowany, szeroki = rozproszony.
 
 Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta dotyczą **wyłącznie ostatniej świecy** bieżącego interwału - wiersze CVD kumulują. Delta i CVD mają jawny znak (`+1.8K` / `-1.1K`).
 
@@ -52,8 +47,6 @@ Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta dotyczą 
 
 ## 🛠️ Kluczowe parametry
 
-- **Footprint**: _Ticks per row_ (ticków na wiersz, domyślnie 10), _Value Area %_ (domyślnie 70).
-- **Imbalance** (imbalans): _ratio X:1_ (stosunek X:1, domyślnie 3), _min. stacked levels_ (min. liczba skumulowanych poziomów, domyślnie 3).
 - **Table** (tabela): pozycja (6 rogów/boków), marginesy, rozmiar tekstu.
 - **Table rows** (wiersze tabeli): przełącznik na każdy wiersz (patrz wyżej).
 - **Colors** (kolory): kolor bazowy/neutralny.
@@ -76,14 +69,13 @@ Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użytecz
 
 ## 📈 Jak tego używać
 
-- Trzymaj ją obok **Delta Footprint Bubble** albo **Histogram** - tabela daje liczby, one dają kształt.
+- Trzymaj ją obok wskaźnika footprint albo delty - tabela daje liczby, one dają kształt.
 - **Delta a kierunek świecy** - zielona świeca z ujemną deltą (albo odwrotnie) = absorpcja.
 - **CVD (session) a cena** - cena rośnie, a CVD spada = rajd jest pasywny, ostrożnie.
-- **▲/▼ Imbalance** - szybki sygnał, że jedna strona właśnie układa stos agresywnych transakcji.
 
 ---
 
-## 👨‍👩‍👧 Rodzina Delta Footprint
+## 🔗 Powiązane
 
 - **Delta Footprint Bubble** - delta + bąbelki POC + Value Area na wykresie ceny.
 - **Delta Footprint Histogram** - kolumny delty w osobnym panelu.
