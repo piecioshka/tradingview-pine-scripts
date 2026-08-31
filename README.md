@@ -32,12 +32,12 @@
     - [ROC](#roc)
   - [Volume](#volume)
     - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd)
-    - [Volume Delta Table](#volume-delta-table)
 - [Premium](#premium)
   - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Naked POC](#naked-poc)
+    - [Volume Delta Table](#volume-delta-table)
 - [Tools](#tools)
 
 ## Indicators
@@ -202,16 +202,6 @@ Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's ind
 
 ![Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.png)
 
-#### [Volume Delta Table](indicators/volume/volume-delta-table/volume-delta-table.pine)
-
-> 📖 Full documentation: [Volume Delta Table](indicators/volume/volume-delta-table/volume-delta-table.md) · [po polsku](indicators/volume/volume-delta-table/volume-delta-table.pl.md)
-
-A standalone **volume delta status table** (volume / buy / sell / delta + % / CVD) in a chart corner. The buy/sell split comes from real footprint data (`request.footprint()`), so the table shows genuine aggressor-side volume, not a close-vs-open approximation. Every row is individually toggleable (by default: Volume, Buy, Sell, Delta; opt-in: session start, bar count, session and 1-hour CVD, Delta %). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta apply **only to the last candle** (CVD accumulates over the session). Delta-flip alerts and hidden series (Delta, Buy, Sell, CVD) included.
-
-![Volume Delta Table](indicators/volume/volume-delta-table/volume-delta-table.png)
-
-> ⚠️ Requires **Premium / Ultimate** (`request.footprint()`), even though the table itself draws no footprint - the buy/sell split needs footprint data.
-
 ## Premium
 
 Indicators built on `request.footprint()`, which TradingView sells only with the **Premium** plan and above.
@@ -247,6 +237,16 @@ The footprint delta as a **histogram in a separate panel** (behaves like the bui
 The footprint POC of every session (rows of the whole day merged) or of every candle as a line that stays until price trades through it. The ongoing session gets a developing POC - a dashed line that moves with every bar and becomes a naked POC when the day closes. Alerts on new and tested levels. Needs `request.footprint()`.
 
 ![Naked POC](indicators-premium/volume/naked-poc/naked-poc.png)
+
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
+
+#### [Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.pine)
+
+> 📖 Full documentation: [Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.md) · [po polsku](indicators-premium/volume/volume-delta-table/volume-delta-table.pl.md)
+
+A standalone **volume delta status table** (volume / buy / sell / delta + % / CVD) in a chart corner. The buy/sell split comes from real footprint data (`request.footprint()`), so the table shows genuine aggressor-side volume, not a close-vs-open approximation. Every row is individually toggleable (by default: Volume, Buy, Sell, Delta; opt-in: session start, bar count, session and 1-hour CVD, Delta %). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta apply **only to the last candle** (CVD accumulates over the session). Delta-flip alerts and hidden series (Delta, Buy, Sell, CVD) included.
+
+![Volume Delta Table](indicators-premium/volume/volume-delta-table/volume-delta-table.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 

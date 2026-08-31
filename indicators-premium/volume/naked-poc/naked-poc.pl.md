@@ -114,7 +114,7 @@ Z _POC of_ ustawionym na **Every candle** skrypt pomija profil sesji i rysuje PO
 ## 🔗 Powiązane
 
 - [Delta Footprint Bubble](../delta-footprint-bubble/delta-footprint-bubble.pl.md) - POC każdej świecy jako bąbelek, plus delta i Value Area; widok tych samych danych footprint na poziomie świecy.
-- [Volume Delta Table](../../../indicators/volume/volume-delta-table/volume-delta-table.pl.md) - liczby stojące za bieżącą świecą i CVD sesji.
+- [Volume Delta Table](../volume-delta-table/volume-delta-table.pl.md) - liczby stojące za bieżącą świecą i CVD sesji.
 - [Session Open Line](../../../indicators/overlays/session-open-line/session-open-line.pl.md) - drugi dzienny poziom odniesienia; naked POC leżący na otwarciu sesji to mocna konfluencja.
 
 ---
