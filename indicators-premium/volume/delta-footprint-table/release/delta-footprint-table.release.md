@@ -20,7 +20,7 @@ Delta Footprint Table
 ## Tags
 
 ```
-orderflow, footprint, delta, cvd, cumulativedelta, poc, valuearea, imbalance, volume
+orderflow, footprint, delta, cvd, cumulativedelta, valuearea, imbalance, volume
 ```
 
 ## Description (BBCode)
@@ -51,12 +51,11 @@ An order flow indicator for TradingView (Pine Script v6). A standalone [b]footpr
 │ Delta             │ +1.8K    │  ← tinted background
 │ Imbalance         │ ▲6  ▼0   │
 │ ┄┄┄┄┄┄            │ ┄┄┄┄┄┄   │
-│ POC               │ 4312.4   │  level rows
-│ Max volume        │ 2.1K     │
+│ Value Area        │ 12.5     │  level row
 └───────────────────┴──────────┘
 [/pine]
 
-By default the table shows only the current-candle and level rows (Volume, Buy, Sell, Delta, POC, Max volume) - the session rows above the first separator are opt-in.
+By default the table shows only the current-candle rows (Volume, Buy, Sell, Delta) - the session rows above the first separator and the Value Area row are opt-in.
 
 Every row is [b]individually toggleable[/b]:
 
@@ -68,10 +67,9 @@ Every row is [b]individually toggleable[/b]:
 [*]⚖️ [b]Delta[/b] and [b]Delta %[/b] - buy minus sell, absolute or as % of total volume (green/red by sign).
 [*]🧱 [b]Imbalance (stacked)[/b] - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels.
 [*]📍 [b]Value Area (VAH-VAL)[/b] - width of the range holding the configured % of volume: narrow = concentrated, wide = dispersed.
-[*]🎯 [b]POC[/b] / [b]Max volume[/b] - the highest-volume price of the candle and the volume at that level.
 [/list]
 
-The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply [b]only to the last candle[/b] of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign ([b]+1.8K[/b] / [b]-1.1K[/b]).
+The header ("Last candle · 5m") reminds you that buy/sell/delta apply [b]only to the last candle[/b] of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign ([b]+1.8K[/b] / [b]-1.1K[/b]).
 
 █ [b]🛠️ KEY PARAMETERS[/b]
 
@@ -80,7 +78,7 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply [b]on
 [*][b]Imbalance[/b]: [i]ratio X:1[/i] (default 3), [i]min. stacked levels[/i] (default 3).
 [*][b]Table[/b]: position (6 corners/sides), margins, text size.
 [*][b]Table rows[/b]: a toggle per row (see above).
-[*][b]Colors[/b]: base/neutral color, Max volume color.
+[*][b]Colors[/b]: base/neutral color.
 [*][b]CVD[/b]: daily session reset (default on).
 [/list]
 
@@ -93,7 +91,7 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply [b]on
 
 █ [b]📤 HIDDEN SERIES[/b]
 
-The script exposes its numbers as hidden series (visible in the Data Window, usable as an [b]external source[/b] via [b]input.source[/b] in other indicators and strategies): [b]Delta[/b], [b]Buy (ask)[/b], [b]Sell (bid)[/b], [b]CVD (session)[/b], [b]CVD (1h)[/b], and [b]POC[/b] (price).
+The script exposes its numbers as hidden series (visible in the Data Window, usable as an [b]external source[/b] via [b]input.source[/b] in other indicators and strategies): [b]Delta[/b], [b]Buy (ask)[/b], [b]Sell (bid)[/b], [b]CVD (session)[/b], and [b]CVD (1h)[/b].
 
 █ [b]📈 HOW TO USE IT[/b]
 

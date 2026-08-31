@@ -234,7 +234,7 @@ The footprint delta as a **histogram in a separate panel** (behaves like the bui
 
 > 📖 Full documentation: [Delta Footprint Table](indicators-premium/volume/delta-footprint-table/delta-footprint-table.md) · [po polsku](indicators-premium/volume/delta-footprint-table/delta-footprint-table.pl.md)
 
-A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / POC / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta/POC apply **only to the last candle** (CVD accumulates over the session).
+A standalone footprint **status table** (buy / sell / delta + % / **stacked imbalance** / Value Area / CVD) in a chart corner - extracted from "Bubble", it computes its own metrics, so it works independently. Add it next to "Delta Footprint Bubble" or "Delta Footprint Histogram". The **Imbalance** row summarizes the current candle's stacked diagonal imbalances (▲ buy levels, ▼ sell levels). The header bar shows the **current timeframe** ("Last candle · 1m") and reminds you that buy/sell/delta apply **only to the last candle** (CVD accumulates over the session).
 
 ![Delta Footprint Table](indicators-premium/volume/delta-footprint-table/delta-footprint-table.png)
 

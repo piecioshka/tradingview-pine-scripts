@@ -31,12 +31,11 @@ Wersja polska: [`delta-footprint-table.pl.md`](./delta-footprint-table.pl.md)
 │ Delta             │ +1.8K    │  ← tinted background
 │ Imbalance         │ ▲6  ▼0   │
 │ ┄┄┄┄┄┄            │ ┄┄┄┄┄┄   │
-│ POC               │ 4312.4   │  level rows
-│ Max volume        │ 2.1K     │
+│ Value Area        │ 12.5     │  level row
 └───────────────────┴──────────┘
 ```
 
-By default the table shows only the current-candle and level rows (Volume, Buy, Sell, Delta, POC, Max volume) - the session rows above the first separator are opt-in.
+By default the table shows only the current-candle rows (Volume, Buy, Sell, Delta) - the session rows above the first separator and the Value Area row are opt-in.
 
 Every row is **individually toggleable**:
 
@@ -47,9 +46,8 @@ Every row is **individually toggleable**:
 - ⚖️ **Delta** and **Delta %** - buy minus sell, absolute or as % of total volume (green/red by sign).
 - 🧱 **Imbalance (stacked)** - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels.
 - 📍 **Value Area (VAH-VAL)** - width of the range holding the configured % of volume: narrow = concentrated, wide = dispersed.
-- 🎯 **POC** / **Max volume** - the highest-volume price of the candle and the volume at that level.
 
-The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **only to the last candle** of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign (`+1.8K` / `-1.1K`).
+The header ("Last candle · 5m") reminds you that buy/sell/delta apply **only to the last candle** of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign (`+1.8K` / `-1.1K`).
 
 ---
 
@@ -59,7 +57,7 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **onl
 - **Imbalance**: _ratio X:1_ (default 3), _min. stacked levels_ (default 3).
 - **Table**: position (6 corners/sides), margins, text size.
 - **Table rows**: a toggle per row (see above).
-- **Colors**: base/neutral color, Max volume color.
+- **Colors**: base/neutral color.
 - **CVD**: daily session reset (default on).
 
 ---
@@ -73,7 +71,7 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **onl
 
 ## 📤 Hidden series
 
-The script exposes its numbers as hidden series (visible in the Data Window, usable as an **external source** via `input.source` in other indicators and strategies): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)**, and **POC** (price).
+The script exposes its numbers as hidden series (visible in the Data Window, usable as an **external source** via `input.source` in other indicators and strategies): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, and **CVD (1h)**.
 
 ---
 

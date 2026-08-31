@@ -30,12 +30,11 @@ Wersja angielska: [`delta-footprint-table.md`](./delta-footprint-table.md)
 │ Delta             │ +1.8K    │  ← podbarwione tło
 │ Imbalance         │ ▲6  ▼0   │
 │ ┄┄┄┄┄┄            │ ┄┄┄┄┄┄   │
-│ POC               │ 4312.4   │  wiersze poziomów
-│ Max volume        │ 2.1K     │
+│ Value Area        │ 12.5     │  wiersz poziomów
 └───────────────────┴──────────┘
 ```
 
-Domyślnie tabela pokazuje tylko wiersze bieżącej świecy i poziomów (Volume, Buy, Sell, Delta, POC, Max volume) - wiersze sesji nad pierwszym separatorem trzeba włączyć samemu.
+Domyślnie tabela pokazuje tylko wiersze bieżącej świecy (Volume, Buy, Sell, Delta) - wiersze sesji nad pierwszym separatorem i wiersz Value Area trzeba włączyć samemu.
 
 Każdy wiersz można **włączyć i wyłączyć osobno**:
 
@@ -46,9 +45,8 @@ Każdy wiersz można **włączyć i wyłączyć osobno**:
 - ⚖️ **Delta** i **Delta %** - kupno minus sprzedaż, w wartości bezwzględnej albo jako % całego wolumenu (zielone/czerwone wg znaku).
 - 🧱 **Imbalance (stacked)** (imbalans, skumulowany) - licznik skumulowanych poziomów imbalansu diagonalnego w bieżącej świecy: ▲ poziomy kupna, ▼ poziomy sprzedaży.
 - 📍 **Value Area (VAH-VAL)** (obszar wartości) - szerokość zakresu mieszczącego skonfigurowany % wolumenu: wąski = skoncentrowany, szeroki = rozproszony.
-- 🎯 **POC** (Point of Control, poziom największego wolumenu) / **Max volume** - cena o najwyższym wolumenie w świecy i wolumen na tym poziomie.
 
-Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyczą **wyłącznie ostatniej świecy** bieżącego interwału - wiersze CVD kumulują. Delta i CVD mają jawny znak (`+1.8K` / `-1.1K`).
+Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta dotyczą **wyłącznie ostatniej świecy** bieżącego interwału - wiersze CVD kumulują. Delta i CVD mają jawny znak (`+1.8K` / `-1.1K`).
 
 ---
 
@@ -58,7 +56,7 @@ Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyc
 - **Imbalance** (imbalans): _ratio X:1_ (stosunek X:1, domyślnie 3), _min. stacked levels_ (min. liczba skumulowanych poziomów, domyślnie 3).
 - **Table** (tabela): pozycja (6 rogów/boków), marginesy, rozmiar tekstu.
 - **Table rows** (wiersze tabeli): przełącznik na każdy wiersz (patrz wyżej).
-- **Colors** (kolory): kolor bazowy/neutralny, kolor Max volume.
+- **Colors** (kolory): kolor bazowy/neutralny.
 - **CVD**: dzienny reset sesji (domyślnie włączony).
 
 ---
@@ -72,7 +70,7 @@ Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyc
 
 ## 📤 Ukryte serie
 
-Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użyteczne jako **zewnętrzne źródło** przez `input.source` w innych wskaźnikach i strategiach): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)** oraz **POC** (cena).
+Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użyteczne jako **zewnętrzne źródło** przez `input.source` w innych wskaźnikach i strategiach): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)** oraz **CVD (1h)**.
 
 ---
 

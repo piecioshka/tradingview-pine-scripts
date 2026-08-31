@@ -6,7 +6,7 @@
 //@version=6
 indicator('Delta Footprint Table', overlay=true)
 
-// Standalone footprint status table: buy / sell / delta (+ %) / POC / CVD.
+// Standalone footprint status table: buy / sell / delta (+ %) / imbalance / CVD.
 // Add it next to "Delta Footprint Bubble" / "Histogram". Runs its own request.footprint - works independently.
 // Requires Premium/Ultimate; no footprint data (e.g. some crypto) → "-".
 
@@ -22,7 +22,7 @@ type Row
     color  bg = na
 
 gCalc = 'Footprint'
-ticksPerRow = input.int(10, 'Ticks per row', minval=1, group=gCalc, tooltip='Height of a single footprint row in ticks. Affects POC/Value Area resolution (does not change the delta total). Fewer = more precise, but more rows.')
+ticksPerRow = input.int(10, 'Ticks per row', minval=1, group=gCalc, tooltip='Height of a single footprint row in ticks. Affects Value Area resolution (does not change the delta total). Fewer = more precise, but more rows.')
 vaPercent   = input.int(70, 'Value Area %', minval=1, maxval=100, group=gCalc, tooltip='Percent of volume defining the Value Area (classically 70%).')
 
 gImb = 'Imbalance ("Imbalance" row)'
@@ -46,13 +46,10 @@ showSell   = input.bool(true, 'Sell (bid)',     group=gRows, tooltip='Show the s
 showDelta    = input.bool(true, 'Delta',        group=gRows, tooltip='Show the delta row (buy − sell) as an absolute value.')
 showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Show the delta row as a percentage share of total volume.')
 showImbalance = input.bool(false, 'Imbalance (stacked)', group=gRows, tooltip='Show the stacked imbalance counter for the current candle: ▲ levels with a buy imbalance, ▼ levels with a sell imbalance. Computed per the "Imbalance" group settings.')
-showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Show the footprint Value Area width: VAH − VAL.\n\nThe Value Area is the price range holding a given % of volume (70% by default) around the POC.\nVAH (Value Area High) = upper bound of that range.\nVAL (Value Area Low) = lower bound.\nThe row shows the VAH − VAL width: narrower = concentrated volume, wider = dispersed.')
-showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Show the Point of Control row (the price with the highest volume).')
-showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Show the volume at the POC level (for the price of that level - see the POC row).')
+showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Show the footprint Value Area width: VAH − VAL.\n\nThe Value Area is the price range holding a given % of volume (70% by default).\nVAH (Value Area High) = upper bound of that range.\nVAL (Value Area Low) = lower bound.\nThe row shows the VAH − VAL width: narrower = concentrated volume, wider = dispersed.')
 
 gColors = 'Colors'
-cNeutral  = input.color(color.gray,   'Base color',  group=gColors, tooltip='Base table text color: row names and neutral values (no data, zero delta). The header background and separators derive from it too.')
-colMaxVol = input.color(color.orange, 'Max volume',  group=gColors, tooltip='Color of the Max volume value (volume at the POC level).')
+cNeutral = input.color(color.gray, 'Base color', group=gColors, tooltip='Base table text color: row names and neutral values (no data, zero delta). The header background and separators derive from it too.')
 
 gCvd = 'Cumulative delta (CVD)'
 resetDaily = input.bool(true, 'Reset CVD on new daily session', group=gCvd, tooltip='Cumulative delta (CVD) zeroed at the start of each day. Turn off to accumulate from the beginning of history.')
@@ -63,18 +60,12 @@ hasData = not na(fp)
 float delta    = na
 float buyVol   = na
 float sellVol  = na
-float pocPrice = na
-float pocVol   = na
 float vahPrice = na
 float valPrice = na
 if hasData
     delta   := fp.delta()
     buyVol  := fp.buy_volume()
     sellVol := fp.sell_volume()
-    pocRow = fp.poc()
-    if not na(pocRow)
-        pocPrice := (pocRow.up_price() + pocRow.down_price()) / 2
-        pocVol   := pocRow.total_volume()
     vahRow = fp.vah()
     if not na(vahRow)
         vahPrice := (vahRow.up_price() + vahRow.down_price()) / 2
@@ -88,8 +79,6 @@ if not hasDelta
     delta    := na
     buyVol   := na
     sellVol  := na
-    pocPrice := na
-    pocVol   := na
     vahPrice := na
     valPrice := na
 deltaPct = hasDelta ? delta / totalVol * 100 : na
@@ -146,11 +135,11 @@ c0        = isLeft ? 1 : 0
 c1        = c0 + 1
 spacerCol = isLeft ? 0 : 2
 rowOffset = isTop ? 1 : 0
-hdrTip = 'Buy / sell / delta / POC apply ONLY to the last (current) candle of the selected timeframe - e.g. the last minute on a 1m chart. CVD accumulates over the session.'
+hdrTip = 'Buy / sell / delta apply ONLY to the last (current) candle of the selected timeframe - e.g. the last minute on a 1m chart. CVD accumulates over the session.'
 hdrBg  = color.new(cNeutral, 82)   // subtle header-bar background
 anySession = showSessionStart or showBarCount or showCvd or showCvdHour
 anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance
-anyLevel   = showVa or showPoc or showMaxVol
+anyLevel   = showVa
 sepText   = '┄┄┄┄┄┄'
 sepColor  = color.new(cNeutral, 40)
 
@@ -235,10 +224,6 @@ if barstate.islast
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showVa
         rows.push(Row.new('Value Area', na(vaSpread) ? '-' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
-    if showPoc
-        rows.push(Row.new('POC', na(pocPrice) ? '-' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
-    if showMaxVol
-        rows.push(Row.new('Max volume', na(pocVol) ? '-' : f_abbr(pocVol), cNeutral, colMaxVol))
 
     // 2) Render: clear the previous layout, margins (empty spacer cells), header, then the rows.
     table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
@@ -265,7 +250,6 @@ plot(buyVol,              'Buy (ask)',     color=cBuy,       format=format.volum
 plot(sellVol,             'Sell (bid)',    color=cSell,      format=format.volume, display=display.data_window, editable=false)
 plot(hasDelta ? cvd : na, 'CVD (session)', color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
 plot(cvdHour,             'CVD (1h)',      color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
-plot(pocPrice,            'POC',           color=colMaxVol,  format=format.price,  display=display.data_window, editable=false)
 
 alertcondition(ta.crossover(delta, 0),  'Delta: flip to buy',  'Delta turned positive (buyers dominate)')
 alertcondition(ta.crossunder(delta, 0), 'Delta: flip to sell', 'Delta turned negative (sellers dominate)')
