@@ -47,7 +47,7 @@ The footprint knows the **aggressor side** of every trade inside a candle:
 - 🔢 **Delta numbers** - green/red, printed below/above the candle or the POC bubble, or placed **by the delta sign** (green above, red below) - configurable position and gap in ATR units. Format: absolute (K/M/B) or **percent of the candle volume**. **Bold number = divergence**: the candle direction contradicts the delta (e.g. price rises on negative delta) - something odd, worth a look.
 - 🫧 **POC bubbles** - each candle's Point of Control (the price level with the highest volume). Bubble size grows with the POC volume (power normalization, like the histogram). Three glyphs (• ● ⬤) plus label sizes form the scale. Optionally colored green/red by the delta sign instead of the fixed color.
 - 🔺 **Stacked imbalance** - diagonal imbalance read from the footprint rows: aggressive buys at a level vs aggressive sells one level lower (and vice versa). When one side is at least _ratio_ x the other on several consecutive levels, a triangle marks the candle (up = buy, down = sell). A classic order flow signal of initiative/absorption.
-- 🧵 **POC trail** - one polyline through the last ~500 bubble centers: _Segmented_ (straight lines) or _Curved_ (smooth). Shows how the "fair price" migrates.
+- 🧵 **POC trail** - a line through the bubble centers: _Segmented_ (straight segments, drawn as the `POC trail` plot - thickness and line type editable in the **Style** tab) or _Curved_ (a smooth polyline through the last ~500 centers). Shows how the "fair price" migrates.
 - 🟪 **Value Area (VAH/VAL)** - step lines + fill for the price range holding a given % of the candle volume (default 70%).
 - 📊 **CVD (session)** - cumulative delta in the status line and data window, reset daily (optional).
 

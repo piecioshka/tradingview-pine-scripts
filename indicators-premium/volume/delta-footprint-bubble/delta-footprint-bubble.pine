@@ -39,7 +39,7 @@ showBubble  = input.bool(true, 'Show POC bubbles', group=gView, tooltip='Bubbles
 pocColor    = input.color(color.new(color.orange, 20), 'POC bubble color', group=gView)
 pocByDelta  = input.bool(false, 'Color POC bubbles by delta sign', group=gView, tooltip='Bubble green/red by the candle delta sign (who won the fight at the POC) instead of the fixed color above. The POC trail line keeps the fixed color.')
 pocLink     = input.bool(false, 'Link POC bubbles with a line', group=gView, tooltip='Line connecting the centers of consecutive POC bubbles (POC trail).')
-pocLinkMode = input.string('Segmented', 'POC line style', options=['Segmented', 'Curved'], group=gView, tooltip='"Curved" = smooth, interpolated curve through the bubble centers. "Segmented" = a plain polyline of straight segments connecting consecutive POCs.')
+pocLinkMode = input.string('Segmented', 'POC line style', options=['Segmented', 'Curved'], group=gView, tooltip='"Segmented" = straight segments connecting consecutive POCs, drawn as the "POC trail" plot - its thickness and line type (line, step line, circles...) are editable in the Style tab. "Curved" = smooth, interpolated curve through the bubble centers (a drawing - not stylable from the Style tab).')
 normPow     = input.float(0.5, 'Bubble size normalization', minval=0.1, maxval=1, step=0.05, group=gView, tooltip='Power scaling the bubble size (like in the histogram): 1 = linear (no normalization), 0.5 = square root, lower = stronger compression of spikes. Reference: max of ~500 candles.')
 showVA      = input.bool(false,  'Value Area (VAH/VAL)', group=gView, tooltip='Value Area (VAH = Value Area High = upper bound, VAL = Value Area Low = lower) — the price range holding the given % of the candle volume (the "Value Area %" field).')
 vaFill      = input.color(color.new(cVA, 90), 'Value Area fill', group=gView, tooltip='Color and transparency of the Value Area fill (set opacity with the palette slider). VAH/VAL lines inherit this hue.')
@@ -153,20 +153,23 @@ if showBubble and hasDelta and not na(pocPrice)
     bubbleColor = pocByDelta ? deltaColor : pocColor   // fixed color or green/red by the delta sign
     label.new(bar_index, pocPrice, text=pocChar, yloc=yloc.price, style=label.style_none, textcolor=bubbleColor, size=pocSize)
 
-// POC trail: one polyline through the bubble centers — a smooth curve (curved=true) or a segmented
-// polyline (curved=false), depending on the "POC line style" field. WINDOW of the last pocTrailMax
-// points (polyline limit = 10000 points).
+// POC trail through the bubble centers, per the "POC line style" field:
+// "Segmented" = the "POC trail" plot below (thickness and plot type editable in the Style tab),
+// "Curved" = a smooth polyline (drawings cannot be styled from the Style tab).
+// Polyline WINDOW: the last pocTrailMax points (polyline limit = 10000 points).
+pocCurved = pocLinkMode == 'Curved'
 var array<chart.point> pocPts = array.new<chart.point>()
 var polyline pocPoly = na
 pocTrailMax = 500   // the trail covers the last N bubbles (spans the visible ones, fits the polyline limit)
-if pocLink and hasDelta and not na(pocPrice) and barstate.isconfirmed
+if pocLink and pocCurved and hasDelta and not na(pocPrice) and barstate.isconfirmed
     array.push(pocPts, chart.point.from_index(bar_index, pocPrice))
     if array.size(pocPts) > pocTrailMax
         array.shift(pocPts)   // keep the window: drop the oldest point
-if pocLink and barstate.islast and array.size(pocPts) >= 2
+if pocLink and pocCurved and barstate.islast and array.size(pocPts) >= 2
     if not na(pocPoly)
         polyline.delete(pocPoly)
-    pocPoly := polyline.new(pocPts, curved = pocLinkMode == 'Curved', line_color = color.new(pocColor, 30), line_width = 2)
+    pocPoly := polyline.new(pocPts, curved = true, line_color = color.new(pocColor, 30), line_width = 2)
+plot(pocLink and not pocCurved ? pocPrice : na, 'POC trail', color=color.new(pocColor, 30), linewidth=2)
 
 // --- Value Area (VAH/VAL): price range with the given % of candle volume (driven by "Value Area %") ---
 pVah = plot(showVA ? vahPrice : na, 'VAH', color=color.new(vaFill, 25), style=plot.style_stepline, linewidth=1)
