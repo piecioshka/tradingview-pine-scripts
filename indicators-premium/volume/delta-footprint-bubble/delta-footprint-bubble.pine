@@ -31,16 +31,23 @@ vaPercent   = input.int(70, 'Value Area %',  minval=1, maxval=100, group=gCalc, 
 
 gView = 'Display'
 showLabels  = input.bool(true,  'Show delta numbers', group=gView, tooltip='Delta number printed next to each candle (green = buy dominance, red = sell).')
+numMode     = input.string('Absolute', 'Number format', options=['Absolute', 'Percent of volume'], group=gView, tooltip='"Absolute" = delta in contracts/units (K/M/B abbreviated). "Percent of volume" = delta as % of the candle volume (buy + sell), e.g. +37% means buyers outweigh by 37% of the total.')
 fontSize    = input.string('Small', 'Number size', options=['Tiny', 'Small', 'Normal', 'Large'], group=gView)
 numPos      = input.string('Below POC', 'Number position', options=['Below POC', 'Above POC', 'Below candle', 'Above candle'], group=gView, tooltip='Where to print the delta number: "Below/Above POC" = below/above the POC bubble, "Below/Above candle" = below the candle (low) / above the candle (high). No POC data → POC positions fall back to the candle.')
 numGap      = input.float(0.5, 'Number gap (× ATR)', minval=0, maxval=5, step=0.1, group=gView, tooltip='Gap between the number and the candle / POC bubble, as a multiple of ATR(14). 0 = right next to it.')
 showBubble  = input.bool(true, 'Show POC bubbles', group=gView, tooltip='Bubbles (dots) at the POC level, scaled by volume. Turn off to keep only delta numbers / Value Area / POC trail.')
 pocColor    = input.color(color.new(color.orange, 20), 'POC bubble color', group=gView)
+pocByDelta  = input.bool(false, 'Color POC bubbles by delta sign', group=gView, tooltip='Bubble green/red by the candle delta sign (who won the fight at the POC) instead of the fixed color above. The POC trail line keeps the fixed color.')
 pocLink     = input.bool(false, 'Link POC bubbles with a line', group=gView, tooltip='Line connecting the centers of consecutive POC bubbles (POC trail).')
 pocLinkMode = input.string('Segmented', 'POC line style', options=['Segmented', 'Curved'], group=gView, tooltip='"Curved" = smooth, interpolated curve through the bubble centers. "Segmented" = a plain polyline of straight segments connecting consecutive POCs.')
 normPow     = input.float(0.5, 'Bubble size normalization', minval=0.1, maxval=1, step=0.05, group=gView, tooltip='Power scaling the bubble size (like in the histogram): 1 = linear (no normalization), 0.5 = square root, lower = stronger compression of spikes. Reference: max of ~500 candles.')
 showVA      = input.bool(false,  'Value Area (VAH/VAL)', group=gView, tooltip='Value Area (VAH = Value Area High = upper bound, VAL = Value Area Low = lower) — the price range holding the given % of the candle volume (the "Value Area %" field).')
 vaFill      = input.color(color.new(cVA, 90), 'Value Area fill', group=gView, tooltip='Color and transparency of the Value Area fill (set opacity with the palette slider). VAH/VAL lines inherit this hue.')
+
+gImb = 'Stacked imbalance'
+showImb  = input.bool(true, 'Detect stacked imbalance', group=gImb, tooltip='Diagonal imbalance from the footprint rows: aggressive buys at a level vs aggressive sells one level LOWER (and vice versa). Several imbalanced levels in a row = stacked imbalance, marked with a triangle under/over the candle.')
+imbRatio = input.float(3.0, 'Imbalance ratio', minval=1.5, step=0.5, group=gImb, tooltip='Dominance threshold for one diagonal pair: 3 = one side has at least 3x (300%) the opposite side. A side facing zero opposite volume also counts.')
+imbStack = input.int(3, 'Stacked rows (min)', minval=2, group=gImb, tooltip='How many CONSECUTIVE imbalanced levels are needed to flag a stacked imbalance.')
 
 gCvd = 'Cumulative delta (CVD)'
 resetDaily = input.bool(true, 'Reset CVD on new daily session', group=gCvd, tooltip='Cumulative delta (CVD) zeroed at the start of each day. Turn off to accumulate from the beginning of history.')
@@ -101,6 +108,38 @@ deltaColor = not hasDelta ? cNeutral : delta > 0 ? cBuy : delta < 0 ? cSell : cN
 // Candle falls (close < open) with positive delta → sellers push price down despite buy dominance.
 diverg = hasDelta and ((close > open and delta < 0) or (close < open and delta > 0))
 
+// --- Stacked imbalance: diagonal buy/sell dominance on consecutive footprint rows ---
+// Diagonal pair = buys at a level vs sells one level LOWER (aggressive buyers lift offers above
+// the price where aggressive sellers hit bids). One side >= ratio x the other = imbalanced level;
+// imbStack such levels in a row = stacked imbalance (absorption/initiative worth attention).
+bool imbBuy  = false
+bool imbSell = false
+if showImb and hasDelta
+    rows = fp.rows()
+    n = na(rows) ? 0 : array.size(rows)
+    if n >= imbStack + 1
+        // Row order is not guaranteed - walk the pairs in ascending price order either way.
+        asc = array.get(rows, 0).down_price() < array.get(rows, n - 1).down_price()
+        int runBuy  = 0
+        int runSell = 0
+        for k = 0 to n - 2
+            lowRow = array.get(rows, asc ? k : n - 1 - k)      // the lower-priced row of the pair
+            upRow  = array.get(rows, asc ? k + 1 : n - 2 - k)  // the row one level higher
+            buyUp   = nz(upRow.buy_volume())
+            sellLow = nz(lowRow.sell_volume())
+            bImb = buyUp > 0 and buyUp >= imbRatio * sellLow
+            sImb = sellLow > 0 and sellLow >= imbRatio * buyUp
+            runBuy  := bImb ? runBuy + 1 : 0
+            runSell := sImb ? runSell + 1 : 0
+            if runBuy >= imbStack
+                imbBuy := true
+            if runSell >= imbStack
+                imbSell := true
+
+// Markers via plotshape (does not consume the label budget shared by numbers and bubbles)
+plotshape(imbBuy, 'Stacked buy imbalance', style=shape.triangleup, location=location.belowbar, color=cBuy, size=size.tiny)
+plotshape(imbSell, 'Stacked sell imbalance', style=shape.triangledown, location=location.abovebar, color=cSell, size=size.tiny)
+
 // --- Bookmap-style POC trail: bubbles scaled by volume ---
 // Size ∝ volume at POC: gradation of 3 glyphs (• ● ⬤) + tiny/small/normal sizes.
 // For TEXT large == huge (same pixels), so at the top of the scale the glyph change, not the size, makes the difference.
@@ -111,7 +150,8 @@ if showBubble and hasDelta and not na(pocPrice)
     lv      = math.min(6, math.floor(pocNorm * 7))
     pocChar = lv <= 1 ? '•' : lv <= 4 ? '●' : '⬤'
     pocSize = lv == 0 ? size.small : lv == 1 ? size.large : lv == 2 ? size.small : lv == 3 ? size.normal : lv == 4 or lv == 5 ? size.large : size.huge
-    label.new(bar_index, pocPrice, text=pocChar, yloc=yloc.price, style=label.style_none, textcolor=pocColor, size=pocSize)
+    bubbleColor = pocByDelta ? deltaColor : pocColor   // fixed color or green/red by the delta sign
+    label.new(bar_index, pocPrice, text=pocChar, yloc=yloc.price, style=label.style_none, textcolor=bubbleColor, size=pocSize)
 
 // POC trail: one polyline through the bubble centers — a smooth curve (curved=true) or a segmented
 // polyline (curved=false), depending on the "POC line style" field. WINDOW of the last pocTrailMax
@@ -137,7 +177,7 @@ fill(pVah, pVal, color=showVA ? vaFill : na, title='Value Area zone')
 plot(delta,               'Delta',      color=deltaColor, display=display.status_line + display.data_window, format=format.volume)
 plot(buyVol,              'Buy (ask)',  color=cBuy,       display=display.data_window, format=format.volume)
 plot(sellVol,             'Sell (bid)', color=cSell,      display=display.data_window, format=format.volume)
-plot(hasDelta ? cvd : na, 'CVD (session)', color=cNeutral, display=display.data_window, format=format.volume)
+plot(hasDelta ? cvd : na, 'CVD (session)', color=cNeutral, display=display.status_line + display.data_window, format=format.volume)
 
 // --- K/M/B abbreviation; below 1000 an integer (no ".00") ---
 f_abbr(float x) =>
@@ -161,9 +201,16 @@ above   = numPos == 'Above POC' or numPos == 'Above candle'
 baseY   = usePoc ? pocPrice : (above ? high : low)
 lblY    = above ? baseY + numGap * atr : baseY - numGap * atr   // gap = numGap × ATR; above or below the POC bubble / candle
 if showLabels and hasDelta
-    dTxt = diverg ? f_bold(f_abbr(delta)) : f_abbr(delta)   // divergence → bold number
+    // "Percent of volume" = delta as % of the candle volume (signed); otherwise the absolute value (K/M/B)
+    dRaw = numMode == 'Percent of volume' ? str.tostring(delta / totalVol * 100, '#') + '%' : f_abbr(delta)
+    dTxt = diverg ? f_bold(dRaw) : dRaw   // divergence → bold number
     label.new(bar_index, lblY, text=dTxt, yloc=yloc.price, style=label.style_none, textcolor=deltaColor, size=szLbl)
 
 // --- Alerts ---
 alertcondition(ta.crossover(delta, 0),  'Delta: flip to buy',  'Delta turned positive (buyers dominate)')
 alertcondition(ta.crossunder(delta, 0), 'Delta: flip to sell', 'Delta turned negative (sellers dominate)')
+alertcondition(diverg, 'Delta divergence', 'Candle direction contradicts the delta (rise on negative delta or fall on positive)')
+alertcondition(imbBuy,  'Stacked buy imbalance',  'Stacked buy imbalance: aggressive buyers dominate on consecutive footprint levels')
+alertcondition(imbSell, 'Stacked sell imbalance', 'Stacked sell imbalance: aggressive sellers dominate on consecutive footprint levels')
+alertcondition(ta.crossover(cvd, 0),  'CVD: flip to buy',  'Cumulative delta turned positive')
+alertcondition(ta.crossunder(cvd, 0), 'CVD: flip to sell', 'Cumulative delta turned negative')
