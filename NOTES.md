@@ -2,6 +2,11 @@
 
 Technical notes, cheatsheets, and related resources for Pine Script® / TradingView.
 
+## Official docs
+
+- Reference (v6): https://www.tradingview.com/pine-script-reference/v6/
+- User manual: https://www.tradingview.com/pine-script-docs/
+
 ## Related
 
 - https://github.com/dearvn/trading-futures-tradingview-script
@@ -10,37 +15,39 @@ Technical notes, cheatsheets, and related resources for Pine Script® / TradingV
 
 ## Pine Script / Colors
 
-Built-in colors:
+Built-in colors (hex values from the official docs):
 
-- `color.aqua`
-- `color.black`
-- `color.blue`
-- `color.fuchsia` - dark pink
-- `color.gray`
-- `color.green`
-- `color.lime`
-- `color.maroon` - dark red
-- `color.navy` - dark blue
-- `color.olive` - dark yellow
-- `color.orange`
-- `color.purple`
-- `color.red`
-- `color.silver`
-- `color.teal` - dark green
-- `color.white`
-- `color.yellow`
+| Constant        | Hex       | Note                            |
+| --------------- | --------- | ------------------------------- |
+| `color.aqua`    | `#00BCD4` |                                 |
+| `color.black`   | `#363A45` | not pure black (dark graphite)  |
+| `color.blue`    | `#2196F3` |                                 |
+| `color.fuchsia` | `#E040FB` | bright magenta                  |
+| `color.gray`    | `#787B86` |                                 |
+| `color.green`   | `#4CAF50` |                                 |
+| `color.lime`    | `#00E676` |                                 |
+| `color.maroon`  | `#880E4F` | dark red                        |
+| `color.navy`    | `#311B92` | dark blue                       |
+| `color.olive`   | `#808000` | dark yellow                     |
+| `color.orange`  | `#FF9800` |                                 |
+| `color.purple`  | `#9C27B0` |                                 |
+| `color.red`     | `#F23645` |                                 |
+| `color.silver`  | `#B2B5BE` |                                 |
+| `color.teal`    | `#089981` | dark green (default bull green) |
+| `color.white`   | `#FFFFFF` |                                 |
+| `color.yellow`  | `#FDD835` |                                 |
 
 Pairings:
 
-- A:
-  - `color.rgb(0, 153, 136)`
-  - `color.rgb(255, 121, 63)`
-- B:
-  - `color.rgb(114, 48, 131)`
-  - `color.rgb(240, 199, 58)`
-- C:
-  - `color.rgb(56, 104, 174)`
-  - `color.rgb(215, 107, 52)`
+- A (teal / orange):
+  - `color.rgb(0, 153, 136)` - `#009988`
+  - `color.rgb(255, 121, 63)` - `#FF793F`
+- B (purple / yellow):
+  - `color.rgb(114, 48, 131)` - `#723083`
+  - `color.rgb(240, 199, 58)` - `#F0C73A`
+- C (blue / orange):
+  - `color.rgb(56, 104, 174)` - `#3868AE`
+  - `color.rgb(215, 107, 52)` - `#D76B34`
 
 ## Pine Script / `plot()`
 
@@ -58,7 +65,7 @@ Pairings:
 - `plot.style_areabr`
 - `plot.style_steplinebr`
 
-`linestyle` possible values:
+`linestyle` possible values (v6 only - v5 `plot()` has no such argument):
 
 - `plot.linestyle_solid` (default)
 - `plot.linestyle_dashed`
