@@ -36,18 +36,26 @@ Wersja polska: [`delta-footprint-table.pl.md`](./delta-footprint-table.pl.md)
 └───────────────────┴──────────┘
 ```
 
+By default the table shows only the current-candle and level rows (Volume, Buy, Sell, Delta, POC, Max volume) - the session rows above the first separator are opt-in.
+
 Every row is **individually toggleable**:
 
-- 🗓️ **Session start** / **Bar count** - when the current session began (consistent with the CVD reset) and how many candles it has.
-- 📊 **CVD (session)** - cumulative delta since the session start (daily reset optional).
-- ⏱️ **CVD (1h)** - rolling delta of the last 60 minutes, independent of the session reset (shows `-` on timeframes above 1h).
+- 🗓️ **Session start** / **Bar count** (off by default) - when the current session began (consistent with the CVD reset) and how many candles it has.
+- 📊 **CVD (session)** (off by default) - cumulative delta since the session start (daily reset optional).
+- ⏱️ **CVD (1h)** (off by default) - rolling delta of the last 60 minutes, independent of the session reset (shows `-` on timeframes above 1h).
 - 🔊 **Volume / Buy (ask) / Sell (bid)** - the current candle's turnover split by aggressor side.
 - ⚖️ **Delta** and **Delta %** - buy minus sell, absolute or as % of total volume (green/red by sign).
 - 🧱 **Imbalance (stacked)** - counter of stacked diagonal imbalance levels in the current candle: ▲ buy levels, ▼ sell levels.
 - 📍 **Value Area (VAH-VAL)** - width of the range holding the configured % of volume: narrow = concentrated, wide = dispersed.
 - 🎯 **POC** / **Max volume** - the highest-volume price of the candle and the volume at that level.
 
-The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **only to the last candle** of the current timeframe - CVD rows accumulate.
+The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **only to the last candle** of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign (`+1.8K` / `-1.1K`).
+
+---
+
+## 📍 POC line
+
+An optional **horizontal line on the chart at the POC of the current candle** (_Show POC line_, off by default), with a label showing the **price of that level** (`POC 4312.4`). The line is extended to the left, so you instantly see how price interacted with this level in the past, and it follows the POC as the live candle builds up. Color, style (solid/dashed/dotted), and width are configurable.
 
 ---
 
@@ -57,8 +65,22 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **onl
 - **Imbalance**: _ratio X:1_ (default 3), _min. stacked levels_ (default 3).
 - **Table**: position (6 corners/sides), margins, text size.
 - **Table rows**: a toggle per row (see above).
+- **POC line**: show/hide (default off), color, style, width.
 - **Colors**: base/neutral color, Max volume color.
 - **CVD**: daily session reset (default on).
+
+---
+
+## 🔔 Alerts
+
+- **Delta: flip to buy** - the current candle's delta turned positive (buyers dominate).
+- **Delta: flip to sell** - the delta turned negative (sellers dominate).
+
+---
+
+## 📤 Hidden series
+
+The script exposes its numbers as hidden series (visible in the Data Window, usable as an **external source** via `input.source` in other indicators and strategies): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)**, and **POC** (price).
 
 ---
 

@@ -35,18 +35,26 @@ Wersja angielska: [`delta-footprint-table.md`](./delta-footprint-table.md)
 └───────────────────┴──────────┘
 ```
 
+Domyślnie tabela pokazuje tylko wiersze bieżącej świecy i poziomów (Volume, Buy, Sell, Delta, POC, Max volume) - wiersze sesji nad pierwszym separatorem trzeba włączyć samemu.
+
 Każdy wiersz można **włączyć i wyłączyć osobno**:
 
-- 🗓️ **Session start** (początek sesji) / **Bar count** (liczba świec) - kiedy zaczęła się bieżąca sesja (spójnie z resetem CVD) i ile ma świec.
-- 📊 **CVD (session)** - skumulowana delta od początku sesji (dzienny reset opcjonalny).
-- ⏱️ **CVD (1h)** - krocząca delta z ostatnich 60 minut, niezależna od resetu sesji (pokazuje `-` na interwałach powyżej 1h).
+- 🗓️ **Session start** (początek sesji) / **Bar count** (liczba świec) (domyślnie wyłączone) - kiedy zaczęła się bieżąca sesja (spójnie z resetem CVD) i ile ma świec.
+- 📊 **CVD (session)** (domyślnie wyłączony) - skumulowana delta od początku sesji (dzienny reset opcjonalny).
+- ⏱️ **CVD (1h)** (domyślnie wyłączony) - krocząca delta z ostatnich 60 minut, niezależna od resetu sesji (pokazuje `-` na interwałach powyżej 1h).
 - 🔊 **Volume / Buy (ask) / Sell (bid)** - obrót bieżącej świecy z podziałem na stronę agresora: wolumen / kupno (po ask) / sprzedaż (po bid).
 - ⚖️ **Delta** i **Delta %** - kupno minus sprzedaż, w wartości bezwzględnej albo jako % całego wolumenu (zielone/czerwone wg znaku).
 - 🧱 **Imbalance (stacked)** (imbalans, skumulowany) - licznik skumulowanych poziomów imbalansu diagonalnego w bieżącej świecy: ▲ poziomy kupna, ▼ poziomy sprzedaży.
 - 📍 **Value Area (VAH-VAL)** (obszar wartości) - szerokość zakresu mieszczącego skonfigurowany % wolumenu: wąski = skoncentrowany, szeroki = rozproszony.
 - 🎯 **POC** (Point of Control, poziom największego wolumenu) / **Max volume** - cena o najwyższym wolumenie w świecy i wolumen na tym poziomie.
 
-Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyczą **wyłącznie ostatniej świecy** bieżącego interwału - wiersze CVD kumulują.
+Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyczą **wyłącznie ostatniej świecy** bieżącego interwału - wiersze CVD kumulują. Delta i CVD mają jawny znak (`+1.8K` / `-1.1K`).
+
+---
+
+## 📍 Linia POC
+
+Opcjonalna **pozioma linia na wykresie na poziomie POC bieżącej świecy** (_Show POC line_, domyślnie wyłączona), z etykietą pokazującą **cenę tego poziomu** (`POC 4312.4`). Linia jest przedłużona w lewo, więc od razu widać, jak cena zachowywała się na tym poziomie w przeszłości, i podąża za POC w miarę budowania się bieżącej świecy. Kolor, styl (ciągła/kreskowana/kropkowana) i grubość są konfigurowalne.
 
 ---
 
@@ -56,8 +64,22 @@ Nagłówek ("Last candle · 5m") przypomina, że kupno/sprzedaż/delta/POC dotyc
 - **Imbalance** (imbalans): _ratio X:1_ (stosunek X:1, domyślnie 3), _min. stacked levels_ (min. liczba skumulowanych poziomów, domyślnie 3).
 - **Table** (tabela): pozycja (6 rogów/boków), marginesy, rozmiar tekstu.
 - **Table rows** (wiersze tabeli): przełącznik na każdy wiersz (patrz wyżej).
+- **POC line** (linia POC): pokaż/ukryj (domyślnie wyłączona), kolor, styl, grubość.
 - **Colors** (kolory): kolor bazowy/neutralny, kolor Max volume.
 - **CVD**: dzienny reset sesji (domyślnie włączony).
+
+---
+
+## 🔔 Alerty
+
+- **Delta: flip to buy** - delta bieżącej świecy stała się dodatnia (dominują kupujący).
+- **Delta: flip to sell** - delta stała się ujemna (dominują sprzedający).
+
+---
+
+## 📤 Ukryte serie
+
+Skrypt wystawia swoje liczby jako ukryte serie (widoczne w Data Window, użyteczne jako **zewnętrzne źródło** przez `input.source` w innych wskaźnikach i strategiach): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)** oraz **POC** (cena).
 
 ---
 

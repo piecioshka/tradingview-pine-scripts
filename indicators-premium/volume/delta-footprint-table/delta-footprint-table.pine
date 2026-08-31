@@ -7,11 +7,11 @@
 indicator('Delta Footprint Table', overlay=true)
 
 // Standalone footprint status table: buy / sell / delta (+ %) / POC / CVD.
-// Add it next to "Delta Footprint Bubble" / "Histogram". Runs its own request.footprint — works independently.
-// Requires Premium/Ultimate; no footprint data (e.g. some crypto) → "—".
+// Add it next to "Delta Footprint Bubble" / "Histogram". Runs its own request.footprint - works independently.
+// Requires Premium/Ultimate; no footprint data (e.g. some crypto) → "-".
 
-cBuy  = color.rgb(38, 166, 154)  // buy dominance (positive delta) — default candle green #26A69A
-cSell = color.rgb(239, 83, 80)   // sell dominance (negative delta) — default candle red #EF5350
+cBuy  = color.rgb(38, 166, 154)  // buy dominance (positive delta) - default candle green #26A69A
+cSell = color.rgb(239, 83, 80)   // sell dominance (negative delta) - default candle red #EF5350
 
 // A single table row (label + value + colors + optional background). Separators are a row with sepText in both columns.
 type Row
@@ -38,8 +38,8 @@ fontSize     = input.string('Small', 'Text size', options=['Tiny', 'Small', 'Nor
 gRows = 'Table rows'
 showSessionStart = input.bool(false, 'Session start', group=gRows, tooltip='Show the date and time when the current session started (consistent with the CVD reset).')
 showBarCount     = input.bool(false, 'Bar count',     group=gRows, tooltip='Show the number of bars (candles) since the start of the current session.')
-showCvd     = input.bool(true, 'CVD (session)', group=gRows, tooltip='Show the cumulative delta (CVD) row for the session.')
-showCvdHour = input.bool(true, 'CVD (1h)',      group=gRows, tooltip='Show the cumulative delta of the last hour (rolling sum of the delta over the last 60 minutes, independent of the session reset). On timeframes ≥ 1h shows "—".')
+showCvd     = input.bool(false, 'CVD (session)', group=gRows, tooltip='Show the cumulative delta (CVD) row for the session.')
+showCvdHour = input.bool(false, 'CVD (1h)',      group=gRows, tooltip='Show the cumulative delta of the last hour (rolling sum of the delta over the last 60 minutes, independent of the session reset). On timeframes above 1h shows "-".')
 showVolume = input.bool(true, 'Volume',         group=gRows, tooltip='Show the total volume of the current candle (buy + sell).')
 showBuy    = input.bool(true, 'Buy (ask)',      group=gRows, tooltip='Show the buy (ask) volume row.')
 showSell   = input.bool(true, 'Sell (bid)',     group=gRows, tooltip='Show the sell (bid) volume row.')
@@ -48,7 +48,13 @@ showDeltaPct = input.bool(false, 'Delta %',     group=gRows, tooltip='Show the d
 showImbalance = input.bool(false, 'Imbalance (stacked)', group=gRows, tooltip='Show the stacked imbalance counter for the current candle: ▲ levels with a buy imbalance, ▼ levels with a sell imbalance. Computed per the "Imbalance" group settings.')
 showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='Show the footprint Value Area width: VAH − VAL.\n\nThe Value Area is the price range holding a given % of volume (70% by default) around the POC.\nVAH (Value Area High) = upper bound of that range.\nVAL (Value Area Low) = lower bound.\nThe row shows the VAH − VAL width: narrower = concentrated volume, wider = dispersed.')
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Show the Point of Control row (the price with the highest volume).')
-showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Show the volume at the POC level (for the price of that level — see the POC row).')
+showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Show the volume at the POC level (for the price of that level - see the POC row).')
+
+gPoc = 'POC line'
+showPocLine      = input.bool(false, 'Show POC line', group=gPoc, tooltip='Draw a horizontal line on the chart at the POC of the current candle (extended to the left), with a label showing the price of that level. The line follows the POC as the candle builds up.')
+pocLineColor     = input.color(#FF9800, 'Color', group=gPoc)
+pocLineStyleName = input.string('Dashed', 'Style', options=['Solid', 'Dashed', 'Dotted'], group=gPoc)
+pocLineWidth     = input.int(1, 'Width', minval=1, maxval=4, group=gPoc)
 
 gColors = 'Colors'
 cNeutral  = input.color(color.gray,   'Base color',  group=gColors, tooltip='Base table text color: row names and neutral values (no data, zero delta). The header background and separators derive from it too.')
@@ -124,6 +130,10 @@ f_abbr(float x) =>
     a = math.abs(x)
     a >= 1e9 ? str.tostring(x / 1e9, '#.##') + 'B' : a >= 1e6 ? str.tostring(x / 1e6, '#.##') + 'M' : a >= 1e3 ? str.tostring(x / 1e3, '#.#') + 'K' : str.tostring(x, '#')
 
+// --- Signed variant for delta values: explicit "+" on positive numbers ---
+f_signed(float x) =>
+    (x > 0 ? '+' : '') + f_abbr(x)
+
 // --- Friendly chart-timeframe description (for the "last candle" header) ---
 f_tf() =>
     tfSec < 60 ? str.tostring(tfSec) + 's' : tfSec < 3600 ? str.tostring(tfSec / 60, '#') + 'm' : tfSec < 86400 ? str.tostring(tfSec / 3600, '#') + 'h' : timeframe.period
@@ -142,7 +152,7 @@ c0        = isLeft ? 1 : 0
 c1        = c0 + 1
 spacerCol = isLeft ? 0 : 2
 rowOffset = isTop ? 1 : 0
-hdrTip = 'Buy / sell / delta / POC apply ONLY to the last (current) candle of the selected timeframe — e.g. the last minute on a 1m chart. CVD accumulates over the session.'
+hdrTip = 'Buy / sell / delta / POC apply ONLY to the last (current) candle of the selected timeframe - e.g. the last minute on a 1m chart. CVD accumulates over the session.'
 hdrBg  = color.new(cNeutral, 82)   // subtle header-bar background
 anySession = showSessionStart or showBarCount or showCvd or showCvdHour
 anyCandle  = showVolume or showBuy or showSell or showDelta or showDeltaPct or showImbalance
@@ -200,41 +210,64 @@ if barstate.islast and showImbalance and hasData
             else
                 ri += 1
 
+// --- POC line: horizontal level at the current candle's POC + a label with the price ---
+// Extended to the left so past interactions with the level stay visible; both drawings
+// are reused (one line, one label) and follow the POC as the live candle builds up.
+pocLineStyle = pocLineStyleName == 'Solid' ? line.style_solid : pocLineStyleName == 'Dashed' ? line.style_dashed : line.style_dotted
+var line  pocLine  = na
+var label pocLabel = na
+if showPocLine and barstate.islast
+    if na(pocPrice)
+        line.delete(pocLine)
+        label.delete(pocLabel)
+        pocLine  := na
+        pocLabel := na
+    else
+        pocText = 'POC ' + str.tostring(pocPrice, format.mintick)
+        if na(pocLine)
+            pocLine  := line.new(bar_index - 1, pocPrice, bar_index, pocPrice, xloc=xloc.bar_index, extend=extend.left, color=pocLineColor, style=pocLineStyle, width=pocLineWidth)
+            pocLabel := label.new(bar_index, pocPrice, pocText, xloc=xloc.bar_index, style=label.style_label_left, color=color.new(color.black, 100), textcolor=pocLineColor, size=size.small)
+        else
+            line.set_xy1(pocLine, bar_index - 1, pocPrice)
+            line.set_xy2(pocLine, bar_index, pocPrice)
+            label.set_xy(pocLabel, bar_index, pocPrice)
+            label.set_text(pocLabel, pocText)
+
 if barstate.islast
     // 1) Build the list of visible rows in display order (separator = a Row with sepText in both columns).
     rows = array.new<Row>()
     if showSessionStart
-        rows.push(Row.new('Session start', na(sessionStart) ? '—' : str.format_time(sessionStart, 'yyyy-MM-dd HH:mm', syminfo.timezone), cNeutral, cNeutral))
+        rows.push(Row.new('Session start', na(sessionStart) ? '-' : str.format_time(sessionStart, 'yyyy-MM-dd HH:mm', syminfo.timezone), cNeutral, cNeutral))
     if showBarCount
         rows.push(Row.new('Bar count', str.tostring(sessionBars, '#'), cNeutral, cNeutral))
     if showCvd
-        rows.push(Row.new('CVD (session)', hasDelta ? f_abbr(cvd) : '—', cNeutral, f_signColor(cvd)))
+        rows.push(Row.new('CVD (session)', hasDelta ? f_signed(cvd) : '-', cNeutral, f_signColor(cvd)))
     if showCvdHour
-        rows.push(Row.new('CVD (1h)', na(cvdHour) ? '—' : f_abbr(cvdHour), cNeutral, f_signColor(cvdHour)))
+        rows.push(Row.new('CVD (1h)', na(cvdHour) ? '-' : f_signed(cvdHour), cNeutral, f_signColor(cvdHour)))
     if anySession and (anyCandle or anyLevel)
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showVolume
-        rows.push(Row.new('Volume', hasDelta ? f_abbr(totalVol) : '—', cNeutral, cNeutral))
+        rows.push(Row.new('Volume', hasDelta ? f_abbr(totalVol) : '-', cNeutral, cNeutral))
     if showBuy
-        rows.push(Row.new('Buy (ask)', hasDelta ? f_abbr(buyVol) : '—', cNeutral, cBuy))
+        rows.push(Row.new('Buy (ask)', hasDelta ? f_abbr(buyVol) : '-', cNeutral, cBuy))
     if showSell
-        rows.push(Row.new('Sell (bid)', hasDelta ? f_abbr(sellVol) : '—', cNeutral, cSell))
+        rows.push(Row.new('Sell (bid)', hasDelta ? f_abbr(sellVol) : '-', cNeutral, cSell))
     if showDelta
-        rows.push(Row.new('Delta', hasDelta ? f_abbr(delta) : '—', cNeutral, deltaColor, color.new(deltaColor, 80)))
+        rows.push(Row.new('Delta', hasDelta ? f_signed(delta) : '-', cNeutral, deltaColor, color.new(deltaColor, 80)))
     if showDeltaPct
-        rows.push(Row.new('Delta %', na(deltaPct) ? '—' : str.tostring(deltaPct, '#.#') + '%', cNeutral, deltaColor))
+        rows.push(Row.new('Delta %', na(deltaPct) ? '-' : (deltaPct > 0 ? '+' : '') + str.tostring(deltaPct, '#.#') + '%', cNeutral, deltaColor))
     if showImbalance
-        imbVal   = not hasDelta ? '—' : (imbBuyLv == 0 and imbSellLv == 0) ? 'none' : '▲' + str.tostring(imbBuyLv) + '  ▼' + str.tostring(imbSellLv)
+        imbVal   = not hasDelta ? '-' : (imbBuyLv == 0 and imbSellLv == 0) ? 'none' : '▲' + str.tostring(imbBuyLv) + '  ▼' + str.tostring(imbSellLv)
         imbColor = imbBuyLv > imbSellLv ? cBuy : imbSellLv > imbBuyLv ? cSell : cNeutral
         rows.push(Row.new('Imbalance', imbVal, cNeutral, imbColor))
     if anyCandle and anyLevel
         rows.push(Row.new(sepText, sepText, sepColor, sepColor))
     if showVa
-        rows.push(Row.new('Value Area', na(vaSpread) ? '—' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
+        rows.push(Row.new('Value Area', na(vaSpread) ? '-' : str.tostring(vaSpread, format.mintick), cNeutral, cNeutral))
     if showPoc
-        rows.push(Row.new('POC', na(pocPrice) ? '—' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
+        rows.push(Row.new('POC', na(pocPrice) ? '-' : str.tostring(pocPrice, format.mintick), cNeutral, cNeutral))
     if showMaxVol
-        rows.push(Row.new('Max volume', na(pocVol) ? '—' : f_abbr(pocVol), cNeutral, colMaxVol))
+        rows.push(Row.new('Max volume', na(pocVol) ? '-' : f_abbr(pocVol), cNeutral, colMaxVol))
 
     // 2) Render: clear the previous layout, margins (empty spacer cells), header, then the rows.
     table.clear(infoTable, 0, 0, 2, MAX_ROWS - 1)
@@ -242,8 +275,8 @@ if barstate.islast
         table.cell(infoTable, spacerCol, rowOffset, '', width=tableMarginX)
     if tableMarginY > 0 and not isMid and isTop
         table.cell(infoTable, c0, 0, '', height=tableMarginY)
-    table.cell(infoTable, c0, rowOffset, 'Last candle', text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
-    table.cell(infoTable, c1, rowOffset, f_tf(),        text_color=color.white, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    table.cell(infoTable, c0, rowOffset, 'Last candle', text_color=chart.fg_color, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
+    table.cell(infoTable, c1, rowOffset, f_tf(),        text_color=chart.fg_color, text_size=szLbl, bgcolor=hdrBg, tooltip=hdrTip)
     nRows = rows.size()
     if nRows > 0
         for i = 0 to nRows - 1
@@ -253,3 +286,15 @@ if barstate.islast
             table.cell(infoTable, c1, rr, rw.value, text_color=rw.valColor, text_size=szLbl, bgcolor=rw.bg)
     if tableMarginY > 0 and not isMid and not isTop
         table.cell(infoTable, c0, rowOffset + 1 + nRows, '', height=tableMarginY)
+
+// Hidden series (Data Window only) - the table's numbers as data, usable as an
+// external source (input.source) in other scripts, same as the rest of the family.
+plot(delta,               'Delta',         color=deltaColor, format=format.volume, display=display.data_window, editable=false)
+plot(buyVol,              'Buy (ask)',     color=cBuy,       format=format.volume, display=display.data_window, editable=false)
+plot(sellVol,             'Sell (bid)',    color=cSell,      format=format.volume, display=display.data_window, editable=false)
+plot(hasDelta ? cvd : na, 'CVD (session)', color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
+plot(cvdHour,             'CVD (1h)',      color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
+plot(pocPrice,            'POC',           color=colMaxVol,  format=format.price,  display=display.data_window, editable=false)
+
+alertcondition(ta.crossover(delta, 0),  'Delta: flip to buy',  'Delta turned positive (buyers dominate)')
+alertcondition(ta.crossunder(delta, 0), 'Delta: flip to sell', 'Delta turned negative (sellers dominate)')
