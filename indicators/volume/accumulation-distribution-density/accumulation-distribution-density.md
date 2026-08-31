@@ -69,11 +69,12 @@ By default the conditions are checked only once the candle **closes** (_Signal o
 - **Bar close (%)** _(default 0)_ - the close-position filter described above.
 - **Signal on closed candle only** _(default on)_ - evaluate signals only when a candle closes (no repainting). Turn off to watch signals form in real time on the unclosed candle - such a signal may vanish before the close.
 
-### Appearance
+### Appearance (Style tab)
 
-- **Marker shape** - _Triangle_ (as in xStation), _Arrow_, _Label arrow_, _Circle_, _Diamond_.
-- **Marker size** - Tiny / Small / Normal / Large.
-- **Accumulation / Distribution colors**.
+Markers are plotshapes, so each signal gets its own row in the **Style** tab of the indicator settings - with a visibility checkbox, a marker-shape picker, a position dropdown (_Above bar_ / _Below bar_), and a color:
+
+- **Accumulation** _(default: triangle below the bar)_,
+- **Distribution** _(default: triangle above the bar)_.
 
 ---
 
@@ -122,7 +123,6 @@ Even with identical parameter values, markers **will not land 1:1** on xStation'
 ## ⛔ Limitations
 
 - Requires an instrument with **volume data** - many TVC CFDs (TVC:GOLD, TVC:USOIL) have zero volume and never signal; the script then shows a warning in the top-right corner of the chart. Check per symbol (e.g. TVC:UKOIL _does_ have volume) or use futures (e.g. COMEX:GC1!).
-- Markers are labels - TradingView keeps only the most recent **500**.
 - A signal on an unclosed candle may vanish before the close - only with _Signal on closed candle only_ turned off (see above).
 
 ---

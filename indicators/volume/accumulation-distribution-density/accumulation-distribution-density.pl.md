@@ -69,11 +69,12 @@ Domyślnie warunki sprawdzane są dopiero po **zamknięciu** świecy (_Signal on
 - **Bar close (%)** (położenie zamknięcia) _(domyślnie 0)_ - opisany wyżej filtr położenia zamknięcia.
 - **Signal on closed candle only** (sygnał tylko na zamkniętej świecy) _(domyślnie włączone)_ - sygnały liczone wyłącznie po zamknięciu świecy (brak repaintingu). Wyłącz, aby obserwować sygnały tworzące się na żywej świecy - taki sygnał może zniknąć przed zamknięciem.
 
-### Appearance - wygląd
+### Wygląd (zakładka Styl)
 
-- **Marker shape** (kształt markera) - _Triangle_ (jak w xStation), _Arrow_, _Label arrow_, _Circle_, _Diamond_.
-- **Marker size** (rozmiar markera) - Tiny / Small / Normal / Large.
-- **Accumulation / Distribution colors** (kolory akumulacji / dystrybucji).
+Markery to plotshape'y, więc każdy sygnał ma własny wiersz w zakładce **Styl** ustawień wskaźnika - z checkboxem widoczności, wyborem kształtu markera, listą pozycji (_Ponad świecą_ / _Poniżej świecy_) i kolorem:
+
+- **Accumulation** (akumulacja) _(domyślnie: trójkąt pod świecą)_,
+- **Distribution** (dystrybucja) _(domyślnie: trójkąt nad świecą)_.
 
 ---
 
@@ -122,7 +123,6 @@ Nawet przy identycznych wartościach parametrów markery **nie pokryją się 1:1
 ## ⛔ Ograniczenia
 
 - Wymaga instrumentu z **danymi o wolumenie** - wiele CFD TVC (TVC:GOLD, TVC:USOIL) ma zerowy wolumen i nigdy nie sygnalizuje; skrypt pokazuje wtedy ostrzeżenie w prawym górnym rogu wykresu. Sprawdzaj per symbol (np. TVC:UKOIL wolumen _ma_) albo używaj kontraktów futures (np. COMEX:GC1!).
-- Markery to etykiety - TradingView trzyma tylko **500** najnowszych.
 - Sygnał na niezamkniętej świecy może zniknąć przed jej zamknięciem - tylko przy wyłączonym _Signal on closed candle only_ (patrz wyżej).
 
 ---
