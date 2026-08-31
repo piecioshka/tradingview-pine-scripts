@@ -73,10 +73,6 @@ Every row is [b]individually toggleable[/b]:
 
 The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply [b]only to the last candle[/b] of the current timeframe - CVD rows accumulate. Delta and CVD values carry an explicit sign ([b]+1.8K[/b] / [b]-1.1K[/b]).
 
-█ [b]📍 POC LINE[/b]
-
-A [b]horizontal dotted line across the chart at the POC of the current candle[/b] - the [b]POC line[/b] plot, on by default, [b]toggled in the Style tab[/b] like any plot. The [b]exact price of the level[/b] shows up on the price scale (in the line's color) and in the Data Window, and the line follows the POC as the live candle builds up. The color sits in the [b]POC line[/b] input group; turn on [i]Sync color with the table POC value[/i] to make the line follow the color of the POC value in the table (the [i]Base color[/i]), so the line and the table stay in sync when you re-theme it.
-
 █ [b]🛠️ KEY PARAMETERS[/b]
 
 [list]
@@ -84,7 +80,6 @@ A [b]horizontal dotted line across the chart at the POC of the current candle[/b
 [*][b]Imbalance[/b]: [i]ratio X:1[/i] (default 3), [i]min. stacked levels[/i] (default 3).
 [*][b]Table[/b]: position (6 corners/sides), margins, text size.
 [*][b]Table rows[/b]: a toggle per row (see above).
-[*][b]POC line[/b]: color + sync with the table's POC value color; visibility in the Style tab.
 [*][b]Colors[/b]: base/neutral color, Max volume color.
 [*][b]CVD[/b]: daily session reset (default on).
 [/list]
@@ -98,7 +93,7 @@ A [b]horizontal dotted line across the chart at the POC of the current candle[/b
 
 █ [b]📤 HIDDEN SERIES[/b]
 
-The script exposes its numbers as hidden series (visible in the Data Window, usable as an [b]external source[/b] via [b]input.source[/b] in other indicators and strategies): [b]Delta[/b], [b]Buy (ask)[/b], [b]Sell (bid)[/b], [b]CVD (session)[/b], [b]CVD (1h)[/b]. The POC price is exposed by the [b]POC line[/b] plot (also drawn on the chart).
+The script exposes its numbers as hidden series (visible in the Data Window, usable as an [b]external source[/b] via [b]input.source[/b] in other indicators and strategies): [b]Delta[/b], [b]Buy (ask)[/b], [b]Sell (bid)[/b], [b]CVD (session)[/b], [b]CVD (1h)[/b], and [b]POC[/b] (price).
 
 █ [b]📈 HOW TO USE IT[/b]
 

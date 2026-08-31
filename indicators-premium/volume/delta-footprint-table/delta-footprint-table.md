@@ -53,19 +53,12 @@ The header ("Last candle · 5m") reminds you that buy/sell/delta/POC apply **onl
 
 ---
 
-## 📍 POC line
-
-A **horizontal dotted line across the chart at the POC of the current candle** - the `POC line` plot, on by default, **toggled in the Style tab** like any plot. The **exact price of the level** shows up on the price scale (in the line's color) and in the Data Window, and the line follows the POC as the live candle builds up. The color sits in the `POC line` input group; turn on _Sync color with the table POC value_ to make the line follow the color of the POC value in the table (the _Base color_), so the line and the table stay in sync when you re-theme it.
-
----
-
 ## 🛠️ Key parameters
 
 - **Footprint**: _Ticks per row_ (default 10), _Value Area %_ (default 70).
 - **Imbalance**: _ratio X:1_ (default 3), _min. stacked levels_ (default 3).
 - **Table**: position (6 corners/sides), margins, text size.
 - **Table rows**: a toggle per row (see above).
-- **POC line**: color + sync with the table's POC value color; visibility in the Style tab.
 - **Colors**: base/neutral color, Max volume color.
 - **CVD**: daily session reset (default on).
 
@@ -80,7 +73,7 @@ A **horizontal dotted line across the chart at the POC of the current candle** -
 
 ## 📤 Hidden series
 
-The script exposes its numbers as hidden series (visible in the Data Window, usable as an **external source** via `input.source` in other indicators and strategies): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)**. The POC price is exposed by the `POC line` plot (also drawn on the chart).
+The script exposes its numbers as hidden series (visible in the Data Window, usable as an **external source** via `input.source` in other indicators and strategies): **Delta**, **Buy (ask)**, **Sell (bid)**, **CVD (session)**, **CVD (1h)**, and **POC** (price).
 
 ---
 

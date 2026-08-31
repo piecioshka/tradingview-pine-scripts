@@ -50,10 +50,6 @@ showVa     = input.bool(false, 'Value Area (VAH−VAL)', group=gRows, tooltip='S
 showPoc    = input.bool(true, 'POC',            group=gRows, tooltip='Show the Point of Control row (the price with the highest volume).')
 showMaxVol = input.bool(true, 'Max volume',     group=gRows, tooltip='Show the volume at the POC level (for the price of that level - see the POC row).')
 
-gPoc = 'POC line'
-pocLineColor = input.color(#FF9800, 'Color', group=gPoc, tooltip='Color of the POC line (the horizontal dotted line at the POC of the current candle). The line itself is the "POC line" plot - toggle it in the Style tab.')
-pocLineSync  = input.bool(false, 'Sync color with the table POC value', group=gPoc, tooltip='Use the same color as the POC value in the table (the "Base color" from the Colors group) instead of the color above - the line and the table stay in sync when you re-theme the table.')
-
 gColors = 'Colors'
 cNeutral  = input.color(color.gray,   'Base color',  group=gColors, tooltip='Base table text color: row names and neutral values (no data, zero delta). The header background and separators derive from it too.')
 colMaxVol = input.color(color.orange, 'Max volume',  group=gColors, tooltip='Color of the Max volume value (volume at the POC level).')
@@ -269,15 +265,7 @@ plot(buyVol,              'Buy (ask)',     color=cBuy,       format=format.volum
 plot(sellVol,             'Sell (bid)',    color=cSell,      format=format.volume, display=display.data_window, editable=false)
 plot(hasDelta ? cvd : na, 'CVD (session)', color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
 plot(cvdHour,             'CVD (1h)',      color=cNeutral,   format=format.volume, display=display.data_window, editable=false)
-
-// --- POC line: horizontal dotted line at the current candle's POC (trackprice) ---
-// The series itself is pushed off-screen (show_last=1 + offset) - what remains is the
-// tracking line across the chart, the exact price on the price scale, and the Data Window
-// value (usable as input.source). Visibility lives in the Style tab ("POC line" plot);
-// the color comes from the "POC line" input group, optionally synced with the table's
-// POC value color (Base color).
-pocLineFinal = pocLineSync ? cNeutral : pocLineColor
-plot(pocPrice, 'POC line', color=pocLineFinal, format=format.price, trackprice=true, show_last=1, offset=-99999)
+plot(pocPrice,            'POC',           color=colMaxVol,  format=format.price,  display=display.data_window, editable=false)
 
 alertcondition(ta.crossover(delta, 0),  'Delta: flip to buy',  'Delta turned positive (buyers dominate)')
 alertcondition(ta.crossunder(delta, 0), 'Delta: flip to sell', 'Delta turned negative (sellers dominate)')
