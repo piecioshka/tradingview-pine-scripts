@@ -35,7 +35,7 @@ Odcień kolumn niesie informację o przyspieszeniu: kolumna jest rysowana jaśni
 
 Przy każdym przecięciu skrypt rysuje **trzy rzeczy naraz**:
 
-1. **Marker na panelu cenowym** - zielony pod świecą, gdy krótka średnia przecina długą od dołu (impuls byczy, "BUY OPEN"), czerwony nad świecą, gdy przecina ją od góry (impuls niedźwiedzi, "BUY CLOSE"). Rozmieszczenie markerów trzyma się tej samej konwencji co w [Accumulation / Distribution Density](../../volume/accumulation-distribution-density/accumulation-distribution-density.pl.md).
+1. **Marker na panelu cenowym** - zielony pod świecą, gdy krótka średnia przecina długą od dołu (impuls byczy, "BUY OPEN"), czerwony nad świecą, gdy przecina ją od góry (impuls niedźwiedzi, "BUY CLOSE"). Rozmieszczenie markerów trzyma się tej samej konwencji co w [Accumulation / Distribution Density (VD)](../../volume/accumulation-distribution-density/accumulation-distribution-density.pl.md).
 2. **Przerywaną linię poziomą w panelu histogramu**, przedłużoną w lewo na wysokości wartości spreadu ze świecy przecięcia.
 3. **Przerywaną linię pionową na wykresie cenowym** przez zakres high-low świecy, przedłużoną w prawo - oznacza świecę przecięcia bezpośrednio na cenie.
 

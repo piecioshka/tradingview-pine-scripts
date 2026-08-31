@@ -31,7 +31,7 @@
     - [RSI](#rsi)
     - [ROC](#roc)
   - [Volume](#volume)
-    - [Accumulation / Distribution Density](#accumulation--distribution-density)
+    - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd)
 - [Premium](#premium)
   - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
@@ -193,13 +193,13 @@ Rate of Change - the percentage price change over a given period. Optional signa
 
 ### Volume
 
-#### [Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pine)
+#### [Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pine)
 
-> 📖 Full documentation: [Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md) · [po polsku](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pl.md)
+> 📖 Full documentation: [Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md) · [po polsku](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.pl.md)
 
 Accumulation / distribution density (VD) - modeled after Mieczyslaw Siudek's indicator from xStation (XTB). Looks for candles whose volume-to-price-movement ratio (**density** = volume per unit of range) is disproportionately high and which set a local extreme - heavy turnover with little movement at a low/high suggests position accumulation/distribution and a potential turning point. **▲ marker** below a candle = accumulation density (potential bullish signal), **▼ marker** above a candle = distribution density (potential bearish signal); the marker shape (triangle, arrow, label arrow, circle, diamond), size, and colors are configurable. Parameters as in xStation: Max/Min of, Average Spread of, Average Density of, Spread Factor (with a toggle), Density Factor, and the Bar close % filter. Built-in `alertcondition` for both signals. Requires an instrument with volume data (TVC CFDs lack it - use e.g. futures contracts).
 
-![Accumulation / Distribution Density](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.png)
+![Accumulation / Distribution Density (VD)](indicators/volume/accumulation-distribution-density/accumulation-distribution-density.png)
 
 ## Premium
 

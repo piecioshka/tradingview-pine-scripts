@@ -35,7 +35,7 @@ Column shading carries the acceleration: a column is drawn brighter (50% transpa
 
 On every crossover the script draws **three things at once**:
 
-1. A **marker on the price panel** - green below the candle when the short average crosses up (bullish impulse, "BUY OPEN"), red above the candle when it crosses down (bearish impulse, "BUY CLOSE"). The marker placement follows the same convention as in [Accumulation / Distribution Density](../../volume/accumulation-distribution-density/accumulation-distribution-density.md).
+1. A **marker on the price panel** - green below the candle when the short average crosses up (bullish impulse, "BUY OPEN"), red above the candle when it crosses down (bearish impulse, "BUY CLOSE"). The marker placement follows the same convention as in [Accumulation / Distribution Density (VD)](../../volume/accumulation-distribution-density/accumulation-distribution-density.md).
 2. A **dashed horizontal line in the histogram panel**, extended to the left at the spread value of the crossover candle.
 3. A **dashed vertical line on the price chart** across the candle's high-low range, extended to the right - marking the crossover candle on the price itself.
 

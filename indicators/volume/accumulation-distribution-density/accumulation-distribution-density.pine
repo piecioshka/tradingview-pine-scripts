@@ -2,7 +2,7 @@
 // © Piotr Kowalski "piecioshka"
 
 //@version=6
-indicator('Accumulation / Distribution Density', overlay=true, max_labels_count=500)
+indicator('Accumulation / Distribution Density (VD)', overlay=true, max_labels_count=500)
 
 // Accumulation / distribution density (VD) — modeled after Mieczyslaw Siudek's indicator from xStation (XTB).
 // Looks for candles whose volume-to-price-movement ratio (density = volume per unit of range)

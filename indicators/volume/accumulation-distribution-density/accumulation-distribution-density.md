@@ -1,4 +1,4 @@
-# Accumulation / Distribution Density
+# Accumulation / Distribution Density (VD)
 
 A volume indicator for TradingView (Pine Script v6), modeled after **Mieczyslaw Siudek's "Accumulation / Distribution Density" (VD)** from xStation (XTB). It hunts for candles where a **disproportionately large volume produced a disproportionately small price move** at a fresh local extreme - a classic footprint of a big player building (accumulation) or unloading (distribution) a position.
 

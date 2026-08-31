@@ -1,4 +1,4 @@
-# Accumulation / Distribution Density
+# Accumulation / Distribution Density (VD)
 
 Wskaźnik wolumenowy dla TradingView (Pine Script v6), wzorowany na **"Accumulation / Distribution Density" (VD) Mieczysława Siudka** z xStation (XTB). Wyszukuje świece, na których **nieproporcjonalnie duży wolumen wywołał nieproporcjonalnie mały ruch ceny** na świeżym lokalnym ekstremum - klasyczny ślad dużego uczestnika rynku, który buduje (akumulacja) albo pozbywa się (dystrybucja) pozycji.
 
