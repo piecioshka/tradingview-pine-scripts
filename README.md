@@ -38,6 +38,7 @@
     - [Delta Footprint Histogram](#delta-footprint-histogram)
     - [Delta Footprint Table](#delta-footprint-table)
     - [Naked POC](#naked-poc)
+- [Tools](#tools)
 
 ## Indicators
 
@@ -248,6 +249,14 @@ The footprint POC of every session (rows of the whole day merged) or of every ca
 ![Naked POC](indicators-premium/volume/naked-poc/naked-poc.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
+
+## Tools
+
+- [`convert-md-to-bbcode`](https://github.com/piecioshka/convert-md-to-bbcode) - converts an indicator's Markdown doc into the BBCode accepted by the TradingView "Publish script" description field:
+
+  ```bash
+  npx convert-md-to-bbcode indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md
+  ```
 
 ## License
 
