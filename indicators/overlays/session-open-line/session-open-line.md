@@ -1,6 +1,6 @@
 # Session Open Line
 
-A price overlay for TradingView (Pine Script v6). A horizontal line at the **session open price**, drawn from the first to the last bar of that session, with a label carrying the **price change during the session** (close vs session open) - as a percent, as a difference in the instrument currency, or both.
+A price overlay for TradingView (Pine Script v6). A horizontal line at the **session open price**, drawn from the first to the last bar of that session, with a label carrying the **price change during the session** (close vs session open) - as a percent, as a difference in the instrument currency, or both. Alerts fire when the price crosses the line, and the session open level plus the session change are exposed as hidden series for other scripts.
 
 File: [`session-open-line.pine`](./session-open-line.pine)
 
@@ -49,7 +49,7 @@ The label is colored by the sign of the change and sits on a fully transparent b
 - **Show percent change** _(default on)_ - the change as a percent of the session open, formatted as `+0.84%` / `-1.12%` (always signed, two decimals).
 - **Show change in instrument currency** _(default off)_ - the change as a price difference (`close - session open`), formatted with the symbol's tick precision (`format.mintick`) and suffixed with `syminfo.currency`, e.g. `+12.50 USD`. For symbols without a quote currency the suffix is omitted.
 
-With both on the label reads `+0.84% (+12.50 USD)`; with both off no label is drawn at all - only the line (and the optional highlight) remains.
+With both on the label reads `+0.84% (+12.50 USD)`; with both off no label is drawn at all - only the line (and the optional highlight) remains. For a session that opens at or below zero (possible on futures spreads) the percent is undefined - the label falls back to the price difference, and the up/down color always follows the sign of the difference, which stays meaningful at any price.
 
 **Percent position** decides where it sits, and the choice applies the same way to completed sessions and to the ongoing one:
 
@@ -62,6 +62,11 @@ During the ongoing session the label follows the end of the line and updates on 
 ---
 
 ## 🛠️ Key parameters
+
+### General
+
+- **Show percent change** _(default on)_ - percent of the session open in the label.
+- **Show change in instrument currency** _(default off)_ - price difference in the instrument currency in the label.
 
 ### Appearance
 
@@ -78,11 +83,6 @@ During the ongoing session the label follows the end of the line and updates on 
 - **Highlight up color** _(default `#26A69A` at 90% transparency)_.
 - **Highlight down color** _(default `#EF5350` at 90% transparency)_.
 
-### General
-
-- **Show percent change** _(default on)_ - percent of the session open in the label.
-- **Show change in instrument currency** _(default off)_ - price difference in the instrument currency in the label.
-
 ---
 
 ## 📈 How to read it
@@ -94,12 +94,30 @@ During the ongoing session the label follows the end of the line and updates on 
 
 ---
 
+## 🔔 Alerts
+
+- **Cross above session open** - the price crossed the current session's line from below.
+- **Cross below session open** - the price crossed the current session's line from above.
+
+Those are exactly the reclaim/rejection moments described above. The first bar of a session - where the line jumps to the new open - never fires either alert. Crosses are evaluated on `close`, so on the live candle a cross can appear and un-cross before the candle closes; set the alert trigger to **Once Per Bar Close** if you only want confirmed crosses.
+
+---
+
+## 📤 Hidden series
+
+The script exposes two hidden series, visible in the **Data Window** and usable as an **external source** in other indicators and strategies (any `input.source` field):
+
+- **Session open** - the open price of the current session (the level the line sits at).
+- **Session change %** - the session change as a percent of the session open.
+
+---
+
 ## ⛔ Limitations
 
 - **Intraday timeframes only.** On D and above every bar is its own session, so the script draws nothing and instead shows a hint table in the top-right corner: `Session Open Line: the indicator works on intraday timeframes`.
 - Drawing objects are capped at **500** lines, **500** labels, and **500** boxes - older sessions drop off the left side of the chart.
 - Both values are computed from `close` against the session open, so during the ongoing session they move with every tick and only become final at the session close.
-- The indicator produces **no alerts**.
+- The **first session in the loaded history** starts at the first loaded bar, which is not necessarily the true session start - its "open" (and therefore its change) can be off. Every later session is exact.
 
 ---
 

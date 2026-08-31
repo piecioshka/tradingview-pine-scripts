@@ -1,6 +1,6 @@
 # Session Open Line
 
-Nakładka na wykres cenowy dla TradingView (Pine Script v6). Pozioma linia na **cenie otwarcia sesji**, rysowana od pierwszego do ostatniego słupka tej sesji, z etykietą niosącą **zmianę ceny w trakcie sesji** (close względem otwarcia sesji) - w procentach, jako różnicę w walucie instrumentu albo jedno i drugie.
+Nakładka na wykres cenowy dla TradingView (Pine Script v6). Pozioma linia na **cenie otwarcia sesji**, rysowana od pierwszego do ostatniego słupka tej sesji, z etykietą niosącą **zmianę ceny w trakcie sesji** (close względem otwarcia sesji) - w procentach, jako różnicę w walucie instrumentu albo jedno i drugie. Przecięcie linii przez cenę wyzwala alerty, a poziom otwarcia sesji i zmiana sesji są wystawione jako ukryte serie dla innych skryptów.
 
 Plik: [`session-open-line.pine`](./session-open-line.pine)
 
@@ -49,7 +49,7 @@ Etykieta jest kolorowana według znaku zmiany i leży na całkowicie przezroczys
 - **Show percent change** (pokaż zmianę procentową) _(domyślnie włączone)_ - zmiana jako procent otwarcia sesji, sformatowana jako `+0.84%` / `-1.12%` (zawsze ze znakiem, dwa miejsca po przecinku).
 - **Show change in instrument currency** (pokaż zmianę w walucie instrumentu) _(domyślnie wyłączone)_ - zmiana jako różnica ceny (`close - otwarcie sesji`), sformatowana z precyzją ticka symbolu (`format.mintick`) i z sufiksem `syminfo.currency`, np. `+12.50 USD`. Dla symboli bez waluty kwotowania sufiks jest pomijany.
 
-Przy obu włączonych etykieta brzmi `+0.84% (+12.50 USD)`; przy obu wyłączonych etykieta w ogóle nie jest rysowana - zostaje tylko linia (i opcjonalne podświetlenie).
+Przy obu włączonych etykieta brzmi `+0.84% (+12.50 USD)`; przy obu wyłączonych etykieta w ogóle nie jest rysowana - zostaje tylko linia (i opcjonalne podświetlenie). Dla sesji otwierającej się na zerze albo poniżej (możliwe na spreadach futures) procent jest nieokreślony - etykieta wraca wtedy do różnicy ceny, a kolor wzrostowy/spadkowy zawsze podąża za znakiem różnicy, która ma sens przy każdej cenie.
 
 **Percent position** decyduje, gdzie etykieta leży, a wybór działa tak samo dla sesji zakończonych i dla trwającej:
 
@@ -62,6 +62,11 @@ W trakcie trwającej sesji etykieta podąża za końcem linii i aktualizuje się
 ---
 
 ## 🛠️ Najważniejsze parametry
+
+### Ogólne
+
+- **Show percent change** (pokaż zmianę procentową) _(domyślnie włączone)_ - procent otwarcia sesji w etykiecie.
+- **Show change in instrument currency** (pokaż zmianę w walucie instrumentu) _(domyślnie wyłączone)_ - różnica ceny w walucie instrumentu w etykiecie.
 
 ### Wygląd
 
@@ -78,11 +83,6 @@ W trakcie trwającej sesji etykieta podąża za końcem linii i aktualizuje się
 - **Highlight up color** (kolor podświetlenia wzrostowego) _(domyślnie `#26A69A` z przezroczystością 90%)_.
 - **Highlight down color** (kolor podświetlenia spadkowego) _(domyślnie `#EF5350` z przezroczystością 90%)_.
 
-### Ogólne
-
-- **Show percent change** (pokaż zmianę procentową) _(domyślnie włączone)_ - procent otwarcia sesji w etykiecie.
-- **Show change in instrument currency** (pokaż zmianę w walucie instrumentu) _(domyślnie wyłączone)_ - różnica ceny w walucie instrumentu w etykiecie.
-
 ---
 
 ## 📈 Jak to czytać
@@ -94,12 +94,30 @@ W trakcie trwającej sesji etykieta podąża za końcem linii i aktualizuje się
 
 ---
 
+## 🔔 Alerty
+
+- **Cross above session open** - cena przecięła linię bieżącej sesji od dołu.
+- **Cross below session open** - cena przecięła linię bieżącej sesji od góry.
+
+To dokładnie te momenty odzyskania/odrzucenia opisane wyżej. Pierwszy słupek sesji - na którym linia przeskakuje na nowe otwarcie - nigdy nie wyzwala żadnego z alertów. Przecięcia są liczone na `close`, więc na żywej świecy przecięcie może się pojawić i cofnąć przed jej zamknięciem; ustaw wyzwalanie alertu na **Once Per Bar Close** (raz na zamknięcie słupka), jeśli chcesz tylko potwierdzone przecięcia.
+
+---
+
+## 📤 Ukryte serie
+
+Skrypt wystawia dwie ukryte serie, widoczne w **oknie danych** (Data Window) i możliwe do użycia jako **zewnętrzne źródło** w innych wskaźnikach i strategiach (dowolne pole `input.source`):
+
+- **Session open** - cena otwarcia bieżącej sesji (poziom, na którym leży linia).
+- **Session change %** - zmiana sesji jako procent otwarcia sesji.
+
+---
+
 ## ⛔ Ograniczenia
 
 - **Tylko interwały intraday.** Na D i wyższych każdy słupek jest własną sesją, więc skrypt nic nie rysuje, a zamiast tego pokazuje tabelkę z podpowiedzią w prawym górnym rogu: `Session Open Line: the indicator works on intraday timeframes`.
 - Obiekty rysunkowe są ograniczone do **500** linii, **500** etykiet i **500** boxów - starsze sesje wypadają z lewej strony wykresu.
 - Obie wartości są liczone z `close` względem otwarcia sesji, więc w trakcie trwającej sesji poruszają się z każdym tickiem i stają się ostateczne dopiero na zamknięciu sesji.
-- Wskaźnik **nie generuje alertów**.
+- **Pierwsza sesja w załadowanej historii** zaczyna się na pierwszym załadowanym słupku, który niekoniecznie jest prawdziwym początkiem sesji - jej "otwarcie" (a więc i zmiana) może być przekłamane. Każda późniejsza sesja jest dokładna.
 
 ---
 
