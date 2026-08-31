@@ -13,30 +13,30 @@
     - [1x MA](#1x-ma)
     - [2x MA](#2x-ma)
     - [3x MA](#3x-ma)
-    - [Envelopes](#envelopes)
     - [Bollinger Bands](#bollinger-bands)
+    - [Envelopes](#envelopes)
     - [GMMA](#gmma)
     - [Golden / Death Cross](#golden--death-cross)
-    - [Vertical Hour Lines](#vertical-hour-lines)
-    - [Session Open Line](#session-open-line)
     - [Last Time at Price](#last-time-at-price)
+    - [Session Open Line](#session-open-line)
+    - [Vertical Hour Lines](#vertical-hour-lines)
   - [Seasonality](#seasonality)
-    - [Monthly Seasonality](#monthly-seasonality)
     - [Daily Seasonality](#daily-seasonality)
     - [Hourly Seasonality](#hourly-seasonality)
+    - [Monthly Seasonality](#monthly-seasonality)
   - [Oscillators](#oscillators)
-    - [MACD](#macd)
     - [MA Spread Histogram](#ma-spread-histogram)
-    - [Stochastic Oscillator](#stochastic-oscillator)
-    - [RSI](#rsi)
+    - [MACD](#macd)
     - [ROC](#roc)
+    - [RSI](#rsi)
+    - [Stochastic Oscillator](#stochastic-oscillator)
   - [Volume](#volume)
     - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd)
 - [Premium](#premium)
   - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble)
-    - [Volume Delta Histogram](#volume-delta-histogram)
     - [Naked POC](#naked-poc)
+    - [Volume Delta Histogram](#volume-delta-histogram)
     - [Volume Delta Table](#volume-delta-table)
 - [Tools](#tools)
 
@@ -68,14 +68,6 @@ Three moving averages (default SMA 4, 9, and 18). Optional labels with the lengt
 
 ![3x MA](indicators/overlays/3x-ma/3x-ma.png)
 
-#### [Envelopes](indicators/overlays/envelopes/envelopes.pine)
-
-> 📖 Full documentation: [Envelopes](indicators/overlays/envelopes/envelopes.md) · [po polsku](indicators/overlays/envelopes/envelopes.pl.md)
-
-Envelopes around a moving average - upper and lower percentage deviation (default 3% around SMA 21).
-
-![Envelopes](indicators/overlays/envelopes/envelopes.png)
-
 #### [Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.pine)
 
 > 📖 Full documentation: [Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.md) · [po polsku](indicators/overlays/bollinger-bands/bollinger-bands.pl.md)
@@ -83,6 +75,14 @@ Envelopes around a moving average - upper and lower percentage deviation (defaul
 Bollinger Bands - SMA (default 20) ± a configurable number of standard deviations (default 2). Optional mean-reversion signal markers (configurable shape and size) when close crosses the lower / upper band, plus built-in alerts.
 
 ![Bollinger Bands](indicators/overlays/bollinger-bands/bollinger-bands.png)
+
+#### [Envelopes](indicators/overlays/envelopes/envelopes.pine)
+
+> 📖 Full documentation: [Envelopes](indicators/overlays/envelopes/envelopes.md) · [po polsku](indicators/overlays/envelopes/envelopes.pl.md)
+
+Envelopes around a moving average - upper and lower percentage deviation (default 3% around SMA 21).
+
+![Envelopes](indicators/overlays/envelopes/envelopes.png)
 
 #### [GMMA](indicators/overlays/gmma/gmma.pine)
 
@@ -100,13 +100,13 @@ Golden Cross and Death Cross - crossings of a fast and a slow average (classical
 
 ![Golden / Death Cross](indicators/overlays/golden-death-cross/golden-death-cross.png)
 
-#### [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.pine)
+#### [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.pine)
 
-> 📖 Full documentation: [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.md) · [po polsku](indicators/overlays/vertical-hour-lines/vertical-hour-lines.pl.md)
+> 📖 Full documentation: [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.md) · [po polsku](indicators/overlays/last-time-at-price/last-time-at-price.pl.md)
 
-Vertical lines at the given hours - 10 independent slots, each with its own toggle, hour, color, style, and width (one settings row per slot). Enabled by default: 10:30, 15:00, 20:00, and 23:00 as a light-purple dashed line with 70% transparency. Selectable time zone (Warsaw by default; optionally exchanges, UTC, or a custom IANA zone) - it must match the chart's time-axis zone, otherwise the lines land shifted.
+A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
 
-![Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.png)
+![Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.png)
 
 #### [Session Open Line](indicators/overlays/session-open-line/session-open-line.pine)
 
@@ -116,23 +116,15 @@ A horizontal line at the session's reference level - the previous session's clos
 
 ![Session Open Line](indicators/overlays/session-open-line/session-open-line.png)
 
-#### [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.pine)
+#### [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.pine)
 
-> 📖 Full documentation: [Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.md) · [po polsku](indicators/overlays/last-time-at-price/last-time-at-price.pl.md)
+> 📖 Full documentation: [Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.md) · [po polsku](indicators/overlays/vertical-hour-lines/vertical-hour-lines.pl.md)
 
-A label next to the current price line showing when the market was last at this level - the nearest bar back (up to 5000) whose low-high range covered the current price. Configurable label template (`{date}`, `{bars}` placeholders), date format, time zone (exchange or UTC), text size, colors, and an "ignore last X bars" filter; when no bar in the lookback matches, a gray "No such price" label appears instead.
+Vertical lines at the given hours - 10 independent slots, each with its own toggle, hour, color, style, and width (one settings row per slot). Enabled by default: 10:30, 15:00, 20:00, and 23:00 as a light-purple dashed line with 70% transparency. Selectable time zone (Warsaw by default; optionally exchanges, UTC, or a custom IANA zone) - it must match the chart's time-axis zone, otherwise the lines land shifted.
 
-![Last Time at Price](indicators/overlays/last-time-at-price/last-time-at-price.png)
+![Vertical Hour Lines](indicators/overlays/vertical-hour-lines/vertical-hour-lines.png)
 
 ### Seasonality
-
-#### [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.pine)
-
-> 📖 Full documentation: [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.md) · [po polsku](indicators/seasonality/monthly-seasonality/monthly-seasonality.pl.md)
-
-Chart background colored by month - seasonal patterns become visible (e.g. Lean Hogs). Each of the 12 months can be toggled; the names include futures contract codes (F, G, H, …).
-
-![Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.png)
 
 #### [Daily Seasonality](indicators/seasonality/daily-seasonality/daily-seasonality.pine)
 
@@ -150,15 +142,15 @@ Chart background colored by hour - a daily gradient (night → dawn → day → 
 
 ![Hourly Seasonality](indicators/seasonality/hourly-seasonality/hourly-seasonality.png)
 
+#### [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.pine)
+
+> 📖 Full documentation: [Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.md) · [po polsku](indicators/seasonality/monthly-seasonality/monthly-seasonality.pl.md)
+
+Chart background colored by month - seasonal patterns become visible (e.g. Lean Hogs). Each of the 12 months can be toggled; the names include futures contract codes (F, G, H, …).
+
+![Monthly Seasonality](indicators/seasonality/monthly-seasonality/monthly-seasonality.png)
+
 ### Oscillators
-
-#### [MACD](indicators/oscillators/macd/macd.pine)
-
-> 📖 Full documentation: [MACD](indicators/oscillators/macd/macd.md) · [po polsku](indicators/oscillators/macd/macd.pl.md)
-
-Moving Average Convergence Divergence - the difference of a fast and a slow average (default EMA 12/26, types configurable) with a signal line (default EMA 9). Histogram of the MACD minus signal difference, optional signal markers (configurable shape and size) on the price panel at crossings, a status table, and built-in alerts.
-
-![MACD](indicators/oscillators/macd/macd.png)
 
 #### [MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.pine)
 
@@ -168,13 +160,21 @@ A histogram showing the distance between two moving averages (short minus long),
 
 ![MA Spread Histogram](indicators/oscillators/ma-spread-histogram/ma-spread-histogram.png)
 
-#### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.pine)
+#### [MACD](indicators/oscillators/macd/macd.pine)
 
-> 📖 Full documentation: [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.md) · [po polsku](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.pl.md)
+> 📖 Full documentation: [MACD](indicators/oscillators/macd/macd.md) · [po polsku](indicators/oscillators/macd/macd.pl.md)
 
-Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default 80/20), a zone gradient, optional signal markers (configurable shape and size) on the price panel when %K crosses %D coming out of an extreme zone, a status table, and built-in alerts.
+Moving Average Convergence Divergence - the difference of a fast and a slow average (default EMA 12/26, types configurable) with a signal line (default EMA 9). Histogram of the MACD minus signal difference, optional signal markers (configurable shape and size) on the price panel at crossings, a status table, and built-in alerts.
 
-![Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.png)
+![MACD](indicators/oscillators/macd/macd.png)
+
+#### [ROC](indicators/oscillators/roc/roc.pine)
+
+> 📖 Full documentation: [ROC](indicators/oscillators/roc/roc.md) · [po polsku](indicators/oscillators/roc/roc.pl.md)
+
+Rate of Change - the percentage price change over a given period. Optional signal markers (configurable shape and size) on the price panel at zero crosses, plus built-in alerts.
+
+![ROC](indicators/oscillators/roc/roc.png)
 
 #### [RSI](indicators/oscillators/rsi/rsi.pine)
 
@@ -184,13 +184,13 @@ Relative Strength Index with configurable overbought/oversold levels (default 70
 
 ![RSI](indicators/oscillators/rsi/rsi.png)
 
-#### [ROC](indicators/oscillators/roc/roc.pine)
+#### [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.pine)
 
-> 📖 Full documentation: [ROC](indicators/oscillators/roc/roc.md) · [po polsku](indicators/oscillators/roc/roc.pl.md)
+> 📖 Full documentation: [Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.md) · [po polsku](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.pl.md)
 
-Rate of Change - the percentage price change over a given period. Optional signal markers (configurable shape and size) on the price panel at zero crosses, plus built-in alerts.
+Stochastic Oscillator - %K and %D lines with overbought/oversold levels (default 80/20), a zone gradient, optional signal markers (configurable shape and size) on the price panel when %K crosses %D coming out of an extreme zone, a status table, and built-in alerts.
 
-![ROC](indicators/oscillators/roc/roc.png)
+![Stochastic Oscillator](indicators/oscillators/stochastic-oscillator/stochastic-oscillator.png)
 
 ### Volume
 
@@ -220,16 +220,6 @@ Volume delta from real footprint data (`request.footprint()`, available since Ja
 
 > ⚠️ Requires a TradingView **Premium** or **Ultimate** account - without it the script does not compile. `request.footprint()` works only for the chart's **current timeframe**.
 
-#### [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pine)
-
-> 📖 Full documentation: [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.md) · [po polsku](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pl.md)
-
-The volume delta (from real footprint data) as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
-
-![Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.png)
-
-> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
-
 #### [Naked POC](indicators-premium/volume/naked-poc/naked-poc.pine)
 
 > 📖 Full documentation: [Naked POC](indicators-premium/volume/naked-poc/naked-poc.md) · [po polsku](indicators-premium/volume/naked-poc/naked-poc.pl.md)
@@ -237,6 +227,16 @@ The volume delta (from real footprint data) as a **histogram in a separate panel
 The footprint POC of every session (rows of the whole day merged) or of every candle as a line that stays until price trades through it. The ongoing session gets a developing POC - a dashed line that moves with every bar and becomes a naked POC when the day closes. Alerts on new and tested levels. Needs `request.footprint()`.
 
 ![Naked POC](indicators-premium/volume/naked-poc/naked-poc.png)
+
+> ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
+
+#### [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pine)
+
+> 📖 Full documentation: [Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.md) · [po polsku](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.pl.md)
+
+The volume delta (from real footprint data) as a **histogram in a separate panel** (behaves like the built-in Volume indicator): a column = the candle's |delta|, green with buy dominance, red with sell. The real delta as a **number on the column** and in the data window; with the cursor, the legend shows the true value (not the normalized height). The height is **power-normalized** (adjustable strength) and capped at a given % of the panel.
+
+![Volume Delta Histogram](indicators-premium/volume/volume-delta-histogram/volume-delta-histogram.png)
 
 > ⚠️ Requires **Premium / Ultimate**; `request.footprint()` only for the current timeframe.
 
