@@ -34,10 +34,10 @@
     - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd)
 - [Premium](#premium)
   - [Volume](#volume-1)
-    - [Delta Footprint Bubble](#delta-footprint-bubble)
-    - [Naked POC](#naked-poc)
-    - [Volume Delta Histogram](#volume-delta-histogram)
-    - [Volume Delta Table](#volume-delta-table)
+    - [Delta Footprint Bubble](#delta-footprint-bubble) - uses `request.footprint()`
+    - [Naked POC](#naked-poc) - uses `request.footprint()`
+    - [Volume Delta Histogram](#volume-delta-histogram) - uses `request.footprint()`
+    - [Volume Delta Table](#volume-delta-table) - uses `request.footprint()`
 - [Tools](#tools)
 
 ## Indicators
