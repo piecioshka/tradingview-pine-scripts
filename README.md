@@ -257,7 +257,7 @@ A standalone **volume delta status table** (volume / buy / sell / delta + % / CV
 - [`convert-md-to-bbcode`](https://github.com/piecioshka/convert-md-to-bbcode) - converts an indicator's Markdown doc into the BBCode accepted by the TradingView "Publish script" description field:
 
   ```bash
-  npx convert-md-to-bbcode --pinecoders indicators/volume/accumulation-distribution-density/accumulation-distribution-density.md
+  npx convert-md-to-bbcode --pinecoders indicators/<category>/<indicator>/<indicator>.md
   ```
 
 ## License
