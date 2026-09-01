@@ -18,7 +18,7 @@
     - [GMMA](#gmma)
     - [Golden / Death Cross](#golden--death-cross)
     - [Last Time at Price](#last-time-at-price)
-    - [Session Open Line](#session-open-line) - [published on TradingView](https://pl.tradingview.com/script/YECX6MR7/)
+    - [Session Open Line](#session-open-line) - 🚀 [published on TradingView](https://pl.tradingview.com/script/YECX6MR7/)
     - [Vertical Hour Lines](#vertical-hour-lines)
   - [Seasonality](#seasonality)
     - [Daily Seasonality](#daily-seasonality)
@@ -31,7 +31,7 @@
     - [RSI](#rsi)
     - [Stochastic Oscillator](#stochastic-oscillator)
   - [Volume](#volume)
-    - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd) - [published on TradingView](https://pl.tradingview.com/script/olfpEvv8/)
+    - [Accumulation / Distribution Density (VD)](#accumulation--distribution-density-vd) - 🚀 [published on TradingView](https://pl.tradingview.com/script/olfpEvv8/)
 - [Premium](#premium)
   - [Volume](#volume-1)
     - [Delta Footprint Bubble](#delta-footprint-bubble) - uses `request.footprint()`
