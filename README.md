@@ -111,6 +111,8 @@ A label next to the current price line showing when the market was last at this 
 #### [Session Open Line](indicators/overlays/session-open-line/session-open-line.pine)
 
 > 📖 Full documentation: [Session Open Line](indicators/overlays/session-open-line/session-open-line.md) · [po polsku](indicators/overlays/session-open-line/session-open-line.pl.md) · [release notes](indicators/overlays/session-open-line/release/session-open-line.release.md)
+>
+> 🚀 Published on TradingView: [Session Open Line](https://pl.tradingview.com/script/YECX6MR7/)
 
 A horizontal line at the session's reference level - the previous session's close (default) or the session open - drawn from the first to the last bar of the session. A label carries the price change during the session (close vs the reference) - as a percent, as a difference in the instrument currency, or both, each behind its own checkbox. With the default reference the change matches the day change quoted against the prior close and the line doubles as the gap-fill level. The "Percent position" dropdown picks where that label sits - "Behind the line" (default) at the reference level, right of the line end, as if continuing it, or "Above the line" / "Below the line" over or under the end of the line - and the choice applies the same way to completed sessions and to the ongoing one. The line and label colors depend on the sign of the change, and the whole session is shaded with that color (on by default). Alerts fire when the price crosses the line, and the reference level plus the session change (%) are exposed as hidden series usable as external sources in other scripts. Works on intraday timeframes - on D and above every bar is its own session, so the indicator only shows a hint.
 
